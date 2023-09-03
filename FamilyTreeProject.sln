@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyTreeLibrary", "FamilyTreeLibrary\FamilyTreeLibrary.csproj", "{39946B7B-BABD-4FF6-A48A-D05E055D8E02}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyTreeScratch", "FamilyTreeScratch\FamilyTreeScratch.csproj", "{CF138466-2121-47CC-AA2A-17BCB591F864}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{39946B7B-BABD-4FF6-A48A-D05E055D8E02}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{39946B7B-BABD-4FF6-A48A-D05E055D8E02}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{39946B7B-BABD-4FF6-A48A-D05E055D8E02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF138466-2121-47CC-AA2A-17BCB591F864}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF138466-2121-47CC-AA2A-17BCB591F864}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF138466-2121-47CC-AA2A-17BCB591F864}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF138466-2121-47CC-AA2A-17BCB591F864}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
