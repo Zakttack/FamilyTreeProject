@@ -25,7 +25,7 @@ namespace FamilyTreeLibrary.Models
             get;
         }
 
-        public ICollection<Person> Children
+        public ICollection<Family> Children
         {
             private set;
             get;
@@ -41,9 +41,9 @@ namespace FamilyTreeLibrary.Models
                     { "InLaw", JObject.Parse(Couple[1].ToString()) }
                 };
                 JArray array = new();
-                foreach (Person child in Children)
+                foreach (Family child in Children)
                 {
-                    array.Add(JObject.Parse(child.ToString()));
+                    array.Add(JObject.Parse(child.Couple[0].ToString()));
                 }
                 obj.Add("Children", array);
                 return obj;
@@ -72,12 +72,12 @@ namespace FamilyTreeLibrary.Models
 
         private void LoadChildren(IEnumerable<Person> people)
         {
-            Children = new SortedSet<Person>(FamilyTreeUtils.Comparer);
+            Children = new SortedSet<Family>(FamilyTreeUtils.Comparer);
             if (people != null)
             {
                 foreach (Person child in people)
                 {
-                    Children.Add(child);
+                    Children.Add(new(child));
                 }
             }
         }

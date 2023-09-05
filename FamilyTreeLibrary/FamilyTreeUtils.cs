@@ -12,7 +12,7 @@ namespace FamilyTreeLibrary
         }
     }
 
-    internal static IComparer<Person> Comparer
+    internal static IComparer<Family> Comparer
     {
         get
         {
@@ -41,11 +41,11 @@ namespace FamilyTreeLibrary
         return $"{a.Month}/{a.Day}/{a.Year}";
     }
 
-    private class PersonComparer : IComparer<Person>
+    private class PersonComparer : IComparer<Family>
     {
-        public int Compare(Person a, Person b)
+        public int Compare(Family a, Family b)
         {
-            return CompareDates(a.BirthDate, b.BirthDate);
+            return CompareDates(a.Couple[0].BirthDate, b.Couple[0].BirthDate);
         }
     }
 }
