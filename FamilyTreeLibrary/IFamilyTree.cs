@@ -1,27 +1,24 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FamilyTreeLibrary.Models;
 
 namespace FamilyTreeLibrary
 {
     public interface IFamilyTree : IEnumerable<Person>
     {
-        public int Count
-        {
-            get;
-        }
 
         public string Name
         {
             get;
         }
 
-        public void AddFamily(Person parent, Person child);
+        public Person this[Person member]
+        {
+            get;
+        }
 
-        public Person GetInLaw(Person member);
+        public void ReportChild(Person parent, Person child);
 
-        public void UpdateMarriage(Person member);
+        public void ReportDeceased(Person p);
+
+        public void ReportMarriage(Person member, Person inLaw);
     }
 }
