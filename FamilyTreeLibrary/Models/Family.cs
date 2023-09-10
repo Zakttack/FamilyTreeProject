@@ -5,18 +5,31 @@ namespace FamilyTreeLibrary.Models
 {
     public class Family
     {
-        public Family(Person member, Person inLaw = null, IEnumerable<Person> children = null)
+        public Family(Person member, Person inLaw = null, DateTime marriageDate = new(), IEnumerable<Person> children = null)
         {
             Couple = new Person[] {member, inLaw};
+            MarriageDate = marriageDate;
             LoadChildren(children);
         }
 
         public Family(JObject obj)
         {
-            Person member = JsonConvert.DeserializeObject<Person>(obj["Member"].ToString());
-            Person inLaw = obj["InLaw"] == null ? null : JsonConvert.DeserializeObject<Person>(obj["InLaw"].ToString());
+            Person member = obj["Member"] == null ? null : new(JObject.Parse(obj["Member"].ToString()));
+            Person inLaw = obj["InLaw"] == null ? null : new(JObject.Parse(obj["InLaw"].ToString()));
             Couple = new Person[]{member, inLaw};
-            IEnumerable<Person> people = obj["Children"] == null ? null : JsonConvert.DeserializeObject<List<Person>>(obj["Children"].ToString());
+            MarriageDate = obj["MarriageDate"] == null ? FamilyTreeUtils.DefaultDate : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["MarriageDate"].ToString()));
+            ICollection<Person> people = new List<Person>();
+            if (obj["Children"] != null)
+            {
+                JArray array = JArray.Parse(obj["Children"].ToString());
+                foreach (JToken token in array)
+                {
+                    if (token != null)
+                    {
+                        people.Add(new(JObject.Parse(token.ToString())));
+                    }
+                }
+            }
             LoadChildren(people);
         }
 
@@ -31,6 +44,12 @@ namespace FamilyTreeLibrary.Models
             get;
         }
 
+        public DateTime MarriageDate
+        {
+            get;
+            set;
+        }
+
         public JObject FamilyObject
         {
             get
@@ -38,7 +57,8 @@ namespace FamilyTreeLibrary.Models
                 JObject obj = new()
                 {
                     { "Member", JObject.Parse(Couple[0].ToString()) },
-                    { "InLaw", JObject.Parse(Couple[1].ToString()) }
+                    { "InLaw", JObject.Parse(Couple[1].ToString()) },
+                    {"MarriageDate", FamilyTreeUtils.WriteDate(MarriageDate)}
                 };
                 JArray array = new();
                 foreach (Family child in Children)

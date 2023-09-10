@@ -1,5 +1,6 @@
 using FamilyTreeLibrary.Exceptions;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace FamilyTreeLibrary.Models
 {
@@ -11,6 +12,13 @@ namespace FamilyTreeLibrary.Models
             Name = name;
             BirthDate = birthDate;
             DeceasedDate = deceasedDate;
+        }
+
+        public Person(JObject obj)
+        {
+            Name = obj["Name"] == null ? "" : JsonConvert.DeserializeObject<string>(obj["Name"].ToString());
+            BirthDate = obj["BirthDate"] == null ? FamilyTreeUtils.DefaultDate : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["BirthDate"].ToString()));
+            DeceasedDate = obj["DeceasedDate"] == null ? FamilyTreeUtils.DefaultDate : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["DeceasedDate"].ToString()));
         }
 
         public string Name
@@ -57,7 +65,13 @@ namespace FamilyTreeLibrary.Models
 
         public override string ToString()
         {
-            return JsonConvert.SerializeObject(this);
+            JObject obj = new()
+            {
+                {"Name", Name},
+                {"BirthDate", FamilyTreeUtils.WriteDate(BirthDate)},
+                {"DeceasedDate", FamilyTreeUtils.WriteDate(DeceasedDate)}
+            };
+            return obj.ToString();
         }
     }
 }
