@@ -14,14 +14,6 @@ namespace FamilyTreeScratch
             }
         }
 
-        public static bool FileExists
-        {
-            get
-            {
-                return File.Exists(PdfFilePath);
-            }
-        }
-
         public static IEnumerable<string> Content
         {
             get
@@ -29,15 +21,12 @@ namespace FamilyTreeScratch
                 PdfReader reader = new(PdfFilePath);
                 PdfDocument document = new (reader);
                 ICollection<string> lines = new List<string>();
-                for (int p = 1; p <= document.GetNumberOfPages(); p++)
+                ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();
+                string page = PdfTextExtractor.GetTextFromPage(document.GetPage(1), strategy);
+                string[] data = page.Split('\n');
+                foreach (string d in data)
                 {
-                    ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();
-                    string page = PdfTextExtractor.GetTextFromPage(document.GetPage(p), strategy);
-                    string[] data = page.Split('\n');
-                    foreach (string d in data)
-                    {
-                        lines.Add(d);
-                    }
+                    lines.Add(d);
                 }
                 return lines;
             }

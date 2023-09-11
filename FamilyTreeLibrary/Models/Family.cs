@@ -50,26 +50,6 @@ namespace FamilyTreeLibrary.Models
             set;
         }
 
-        public JObject FamilyObject
-        {
-            get
-            {
-                JObject obj = new()
-                {
-                    { "Member", JObject.Parse(Couple[0].ToString()) },
-                    { "InLaw", JObject.Parse(Couple[1].ToString()) },
-                    {"MarriageDate", FamilyTreeUtils.WriteDate(MarriageDate)}
-                };
-                JArray array = new();
-                foreach (Family child in Children)
-                {
-                    array.Add(JObject.Parse(child.Couple[0].ToString()));
-                }
-                obj.Add("Children", array);
-                return obj;
-            }
-        }
-
         public override bool Equals(object obj)
         {
             if (obj is not Family)
@@ -87,7 +67,19 @@ namespace FamilyTreeLibrary.Models
 
         public override string ToString()
         {
-            return FamilyObject.ToString();
+            JObject obj = new()
+            {
+                { "Member", JObject.Parse(Couple[0].ToString()) },
+                { "InLaw", JObject.Parse(Couple[1].ToString()) },
+                {"MarriageDate", MarriageDate.ToString().Split()[0]}
+            };
+            JArray array = new();
+            foreach (Family child in Children)
+            {
+                array.Add(JObject.Parse(child.Couple[0].ToString()));
+            }
+            obj.Add("Children", array);
+            return obj.ToString();
         }
 
         private void LoadChildren(IEnumerable<Person> people)

@@ -68,8 +68,8 @@ namespace FamilyTreeLibrary.Models
             JObject obj = new()
             {
                 {"Name", Name},
-                {"BirthDate", FamilyTreeUtils.WriteDate(BirthDate)},
-                {"DeceasedDate", FamilyTreeUtils.WriteDate(DeceasedDate)}
+                {"BirthDate", BirthDate.ToString().Split()[0]},
+                {"DeceasedDate", DeceasedDate.ToString().Split()[0]}
             };
             return obj.ToString();
         }

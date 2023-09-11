@@ -11,4 +11,8 @@
     <PackageReference Include="itext7" Version="8.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../FamilyTreeLibrary/FamilyTreeLibrary.csproj"/>
+  </ItemGroup>
+
 </Project>
