@@ -36,9 +36,25 @@ namespace FamilyTreeLibrary
         return yearDiff;
     }
 
+    public static string GetFileNameFromResources(string fileNameWithExtension)
+    {
+        return GetFileNameFromResources(Directory.GetCurrentDirectory(), fileNameWithExtension);
+    }
+
     public static string WriteDate(DateTime a)
     {
         return $"{a.Month}/{a.Day}/{a.Year}";
+    }
+
+    private static string GetFileNameFromResources(string currentPath, string fileNameWithExtension)
+    {
+        string[] parts = currentPath.Split('\\');
+        string current = parts[^1];
+        if (current != "FamilyTreeProject")
+        {
+            return GetFileNameFromResources(currentPath[..(currentPath.Length - current.Length - 1)], fileNameWithExtension);
+        }
+        return $"{currentPath}\\Resources\\{fileNameWithExtension}";
     }
 
     private class PersonComparer : IComparer<Family>
