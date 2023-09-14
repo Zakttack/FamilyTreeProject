@@ -1,5 +1,5 @@
 ﻿using FamilyTreeLibrary.Models;
-using Newtonsoft.Json;
+using FamilyTreeLibrary.OrderingType;
 namespace FamilyTreeLibrary
 {
     public class FamilyTreeUtils
@@ -17,6 +17,14 @@ namespace FamilyTreeLibrary
             get
             {
                 return new PersonComparer();
+            }
+        }
+
+        public static IComparer<AbstractOrderingType[]> OrderTypeComparer
+        {
+            get
+            {
+                return new OrderingTypeComparer();
             }
         }
 
@@ -62,6 +70,25 @@ namespace FamilyTreeLibrary
             public int Compare(Family a, Family b)
             {
                 return CompareDates(a.Couple[0].BirthDate, b.Couple[0].BirthDate);
+            }
+        }
+
+        private class OrderingTypeComparer : IComparer<AbstractOrderingType[]>
+        {
+            public int Compare(AbstractOrderingType[] a, AbstractOrderingType[] b)
+            {
+                for (int i = 0; i < a.Length && i < b.Length; i++)
+                {
+                    if (a[i].CompareTo(b[i]) < 0)
+                    {
+                        return -1;
+                    }
+                    else if (a[i].CompareTo(b[i]) > 0)
+                    {
+                        return 1;
+                    }
+                }
+                return a.Length - b.Length;
             }
         }
     }

@@ -36,6 +36,5 @@ namespace FamilyTreeLibrary.Models
                 throw new NotSupportedException("Only generations 1-6 are supported.");
             }
         }
-
     }
 }

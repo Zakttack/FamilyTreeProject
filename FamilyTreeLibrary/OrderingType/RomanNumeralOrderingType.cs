@@ -9,15 +9,20 @@ namespace FamilyTreeLibrary.OrderingType
     public class RomanNumeralOrderingType : AbstractOrderingType
     {
         public RomanNumeralOrderingType(int key, OrderingTypeOptions option)
-        :base(key, option)
+        :base(key)
         {
-
+            Type = option == OrderingTypeOptions.UpperCase ? OrderingTypeTypes.RomanNumeralUpper : OrderingTypeTypes.RomanNumeralLower;
         }
 
         public RomanNumeralOrderingType(string value, OrderingTypeOptions option)
-        :base(value, option)
+        :base(value)
         {
+            Type = option == OrderingTypeOptions.UpperCase ? OrderingTypeTypes.RomanNumeralUpper : OrderingTypeTypes.RomanNumeralLower;
+        }
 
+        protected override OrderingTypeTypes Type 
+        {
+            get;
         }
 
         protected override int FindKey(string value)
@@ -54,10 +59,10 @@ namespace FamilyTreeLibrary.OrderingType
                     number -= item.Key;
                 }
             }
-            switch (Option)
+            switch (Type)
             {
-                case OrderingTypeOptions.UpperCase: result += "."; break;
-                case OrderingTypeOptions.LowerCase: result = result.ToLower() + ")"; break;
+                case OrderingTypeTypes.RomanNumeralUpper: result += "."; break;
+                case OrderingTypeTypes.RomanNumeralLower: result = result.ToLower() + ")"; break;
                 default: throw new ArgumentNullException("Ordering Type Options", "A Roman Numeral is either capitalized or not capitalized.");
             }
             return result;

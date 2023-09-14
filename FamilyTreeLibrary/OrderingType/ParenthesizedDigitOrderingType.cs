@@ -17,6 +17,14 @@ namespace FamilyTreeLibrary.OrderingType
 
         }
 
+        protected override OrderingTypeTypes Type 
+        {
+            get
+            {
+                return OrderingTypeTypes.ParenthesizedNumbering;
+            }
+        }
+
         protected override int FindKey(string value)
         {
             string v = value[1..(value.Length - 2)];

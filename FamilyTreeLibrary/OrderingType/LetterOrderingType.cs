@@ -6,15 +6,22 @@ namespace FamilyTreeLibrary.OrderingType
     public class LetterOrderingType : AbstractOrderingType
     {
         public LetterOrderingType(int key, OrderingTypeOptions option)
-        :base(key,option)
+        :base(key)
         {
             Enumerator = new LetterEnumerator();
+            Type = option == OrderingTypeOptions.UpperCase ? OrderingTypeTypes.CapitalLetter : OrderingTypeTypes.LowerCaseLetter;
         }
 
         public LetterOrderingType(string value, OrderingTypeOptions option)
-        :base(value,option)
+        :base(value)
         {
             Enumerator = new LetterEnumerator();
+            Type = option == OrderingTypeOptions.UpperCase ? OrderingTypeTypes.CapitalLetter : OrderingTypeTypes.LowerCaseLetter;
+        }
+
+        protected override OrderingTypeTypes Type
+        {
+            get;
         }
 
         protected override int FindKey(string value)
@@ -46,10 +53,10 @@ namespace FamilyTreeLibrary.OrderingType
                 Enumerator.Dispose();
             }
             string value = Enumerator.Current;
-            switch (Option)
+            switch (Type)
             {
-                case OrderingTypeOptions.UpperCase: value += "."; break;
-                case OrderingTypeOptions.LowerCase: value = $"{value.ToLower()}."; break;
+                case OrderingTypeTypes.CapitalLetter: value += "."; break;
+                case OrderingTypeTypes.LowerCaseLetter: value = $"{value.ToLower()}."; break;
                 default: throw new ArgumentNullException("Ordering Type Options", "A letter is either capitalized or not capitalized.");
             }
             Enumerator.Reset();

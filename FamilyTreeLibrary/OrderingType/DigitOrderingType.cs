@@ -7,13 +7,19 @@ namespace FamilyTreeLibrary.OrderingType
         public DigitOrderingType(int key)
         :base(key)
         {
-
         }
 
         public DigitOrderingType(string value)
         :base(value)
         {
+        }
 
+        protected override OrderingTypeTypes Type
+        {
+            get
+            {
+                return OrderingTypeTypes.Numbering;
+            }
         }
 
         protected override int FindKey(string value)

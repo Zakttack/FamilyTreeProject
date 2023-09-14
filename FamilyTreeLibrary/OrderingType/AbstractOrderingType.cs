@@ -5,18 +5,16 @@ using System.Threading.Tasks;
 
 namespace FamilyTreeLibrary.OrderingType
 {
-    public abstract class AbstractOrderingType
+    public abstract class AbstractOrderingType : IComparable<AbstractOrderingType>
     {
-        protected AbstractOrderingType(int key, OrderingTypeOptions option = OrderingTypeOptions.None)
+        protected AbstractOrderingType(int key)
         {
             ConversionPair = new(key, FindValue(key));
-            Option = option;
         }
 
-        protected AbstractOrderingType(string value, OrderingTypeOptions option = OrderingTypeOptions.None)
+        protected AbstractOrderingType(string value)
         {
             ConversionPair = new(FindKey(value), value);
-            Option = option;
         }
 
         public KeyValuePair<int,string> ConversionPair
@@ -24,7 +22,13 @@ namespace FamilyTreeLibrary.OrderingType
             get;
         }
 
-        protected OrderingTypeOptions Option
+        public int CompareTo(AbstractOrderingType other)
+        {
+            int tempResult = Type.CompareTo(other.Type);
+            return tempResult == 0 ? ConversionPair.Key - other.ConversionPair.Key : tempResult;
+        }
+
+        protected abstract OrderingTypeTypes Type
         {
             get;
         }
@@ -32,7 +36,5 @@ namespace FamilyTreeLibrary.OrderingType
         protected abstract int FindKey(string value);
 
         protected abstract string FindValue(int key);
-
-
     }
 }
