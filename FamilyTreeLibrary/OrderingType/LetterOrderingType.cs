@@ -5,23 +5,14 @@ namespace FamilyTreeLibrary.OrderingType
 {
     public class LetterOrderingType : AbstractOrderingType
     {
-        public LetterOrderingType(int key, OrderingTypeOptions option)
-        :base(key)
+        internal LetterOrderingType(int key, bool isUpperCase)
+        :base(key, isUpperCase ? 2 : 4)
         {
-            Enumerator = new LetterEnumerator();
-            Type = option == OrderingTypeOptions.UpperCase ? OrderingTypeTypes.CapitalLetter : OrderingTypeTypes.LowerCaseLetter;
         }
 
-        public LetterOrderingType(string value, OrderingTypeOptions option)
-        :base(value)
+        internal LetterOrderingType(string value, bool isUpperCase)
+        :base(value, isUpperCase ? 2 : 4)
         {
-            Enumerator = new LetterEnumerator();
-            Type = option == OrderingTypeOptions.UpperCase ? OrderingTypeTypes.CapitalLetter : OrderingTypeTypes.LowerCaseLetter;
-        }
-
-        protected override OrderingTypeTypes Type
-        {
-            get;
         }
 
         protected override int FindKey(string value)
@@ -48,24 +39,20 @@ namespace FamilyTreeLibrary.OrderingType
             {
                 throw new InvalidKeyException(key);
             }
+            IEnumerator<string> enumerator = new LetterEnumerator();
             for (int k = 1; k < key; k++)
             {
-                Enumerator.Dispose();
+                enumerator.Dispose();
             }
-            string value = Enumerator.Current;
+            string value = enumerator.Current;
             switch (Type)
             {
                 case OrderingTypeTypes.CapitalLetter: value += "."; break;
                 case OrderingTypeTypes.LowerCaseLetter: value = $"{value.ToLower()}."; break;
                 default: throw new ArgumentNullException("Ordering Type Options", "A letter is either capitalized or not capitalized.");
             }
-            Enumerator.Reset();
+            enumerator.Reset();
             return value;
-        }
-
-        private IEnumerator<string> Enumerator
-        {
-            get;
         }
 
         private class LetterEnumerator : IEnumerator<string>

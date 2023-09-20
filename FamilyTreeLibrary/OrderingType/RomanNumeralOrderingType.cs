@@ -8,21 +8,14 @@ namespace FamilyTreeLibrary.OrderingType
 {
     public class RomanNumeralOrderingType : AbstractOrderingType
     {
-        public RomanNumeralOrderingType(int key, OrderingTypeOptions option)
-        :base(key)
+        internal RomanNumeralOrderingType(int key, bool isUpperCase)
+        :base(key, isUpperCase ? 1 : 6)
         {
-            Type = option == OrderingTypeOptions.UpperCase ? OrderingTypeTypes.RomanNumeralUpper : OrderingTypeTypes.RomanNumeralLower;
         }
 
-        public RomanNumeralOrderingType(string value, OrderingTypeOptions option)
-        :base(value)
+        internal RomanNumeralOrderingType(string value, bool isUpperCase)
+        :base(value, isUpperCase ? 1 : 6)
         {
-            Type = option == OrderingTypeOptions.UpperCase ? OrderingTypeTypes.RomanNumeralUpper : OrderingTypeTypes.RomanNumeralLower;
-        }
-
-        protected override OrderingTypeTypes Type 
-        {
-            get;
         }
 
         protected override int FindKey(string value)

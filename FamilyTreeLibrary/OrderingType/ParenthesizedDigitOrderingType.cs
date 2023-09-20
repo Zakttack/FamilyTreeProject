@@ -5,28 +5,22 @@ namespace FamilyTreeLibrary.OrderingType
 {
     public class ParenthesizedDigitOrderingType : DigitOrderingType
     {
-        public ParenthesizedDigitOrderingType(int key)
-        :base(key)
+        internal ParenthesizedDigitOrderingType(int key)
+        :base(key, true)
         {
-
         }
 
-        public ParenthesizedDigitOrderingType(string value)
-        :base(value)
+        internal ParenthesizedDigitOrderingType(string value)
+        :base(value, true)
         {
-
-        }
-
-        protected override OrderingTypeTypes Type 
-        {
-            get
-            {
-                return OrderingTypeTypes.ParenthesizedNumbering;
-            }
         }
 
         protected override int FindKey(string value)
         {
+            if (Type != OrderingTypeTypes.ParenthesizedNumbering)
+            {
+                throw new NotSupportedException("This conversion is only supported for the parenthesized digit ordering type.");
+            }
             string v = value[1..(value.Length - 2)];
             try
             {
@@ -40,7 +34,11 @@ namespace FamilyTreeLibrary.OrderingType
 
         protected override string FindValue(int key)
         {
-            if (key <= 0)
+            if (Type != OrderingTypeTypes.ParenthesizedNumbering)
+            {
+                throw new NotSupportedException("This conversion is only supported for the parenthesized digit ordering type.");
+            }
+            else if (key <= 0)
             {
                 throw new InvalidKeyException(key);
             }
