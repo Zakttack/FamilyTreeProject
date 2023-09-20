@@ -24,10 +24,26 @@ namespace FamilyTreeLibrary.OrderingType
             get;
         }
 
+        protected OrderingTypeTypes Type
+        {
+            get
+            {
+                return Generation switch
+                {
+                    1 => OrderingTypeTypes.RomanNumeralUpper,
+                    2 => OrderingTypeTypes.CapitalLetter,
+                    3 => OrderingTypeTypes.Numbering,
+                    4 => OrderingTypeTypes.LowerCaseLetter,
+                    5 => OrderingTypeTypes.ParenthesizedNumbering,
+                    6 => OrderingTypeTypes.RomanNumeralLower,
+                    _ => throw new NotSupportedException($"{Generation} isn't supported.")
+                };
+            }
+        }
+
         public int CompareTo(AbstractOrderingType other)
         {
-            int tempResult = Type.CompareTo(other.Type);
-            return tempResult == 0 ? ConversionPair.Key - other.ConversionPair.Key : tempResult;
+            return Type.CompareTo(other.Type);
         }
 
         public static AbstractOrderingType GetOrderingType(int key, int generation)
@@ -56,23 +72,6 @@ namespace FamilyTreeLibrary.OrderingType
                 6 => new RomanNumeralOrderingType(value, false),
                 _ => throw new NotSupportedException($"{generation} is not supported.")
             };
-        }
-
-        protected OrderingTypeTypes Type
-        {
-            get
-            {
-                return Generation switch
-                {
-                    1 => OrderingTypeTypes.RomanNumeralUpper,
-                    2 => OrderingTypeTypes.CapitalLetter,
-                    3 => OrderingTypeTypes.Numbering,
-                    4 => OrderingTypeTypes.LowerCaseLetter,
-                    5 => OrderingTypeTypes.ParenthesizedNumbering,
-                    6 => OrderingTypeTypes.RomanNumeralLower,
-                    _ => throw new NotSupportedException($"{Generation} isn't supported.")
-                };
-            }
         }
 
         protected abstract int FindKey(string value);
