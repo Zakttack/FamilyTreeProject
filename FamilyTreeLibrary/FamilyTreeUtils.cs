@@ -12,7 +12,15 @@ namespace FamilyTreeLibrary
             }
         }
 
-        internal static IComparer<Family> Comparer
+        public static IComparer<DateTime> DateComp
+        {
+            get
+            {
+                return new DateComparer();
+            }
+        }
+
+        public static IComparer<Family> FamilyComparer
         {
             get
             {
@@ -28,30 +36,9 @@ namespace FamilyTreeLibrary
             }
         }
 
-        public static int CompareDates(DateTime a, DateTime b)
-        {
-            int yearDiff = a.Year - b.Year;
-            int monthDiff = a.Month - b.Month;
-            int dayDiff = a.Day - b.Day;
-            if (yearDiff == 0)
-            {
-                if (monthDiff == 0)
-                {
-                    return dayDiff;
-                }
-                return monthDiff;
-            }
-            return yearDiff;
-        }
-
         public static string GetFileNameFromResources(string fileNameWithExtension)
         {
             return GetFileNameFromResources(Directory.GetCurrentDirectory(), fileNameWithExtension);
-        }
-
-        public static string WriteDate(DateTime a)
-        {
-            return $"{a.Month}/{a.Day}/{a.Year}";
         }
 
         private static string GetFileNameFromResources(string currentPath, string fileNameWithExtension)
@@ -65,11 +52,22 @@ namespace FamilyTreeLibrary
             return $"{currentPath}\\Resources\\{fileNameWithExtension}";
         }
 
-        private class PersonComparer : IComparer<Family>
+        private class DateComparer : IComparer<DateTime>
         {
-            public int Compare(Family a, Family b)
+            public int Compare(DateTime a, DateTime b)
             {
-                return CompareDates(a.Couple[0].BirthDate, b.Couple[0].BirthDate);
+                int yearDiff = a.Year - b.Year;
+                int monthDiff = a.Month - b.Month;
+                int dayDiff = a.Day - b.Day;
+                if (yearDiff == 0)
+                {
+                    if (monthDiff == 0)
+                    {
+                        return dayDiff;
+                    }
+                    return monthDiff;
+                }
+                return yearDiff;
             }
         }
 
@@ -89,6 +87,14 @@ namespace FamilyTreeLibrary
                     }
                 }
                 return a.Length - b.Length;
+            }
+        }
+
+        private class PersonComparer : IComparer<Family>
+        {
+            public int Compare(Family a, Family b)
+            {
+                return DateComp.Compare(a.Couple[0].BirthDate, b.Couple[0].BirthDate);
             }
         }
     }
