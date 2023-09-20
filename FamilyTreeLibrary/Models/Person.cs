@@ -39,8 +39,8 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                if (FamilyTreeUtils.CompareDates(value, FamilyTreeUtils.DefaultDate) != 0 &&
-                    FamilyTreeUtils.CompareDates(value, BirthDate) < 0)
+                if (FamilyTreeUtils.DateComp.Compare(value, FamilyTreeUtils.DefaultDate) != 0 &&
+                    FamilyTreeUtils.DateComp.Compare(value, BirthDate) < 0)
                 {
                     throw new DeceasedDateException(Name, BirthDate, value);
                 }

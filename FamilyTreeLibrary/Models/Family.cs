@@ -84,7 +84,7 @@ namespace FamilyTreeLibrary.Models
 
         private void LoadChildren(IEnumerable<Person> people)
         {
-            Children = new SortedSet<Family>(FamilyTreeUtils.Comparer);
+            Children = new SortedSet<Family>(FamilyTreeUtils.FamilyComparer);
             if (people != null)
             {
                 foreach (Person child in people)
