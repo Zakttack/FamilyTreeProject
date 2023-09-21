@@ -110,6 +110,7 @@ namespace FamilyTreeLibrary
             ISet<int> positions = new SortedSet<int>();
             for (int generation = 1; generation <= 6; generation++)
             {
+                Console.WriteLine($"Considering generation#{generation}.");
                 positions.UnionWith(GetOrderingTypePositions(tokens, generation));
             }
             return positions.ToList();
@@ -124,9 +125,14 @@ namespace FamilyTreeLibrary
                 {
                     AbstractOrderingType.GetOrderingType(tokens[i], generation);
                     positions.Add(i);
+                    Console.WriteLine($"{i}: {tokens[i]} is added as an ordered type");
                 }
-                catch (ArgumentException)
+                catch (Exception ex) 
                 {
+                    if (ex is not ArgumentException)
+                    {
+                        throw new SystemException(ex.Message, ex);
+                    }
                 }
             }
             return positions;
@@ -134,17 +140,27 @@ namespace FamilyTreeLibrary
 
         private static IList<string> GetPDFContents(string pdfFileName)
         {
-            PdfReader reader = new(GetFileNameFromResources(Directory.GetCurrentDirectory(), pdfFileName));
+            string path = GetFileNameFromResources(Directory.GetCurrentDirectory(), pdfFileName);
+            Console.WriteLine($"Reading {path}");
+            PdfReader reader = new(path);
             PdfDocument document = new (reader);
-            IList<string> lines = new List<string>();
+            IList<string> tokens = new List<string>();
+            Console.WriteLine("Token's List created");
             ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();
-            string page = PdfTextExtractor.GetTextFromPage(document.GetPage(1), strategy);
-            string[] data = page.Split('\n');
-            foreach (string d in data)
+            for (int n = 1; n <= 1; n++)
             {
-                lines.Add(d);
+                string page = PdfTextExtractor.GetTextFromPage(document.GetPage(n), strategy);
+                string[] parts = page.Split(' ', '\n');
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    if (parts[i] != "")
+                    {
+                        Console.WriteLine($"{parts[i]} is being added to the tokens list");
+                        tokens.Add(parts[i]);
+                    }
+                }
             }
-            return lines;
+            return tokens;
         }
 
         private static string[] GetSubCollection(string[] collection, int start, int end)
