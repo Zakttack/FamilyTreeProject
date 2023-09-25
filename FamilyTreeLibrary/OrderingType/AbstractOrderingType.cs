@@ -46,32 +46,32 @@ namespace FamilyTreeLibrary.OrderingType
             return Type.CompareTo(other.Type);
         }
 
-        public static AbstractOrderingType GetOrderingType(int key, int generation)
+        public static bool TryGetOrderingType(out AbstractOrderingType orderingType, int key, int generation)
         {
-            return generation switch
+            switch (generation)
             {
-                1 => new RomanNumeralOrderingType(key, true),
-                2 => new LetterOrderingType(key, true),
-                3 => new DigitOrderingType(key, false),
-                4 => new LetterOrderingType(key, false),
-                5 => new ParenthesizedDigitOrderingType(key),
-                6 => new RomanNumeralOrderingType(key, false),
-                _ => throw new NotSupportedException($"{generation} is not supported.")
-            };
+                case 1: orderingType = new RomanNumeralOrderingType(key, true); return true;
+                case 2: orderingType = new LetterOrderingType(key, true); return true;
+                case 3: orderingType = new DigitOrderingType(key, false); return true;
+                case 4: orderingType = new LetterOrderingType(key, false); return true;
+                case 5: orderingType = new ParenthesizedDigitOrderingType(key); return true;
+                case 6: orderingType = new RomanNumeralOrderingType(key, false); return true;
+                default: orderingType = null; return false; 
+            }
         }
 
-        public static AbstractOrderingType GetOrderingType(string value, int generation)
+        public static bool TryGetOrderingType(out AbstractOrderingType orderingType, string value, int generation)
         {
-            return generation switch
+            switch (generation)
             {
-                1 => new RomanNumeralOrderingType(value, true),
-                2 => new LetterOrderingType(value, true),
-                3 => new DigitOrderingType(value, false),
-                4 => new LetterOrderingType(value, false),
-                5 => new ParenthesizedDigitOrderingType(value),
-                6 => new RomanNumeralOrderingType(value, false),
-                _ => throw new NotSupportedException($"{generation} is not supported.")
-            };
+                case 1: orderingType = new RomanNumeralOrderingType(value, true); return true;
+                case 2: orderingType = new LetterOrderingType(value, true); return true;
+                case 3: orderingType = new DigitOrderingType(value, false); return true;
+                case 4: orderingType = new LetterOrderingType(value, false); return true;
+                case 5: orderingType = new ParenthesizedDigitOrderingType(value); return true;
+                case 6: orderingType = new RomanNumeralOrderingType(value, false); return true;
+                default: orderingType = null; return false; 
+            }
         }
 
         protected abstract int FindKey(string value);
