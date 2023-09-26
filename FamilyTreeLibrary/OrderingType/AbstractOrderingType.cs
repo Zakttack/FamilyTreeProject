@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 
 namespace FamilyTreeLibrary.OrderingType
@@ -44,6 +45,20 @@ namespace FamilyTreeLibrary.OrderingType
         public int CompareTo(AbstractOrderingType other)
         {
             return Type.CompareTo(other.Type);
+        }
+
+        public static AbstractOrderingType GetOrderingType(int key, int generation)
+        {
+            return generation switch
+            {
+                1 => new RomanNumeralOrderingType(key, true),
+                2 => new LetterOrderingType(key, true),
+                3 => new DigitOrderingType(key, false),
+                4 => new LetterOrderingType(key, false),
+                5 => new ParenthesizedDigitOrderingType(key),
+                6 => new RomanNumeralOrderingType(key, false),
+                _ => null
+            };
         }
 
         public static bool TryGetOrderingType(out AbstractOrderingType orderingType, int key, int generation)

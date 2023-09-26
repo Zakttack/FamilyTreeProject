@@ -16,12 +16,7 @@ namespace FamilyTreeLibrary
             Task nodesTask = Task.Run(async () =>
             {
                 IList<string> tokens = await GetPDFTokens();
-                IReadOnlyList<int> positions = await GetOrderingTypePositions(tokens);
-                for (int p = 0; p < positions.Count; p++)
-                {
-                    IReadOnlySet<AbstractOrderingType> orderingTypes = await GetAbstractOrderingTypes(tokens, positions, p);
-                    nodes.Add(orderingTypes.ToArray(), GetContent(tokens, positions, p));
-                }
+                await LoadNodes(new AbstractOrderingType[] {AbstractOrderingType.GetOrderingType(1,1)}, tokens);
             });
             nodesTask.Start();
             nodesTask.Wait();
@@ -164,6 +159,39 @@ namespace FamilyTreeLibrary
                 return tokens;
             });
             return await tokensTask;
+        }
+
+        private async Task LoadNodes(AbstractOrderingType[] orderingTypes, IList<string> tokens)
+        {
+            await Task.Run(async () =>
+            {
+                if (orderingTypes.Length < 6)
+                {
+                    int start = tokens.IndexOf(AbstractOrderingType.GetOrderingType(orderingTypes[^1].ConversionPair.Key, orderingTypes.Length).ConversionPair.Value) + 1;
+                    int end1 = tokens.IndexOf(AbstractOrderingType.GetOrderingType(1, orderingTypes.Length + 1).ConversionPair.Value) - 1;
+                    int end2 = tokens.IndexOf(AbstractOrderingType.GetOrderingType(orderingTypes[^1].ConversionPair.Key + 1, orderingTypes.Length).ConversionPair.Value) - 1;
+                    IList<string> contents = start < end1 ? FamilyTreeUtils.SubTokenCollection(tokens, start, end1) : FamilyTreeUtils.SubTokenCollection(tokens, start, tokens.Count - 1);
+                    string content = string.Join(' ', contents);
+                    nodes.Add(orderingTypes, content);
+                    if (start < end2)
+                    {
+                        await LoadNodes(FamilyTreeUtils.IncrementGeneration(orderingTypes), FamilyTreeUtils.SubTokenCollection(tokens, start, end2));
+                        await LoadNodes(FamilyTreeUtils.ReplaceWithIncrementByKey(orderingTypes), FamilyTreeUtils.SubTokenCollection(tokens, end2 + 2, tokens.Count - 1));
+                    }
+                }
+                else if (orderingTypes.Length == 6)
+                {
+                    int start = tokens.IndexOf(AbstractOrderingType.GetOrderingType(orderingTypes[^1].ConversionPair.Key, orderingTypes.Length).ConversionPair.Value) + 1;
+                    int end = tokens.IndexOf(AbstractOrderingType.GetOrderingType(1, orderingTypes.Length + 1).ConversionPair.Value) - 1;
+                    IList<string> contents = start < end ? FamilyTreeUtils.SubTokenCollection(tokens, start, end) : FamilyTreeUtils.SubTokenCollection(tokens, start, tokens.Count - 1);
+                    string content = string.Join(' ', contents);
+                    nodes.Add(orderingTypes, content);
+                    if (start < end)
+                    {
+                        await LoadNodes(FamilyTreeUtils.ReplaceWithIncrementByKey(orderingTypes), FamilyTreeUtils.SubTokenCollection(tokens, end + 2, tokens.Count - 1));
+                    }
+                }
+            });
         }
 
         private class OrderingTypeComparer : IComparer<AbstractOrderingType[]>
