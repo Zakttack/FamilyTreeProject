@@ -83,7 +83,7 @@ namespace FamilyTreeLibrary.OrderingType
 
             public void Dispose()
             {
-                Increment(Letters[^1]);
+                Increment(Letters.Count - 1);
             }
 
             public bool MoveNext()

@@ -55,7 +55,7 @@ namespace FamilyTreeLibrary
 
         public static IList<string> SubTokenCollection(IList<string> tokens, int start, int end)
         {
-            return tokens.Skip(start).Take(start - end + 1).ToList();
+            return tokens.Skip(start).Take(end - start + 1).ToList();
         }
 
         private class DateComparer : IComparer<DateTime>

@@ -44,7 +44,8 @@ namespace FamilyTreeLibrary.OrderingType
 
         public int CompareTo(AbstractOrderingType other)
         {
-            return Type.CompareTo(other.Type);
+            int temp = Type.CompareTo(other.Type);
+            return temp == 0 ? ConversionPair.Key - other.ConversionPair.Key : temp;
         }
 
         public static AbstractOrderingType GetOrderingType(int key, int generation)
