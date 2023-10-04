@@ -1,7 +1,7 @@
 using FamilyTreeLibrary.OrderingType;
+using System.Text.RegularExpressions;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
-using iText.Kernel.Pdf.Canvas.Parser.Listener;
 
 namespace FamilyTreeLibrary
 {
@@ -13,7 +13,7 @@ namespace FamilyTreeLibrary
         {
             FilePath = GetFileNameFromResources(Directory.GetCurrentDirectory(), pdfFileName);
             nodes = new(new OrderingTypeComparer());
-            IList<string> lines = GetPDFLines(lineLimit);
+            Queue<string> lines = GetPDFLines(lineLimit);
             foreach (string line in lines)
             {
                 Console.WriteLine(line);
@@ -61,18 +61,33 @@ namespace FamilyTreeLibrary
             return $"{currentPath}\\Resources\\{fileNameWithExtension}";
         }
 
-        private IList<string> GetPDFLines(int lineLimit)
+        private Queue<string> GetPDFLines(int lineLimit)
         {
-            IList<string> lines = new List<string>();
+            Queue<string> lines = new();
             for (int n = 1; n <= Document.GetNumberOfPages(); n++)
             {
                 string page = PdfTextExtractor.GetTextFromPage(Document.GetPage(n));
                 string[] parts = page.Split('\n');
+                string temp2 = "";
                 foreach (string line in parts)
                 {
                     if (lines.Count < lineLimit)
                     {
-                        lines.Add(line);
+                        string temp = line.TrimStart();
+                        AbstractOrderingType orderingType = FamilyTreeUtils.GetOrderingTypeByLine(temp);
+                        if (orderingType == null && lines.Count > 0 && Regex.IsMatch(temp, "^[a-zA-Z0-9 ]*$"))
+                        {
+                            temp2 += " " + temp;
+                        }
+                        else if (orderingType != null)
+                        {
+                            if (temp2 != "")
+                            {
+                                string item = temp2;
+                                lines.Enqueue(item);
+                            }
+                            temp2 = temp;
+                        }
                     }
                 }
             }

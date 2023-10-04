@@ -62,32 +62,19 @@ namespace FamilyTreeLibrary.OrderingType
             };
         }
 
-        public static bool TryGetOrderingType(out AbstractOrderingType orderingType, int key, int generation)
-        {
-            switch (generation)
-            {
-                case 1: orderingType = new RomanNumeralOrderingType(key, true); return true;
-                case 2: orderingType = new LetterOrderingType(key, true); return true;
-                case 3: orderingType = new DigitOrderingType(key, false); return true;
-                case 4: orderingType = new LetterOrderingType(key, false); return true;
-                case 5: orderingType = new ParenthesizedDigitOrderingType(key); return true;
-                case 6: orderingType = new RomanNumeralOrderingType(key, false); return true;
-                default: orderingType = null; return false; 
-            }
-        }
-
         public static bool TryGetOrderingType(out AbstractOrderingType orderingType, string value, int generation)
         {
             switch (generation)
             {
-                case 1: orderingType = new RomanNumeralOrderingType(value, true); return true;
-                case 2: orderingType = new LetterOrderingType(value, true); return true;
-                case 3: orderingType = new DigitOrderingType(value, false); return true;
-                case 4: orderingType = new LetterOrderingType(value, false); return true;
-                case 5: orderingType = new ParenthesizedDigitOrderingType(value); return true;
-                case 6: orderingType = new RomanNumeralOrderingType(value, false); return true;
+                case 1: orderingType = new RomanNumeralOrderingType(value, true); break;
+                case 2: orderingType = new LetterOrderingType(value, true); break;
+                case 3: orderingType = new DigitOrderingType(value, false); break;
+                case 4: orderingType = new LetterOrderingType(value, false); break;
+                case 5: orderingType = new ParenthesizedDigitOrderingType(value); break;
+                case 6: orderingType = new RomanNumeralOrderingType(value, false); break;
                 default: orderingType = null; return false; 
             }
+            return orderingType.ConversionPair.Key > 0 && orderingType.ConversionPair.Value != ""; 
         }
 
         protected abstract int FindKey(string value);

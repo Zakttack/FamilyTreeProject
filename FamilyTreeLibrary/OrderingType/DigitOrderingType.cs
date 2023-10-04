@@ -1,4 +1,5 @@
 using FamilyTreeLibrary.Exceptions;
+using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary.OrderingType
 {
@@ -18,30 +19,15 @@ namespace FamilyTreeLibrary.OrderingType
         {
             if (Type != OrderingTypeTypes.Numbering)
             {
-                throw new NotSupportedException("The conversion is only supported for the Numbering Ordering Type.");
+                return 0;
             }
-            string v = value[..(value.Length - 1)];
-            try
-            {
-                return Convert.ToInt32(v);
-            }
-            catch (FormatException)
-            {
-                throw new InvalidValueException(value);
-            }
+            string v = value.Length > 0 ? value[..(value.Length - 1)] : value;
+            return Regex.IsMatch(v, "^[0-9]+$") ? Convert.ToInt32(v) : 0;
         }
 
         protected override string FindValue(int key)
         {
-            if (Type != OrderingTypeTypes.Numbering)
-            {
-                throw new NotSupportedException("The conversion is only supported for the Numbering Ordering Type.");
-            }
-            else if (key > 0)
-            {
-                return $"{key}.";
-            }
-            throw new InvalidKeyException(key);
+            return Type == OrderingTypeTypes.Numbering && key > 0 ? $"{key}." : "";
         }
     }
 }

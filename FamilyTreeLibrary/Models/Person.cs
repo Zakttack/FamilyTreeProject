@@ -58,14 +58,17 @@ namespace FamilyTreeLibrary.Models
             return ToString().GetHashCode();
         }
 
-        public bool PersonEquivalent(Person other, string familyTreeName)
+        public static bool PersonEquivalent(Person p1, Person p2)
         {
-            bool birthDateCompareWithDefault = FamilyTreeUtils.DateComp.Compare(BirthDate, FamilyTreeUtils.DefaultDate) == 0;
-            bool otherBirthDateCompareWithDefault = FamilyTreeUtils.DateComp.Compare(other.BirthDate, FamilyTreeUtils.DefaultDate) == 0;
+            bool birthDateCompareWithDefault = FamilyTreeUtils.DateComp.Compare(p1.BirthDate, FamilyTreeUtils.DefaultDate) == 0;
+            bool otherBirthDateCompareWithDefault = FamilyTreeUtils.DateComp.Compare(p2.BirthDate, FamilyTreeUtils.DefaultDate) == 0;
             bool temp = (birthDateCompareWithDefault && !otherBirthDateCompareWithDefault) || (!birthDateCompareWithDefault && otherBirthDateCompareWithDefault);
-            IList<string> parts1 = Name.Split(' ');
-            IList<string> parts2 = other.Name.Split(' ');
-            bool nameEquivalent = parts1[0] == parts2[0] && parts1.Contains(familyTreeName) && parts2.Contains(familyTreeName);
+            ISet<string> parts1 = p1.Name.Split(' ').ToHashSet();
+            ISet<string> parts2 = p2.Name.Split(' ').ToHashSet();
+            ISet<string> intersection = new HashSet<string>();
+            intersection.IntersectWith(parts1);
+            intersection.IntersectWith(parts2);
+            bool nameEquivalent = intersection.Contains(p1.FirstName) && intersection.Count > 1;
             return temp && nameEquivalent;
         }
 
@@ -78,6 +81,14 @@ namespace FamilyTreeLibrary.Models
                 {"DeceasedDate", DeceasedDate.ToString().Split()[0]}
             };
             return obj.ToString();
+        }
+
+        private string FirstName
+        {
+            get
+            {
+                return Name.Split(' ')[0];
+            }
         }
     }
 }
