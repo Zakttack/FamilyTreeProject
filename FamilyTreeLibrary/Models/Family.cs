@@ -5,18 +5,18 @@ namespace FamilyTreeLibrary.Models
 {
     public class Family
     {
-        public Family(Person member, Person inLaw = null, DateTime marriageDate = new(), IEnumerable<Person> children = null)
+        public Family(Person member, Person inLaw = null, DateTime marriageDate = new())
         {
-            Couple = new Person[] {member, inLaw};
+            Member = member;
+            InLaw = inLaw;
             MarriageDate = marriageDate;
-            LoadChildren(children);
+            LoadChildren();
         }
 
         public Family(JObject obj)
         {
-            Person member = obj["Member"] == null ? null : new(JObject.Parse(obj["Member"].ToString()));
-            Person inLaw = obj["InLaw"] == null ? null : new(JObject.Parse(obj["InLaw"].ToString()));
-            Couple = new Person[]{member, inLaw};
+            Member = obj["Member"] == null ? null : new(JObject.Parse(obj["Member"].ToString()));
+            InLaw = obj["InLaw"] == null ? null : new(JObject.Parse(obj["InLaw"].ToString()));
             MarriageDate = obj["MarriageDate"] == null ? FamilyTreeUtils.DefaultDate : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["MarriageDate"].ToString()));
             ICollection<Person> people = new List<Person>();
             if (obj["Children"] != null)
@@ -33,7 +33,12 @@ namespace FamilyTreeLibrary.Models
             LoadChildren(people);
         }
 
-        public Person[] Couple
+        public Person Member
+        {
+            get;
+        }
+
+        public Person InLaw
         {
             get;
         }
@@ -47,7 +52,6 @@ namespace FamilyTreeLibrary.Models
         public DateTime MarriageDate
         {
             get;
-            set;
         }
 
         public override bool Equals(object obj)
@@ -57,7 +61,7 @@ namespace FamilyTreeLibrary.Models
                 return false;
             }
             Family other = (Family)obj;
-            return ToString() == other.ToString();
+            return Member == other.Member && InLaw == other.InLaw && FamilyTreeUtils.DateComp.Compare(MarriageDate, other.MarriageDate) == 0;
         }
 
         public override int GetHashCode()
@@ -69,20 +73,20 @@ namespace FamilyTreeLibrary.Models
         {
             JObject obj = new()
             {
-                { "Member", JObject.Parse(Couple[0].ToString()) },
-                { "InLaw", JObject.Parse(Couple[1].ToString()) },
+                { "Member", JObject.Parse(Member.ToString()) },
+                { "InLaw", JObject.Parse(InLaw.ToString()) },
                 {"MarriageDate", MarriageDate.ToString().Split()[0]}
             };
             JArray array = new();
             foreach (Family child in Children)
             {
-                array.Add(JObject.Parse(child.Couple[0].ToString()));
+                array.Add(JObject.Parse(child.Member.ToString()));
             }
             obj.Add("Children", array);
             return obj.ToString();
         }
 
-        private void LoadChildren(IEnumerable<Person> people)
+        private void LoadChildren(IEnumerable<Person> people = null)
         {
             Children = new SortedSet<Family>(FamilyTreeUtils.FamilyComparer);
             if (people != null)

@@ -50,17 +50,23 @@ namespace FamilyTreeLibrary.Models
 
         public override bool Equals(object obj)
         {
-            if (obj is not Person)
-            {
-                return false;
-            }
-            Person other = (Person)obj;
-            return ToString() == other.ToString();
+            return obj != null && ToString() == obj.ToString();
         }
 
         public override int GetHashCode()
         {
             return ToString().GetHashCode();
+        }
+
+        public bool PersonEquivalent(Person other, string familyTreeName)
+        {
+            bool birthDateCompareWithDefault = FamilyTreeUtils.DateComp.Compare(BirthDate, FamilyTreeUtils.DefaultDate) == 0;
+            bool otherBirthDateCompareWithDefault = FamilyTreeUtils.DateComp.Compare(other.BirthDate, FamilyTreeUtils.DefaultDate) == 0;
+            bool temp = (birthDateCompareWithDefault && !otherBirthDateCompareWithDefault) || (!birthDateCompareWithDefault && otherBirthDateCompareWithDefault);
+            IList<string> parts1 = Name.Split(' ');
+            IList<string> parts2 = other.Name.Split(' ');
+            bool nameEquivalent = parts1[0] == parts2[0] && parts1.Contains(familyTreeName) && parts2.Contains(familyTreeName);
+            return temp && nameEquivalent;
         }
 
         public override string ToString()

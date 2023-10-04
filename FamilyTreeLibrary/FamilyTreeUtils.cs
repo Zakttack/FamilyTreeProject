@@ -35,6 +35,19 @@ namespace FamilyTreeLibrary
             return collection.ToArray();
         }
 
+        public static AbstractOrderingType GetOrderingTypeByLine(string line)
+        {
+            string token = line.Split(' ')[0];
+            for (int generation = 1; generation <= 6; generation++)
+            {
+                if (AbstractOrderingType.TryGetOrderingType(out AbstractOrderingType orderingType, token, generation))
+                {
+                    return orderingType;
+                }
+            }
+            return null;
+        }
+
         public static string[] GetSubCollection(string[] collection, int start, int end)
         {
             return collection.AsSpan(start, end - start + 1).ToArray();
@@ -81,7 +94,8 @@ namespace FamilyTreeLibrary
         {
             public int Compare(Family a, Family b)
             {
-                return DateComp.Compare(a.Couple[0].BirthDate, b.Couple[0].BirthDate);
+                int birthDateCompare = DateComp.Compare(a.Member.BirthDate, b.Member.BirthDate);
+                return birthDateCompare == 0 ? DateComp.Compare(a.MarriageDate, b.MarriageDate) : birthDateCompare;
             }
         }
     }

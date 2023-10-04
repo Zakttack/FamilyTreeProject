@@ -9,12 +9,16 @@ namespace FamilyTreeLibrary
     {
         private readonly SortedDictionary<AbstractOrderingType[],string> nodes;
 
-        public PdfClient(string pdfFileName)
+        public PdfClient(string pdfFileName, int lineLimit = int.MaxValue)
         {
             FilePath = GetFileNameFromResources(Directory.GetCurrentDirectory(), pdfFileName);
             nodes = new(new OrderingTypeComparer());
-            IList<string> tokens = GetPDFTokens();
-            LoadNodes(new AbstractOrderingType[] {AbstractOrderingType.GetOrderingType(1,1)}, FamilyTreeUtils.SubTokenCollection(tokens, tokens.IndexOf(AbstractOrderingType.GetOrderingType(1,1).ConversionPair.Value) + 1, tokens.Count - 1));
+            IList<string> lines = GetPDFLines(lineLimit);
+            foreach (string line in lines)
+            {
+                Console.WriteLine(line);
+            }
+            //LoadNodes(new AbstractOrderingType[] {AbstractOrderingType.GetOrderingType(1,1)}, FamilyTreeUtils.SubTokenCollection(tokens, tokens.IndexOf(AbstractOrderingType.GetOrderingType(1,1).ConversionPair.Value) + 1, tokens.Count - 1));
         }
 
         public string FilePath
@@ -57,23 +61,22 @@ namespace FamilyTreeLibrary
             return $"{currentPath}\\Resources\\{fileNameWithExtension}";
         }
 
-        private IList<string> GetPDFTokens()
+        private IList<string> GetPDFLines(int lineLimit)
         {
-            IList<string> tokens = new List<string>();
-            ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();
+            IList<string> lines = new List<string>();
             for (int n = 1; n <= Document.GetNumberOfPages(); n++)
             {
-                string page = PdfTextExtractor.GetTextFromPage(Document.GetPage(n), strategy);
-                string[] parts = page.Split(' ', '\n');
-                for (int i = 0; i < parts.Length; i++)
+                string page = PdfTextExtractor.GetTextFromPage(Document.GetPage(n));
+                string[] parts = page.Split('\n');
+                foreach (string line in parts)
                 {
-                    if (parts[i] != "")
+                    if (lines.Count < lineLimit)
                     {
-                        tokens.Add(parts[i]);
+                        lines.Add(line);
                     }
                 }
             }
-            return tokens;
+            return lines;
         }
 
         private void LoadNodes(AbstractOrderingType[] orderingTypes, IList<string> tokens)
