@@ -48,27 +48,12 @@ namespace FamilyTreeLibrary
             return null;
         }
 
-        public static string[] GetSubCollection(string[] collection, int start, int end)
-        {
-            return collection.AsSpan(start, end - start + 1).ToArray();
-        }
-
-        public static string[] GetSubCollection(string[] collection, int start)
-        {
-            return collection.AsSpan(start).ToArray();
-        }
-
         public static AbstractOrderingType[] ReplaceWithIncrementByKey(AbstractOrderingType[] temp)
         {
             AbstractOrderingType[] collection = new AbstractOrderingType[temp.Length];
             Array.Copy(temp, collection, temp.Length - 1);
             collection[^1] = AbstractOrderingType.GetOrderingType(temp[^1].ConversionPair.Key + 1, temp.Length);
             return collection;
-        }
-
-        public static IList<string> SubTokenCollection(IList<string> tokens, int start, int end)
-        {
-            return tokens.Skip(start).Take(end - start + 1).ToList();
         }
 
         private class DateComparer : IComparer<DateTime>

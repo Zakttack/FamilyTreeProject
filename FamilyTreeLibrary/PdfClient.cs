@@ -2,22 +2,20 @@ using FamilyTreeLibrary.OrderingType;
 using System.Text.RegularExpressions;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
+using iText.Kernel.Pdf.Canvas.Parser.Listener;
+using FamilyTreeLibrary.Models;
 
 namespace FamilyTreeLibrary
 {
     public class PdfClient
     {
-        private readonly SortedDictionary<AbstractOrderingType[],string> nodes;
+        private readonly SortedDictionary<AbstractOrderingType[],ICollection<Family>> nodes;
 
         public PdfClient(string pdfFileName, int lineLimit = int.MaxValue)
         {
             FilePath = GetFileNameFromResources(Directory.GetCurrentDirectory(), pdfFileName);
             nodes = new(new OrderingTypeComparer());
-            Queue<string> lines = GetPDFLines(lineLimit);
-            foreach (string line in lines)
-            {
-                Console.WriteLine(line);
-            }
+            Queue<string> lines = GetPDFLines(110);
             //LoadNodes(new AbstractOrderingType[] {AbstractOrderingType.GetOrderingType(1,1)}, FamilyTreeUtils.SubTokenCollection(tokens, tokens.IndexOf(AbstractOrderingType.GetOrderingType(1,1).ConversionPair.Value) + 1, tokens.Count - 1));
         }
 
@@ -26,7 +24,7 @@ namespace FamilyTreeLibrary
             get;
         }
 
-        public IReadOnlyDictionary<AbstractOrderingType[],string> Nodes
+        public IReadOnlyDictionary<AbstractOrderingType[],ICollection<Family>> Nodes
         {
             get
             {
@@ -39,14 +37,6 @@ namespace FamilyTreeLibrary
             get
             {
                 return new(new PdfReader(FilePath));
-            }
-        }
-
-        private void AddNode(AbstractOrderingType[] orderingTypes, IList<string> contents)
-        {
-            if (!nodes.ContainsKey(orderingTypes))
-            {
-                nodes.Add(orderingTypes, string.Join(' ', contents));
             }
         }
 
@@ -67,7 +57,7 @@ namespace FamilyTreeLibrary
             for (int n = 1; n <= Document.GetNumberOfPages(); n++)
             {
                 string page = PdfTextExtractor.GetTextFromPage(Document.GetPage(n));
-                string[] parts = page.Split('\n');
+                string[] parts = page.Split("\n");
                 string temp2 = "";
                 foreach (string line in parts)
                 {
@@ -94,34 +84,17 @@ namespace FamilyTreeLibrary
             return lines;
         }
 
-        private void LoadNodes(AbstractOrderingType[] orderingTypes, IList<string> tokens)
+        private void LoadNodes(Queue<string> lines)
         {
-            IList<string> contents;
-            int end1 = orderingTypes.Length < 6 ? tokens.IndexOf(AbstractOrderingType.GetOrderingType(1, orderingTypes.Length + 1).ConversionPair.Value) - 1 : -2;
-            int end2 = tokens.IndexOf(AbstractOrderingType.GetOrderingType(orderingTypes[^1].ConversionPair.Key + 1, orderingTypes.Length).ConversionPair.Value) - 1;
-            if (end1 <= 0 && end2 <= 0)
-            {
-                AddNode(orderingTypes, tokens);
-            }
-            else if (end1 <= 0 && end2 > 0)
-            {
-                contents = FamilyTreeUtils.SubTokenCollection(tokens, 0, end2);
-                AddNode(orderingTypes, contents);
-                LoadNodes(FamilyTreeUtils.ReplaceWithIncrementByKey(orderingTypes), FamilyTreeUtils.SubTokenCollection(tokens, end2 + 2, tokens.Count - 1));
-            }
-            else if (end1 > 0 && end2 < end1)
-            {
-                contents = FamilyTreeUtils.SubTokenCollection(tokens, 0, end1);
-                AddNode(orderingTypes, contents);
-                LoadNodes(FamilyTreeUtils.IncrementGeneration(orderingTypes), FamilyTreeUtils.SubTokenCollection(tokens, end1 + 2, tokens.Count - 1));
-            }
-            else if (end1 < end2)
-            {
-                contents = FamilyTreeUtils.SubTokenCollection(tokens, 0, end1);
-                AddNode(orderingTypes, contents);
-                LoadNodes(FamilyTreeUtils.IncrementGeneration(orderingTypes), FamilyTreeUtils.SubTokenCollection(tokens, end1 + 2, end2));
-                LoadNodes(FamilyTreeUtils.ReplaceWithIncrementByKey(orderingTypes), FamilyTreeUtils.SubTokenCollection(tokens, end2 + 2, tokens.Count - 1));
-            }
+
+        }
+
+        private IReadOnlyDictionary<AbstractOrderingType,Family> ParseFamilyPerOrderingType(Queue<string> lines)
+        {
+            string line = lines.Dequeue();
+            AbstractOrderingType orderingType = FamilyTreeUtils.GetOrderingTypeByLine(line);
+            
+            return null;
         }
 
         private class OrderingTypeComparer : IComparer<AbstractOrderingType[]>
