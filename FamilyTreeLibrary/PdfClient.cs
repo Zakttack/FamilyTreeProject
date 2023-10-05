@@ -13,11 +13,6 @@ namespace FamilyTreeLibrary
         {
             FilePath = GetFileNameFromResources(Directory.GetCurrentDirectory(), pdfFileName);
             nodes = new(new OrderingTypeComparer());
-            IList<string> lines = GetPDFLines(lineLimit);
-            foreach (string line in lines)
-            {
-                Console.WriteLine(line);
-            }
             //LoadNodes(new AbstractOrderingType[] {AbstractOrderingType.GetOrderingType(1,1)}, FamilyTreeUtils.SubTokenCollection(tokens, tokens.IndexOf(AbstractOrderingType.GetOrderingType(1,1).ConversionPair.Value) + 1, tokens.Count - 1));
         }
 
@@ -59,24 +54,6 @@ namespace FamilyTreeLibrary
                 return GetFileNameFromResources(currentPath[..(currentPath.Length - current.Length - 1)], fileNameWithExtension);
             }
             return $"{currentPath}\\Resources\\{fileNameWithExtension}";
-        }
-
-        private IList<string> GetPDFLines(int lineLimit)
-        {
-            IList<string> lines = new List<string>();
-            for (int n = 1; n <= Document.GetNumberOfPages(); n++)
-            {
-                string page = PdfTextExtractor.GetTextFromPage(Document.GetPage(n));
-                string[] parts = page.Split('\n');
-                foreach (string line in parts)
-                {
-                    if (lines.Count < lineLimit)
-                    {
-                        lines.Add(line);
-                    }
-                }
-            }
-            return lines;
         }
 
         private void LoadNodes(AbstractOrderingType[] orderingTypes, IList<string> tokens)
