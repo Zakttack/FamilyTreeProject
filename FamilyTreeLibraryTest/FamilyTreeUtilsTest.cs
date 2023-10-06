@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using NUnit.Framework;
+using FamilyTreeLibrary;
 
 namespace FamilyTreeLibraryTest
 {
@@ -14,9 +10,17 @@ namespace FamilyTreeLibraryTest
         }
 
         [Test]
-        public void Test1()
+        public void TestGetFileNameFromResources()
         {
-            Assert.Pass();
+            string expected = @"C:\Users\zakme\Documents\FamilyTreeProject\Resources\PfingstenBook2023.pdf";
+            string actaul = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), "PfingstenBook2023.pdf");
+            Assert.That(actaul, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void TestGetOrderingTypeByLine()
+        {
+
         }
     }
 }
