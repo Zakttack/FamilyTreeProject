@@ -1,5 +1,6 @@
 
 using FamilyTreeLibrary.Exceptions;
+using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary.OrderingType
 {
@@ -17,32 +18,13 @@ namespace FamilyTreeLibrary.OrderingType
 
         protected override int FindKey(string value)
         {
-            if (Type != OrderingTypeTypes.ParenthesizedNumbering)
-            {
-                throw new NotSupportedException("This conversion is only supported for the parenthesized digit ordering type.");
-            }
-            string v = value[1..(value.Length - 2)];
-            try
-            {
-                return Convert.ToInt32(v);
-            }
-            catch (FormatException)
-            {
-                throw new InvalidValueException(value);
-            }
+            string v = Regex.IsMatch(value, "^\\(\\d+\\)$") ? value[1..^1] : "";
+            return Type == OrderingTypeTypes.ParenthesizedNumbering && Regex.IsMatch(v, "^[0-9]+$") ? Convert.ToInt32(v) : 0;
         }
 
         protected override string FindValue(int key)
         {
-            if (Type != OrderingTypeTypes.ParenthesizedNumbering)
-            {
-                throw new NotSupportedException("This conversion is only supported for the parenthesized digit ordering type.");
-            }
-            else if (key <= 0)
-            {
-                throw new InvalidKeyException(key);
-            }
-            return $"({key})";
+            return Type == OrderingTypeTypes.ParenthesizedNumbering && key > 0 ? $"({key})" : "";
         }
     }
 }

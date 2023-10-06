@@ -17,7 +17,7 @@ namespace FamilyTreeLibrary.Models
         {
             Member = obj["Member"] == null ? null : new(JObject.Parse(obj["Member"].ToString()));
             InLaw = obj["InLaw"] == null ? null : new(JObject.Parse(obj["InLaw"].ToString()));
-            MarriageDate = obj["MarriageDate"] == null ? FamilyTreeUtils.DefaultDate : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["MarriageDate"].ToString()));
+            MarriageDate = obj["MarriageDate"] == null ? default : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["MarriageDate"].ToString()));
             ICollection<Person> people = new List<Person>();
             if (obj["Children"] != null)
             {
@@ -56,12 +56,7 @@ namespace FamilyTreeLibrary.Models
 
         public override bool Equals(object obj)
         {
-            if (obj is not Family)
-            {
-                return false;
-            }
-            Family other = (Family)obj;
-            return Member == other.Member && InLaw == other.InLaw && FamilyTreeUtils.DateComp.Compare(MarriageDate, other.MarriageDate) == 0;
+            return obj != null && ToString() == obj.ToString();
         }
 
         public override int GetHashCode()
@@ -88,7 +83,7 @@ namespace FamilyTreeLibrary.Models
 
         private void LoadChildren(IEnumerable<Person> people = null)
         {
-            Children = new SortedSet<Family>(FamilyTreeUtils.FamilyComparer);
+            Children = new SortedSet<Family>(FamilyTreeUtils.ComparerFamily);
             if (people != null)
             {
                 foreach (Person child in people)

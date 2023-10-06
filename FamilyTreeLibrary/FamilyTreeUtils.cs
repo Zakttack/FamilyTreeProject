@@ -1,18 +1,13 @@
-﻿using FamilyTreeLibrary.Models;
+﻿using System.Text;
+using System.Text.RegularExpressions;
+using FamilyTreeLibrary.Comparers;
+using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
 namespace FamilyTreeLibrary
 {
-    public class FamilyTreeUtils
+    public static class FamilyTreeUtils
     {
-        public static DateTime DefaultDate
-        {
-            get
-            {
-                return new();
-            }
-        }
-
-        public static IComparer<DateTime> DateComp
+        public static IComparer<DateTime> ComparerDate
         {
             get
             {
@@ -20,12 +15,43 @@ namespace FamilyTreeLibrary
             }
         }
 
-        public static IComparer<Family> FamilyComparer
+        public static IComparer<Family> ComparerFamily
         {
             get
             {
-                return new PersonComparer();
+                return new FamilyComparer();
             }
+        }
+        public static string GetFileNameFromResources(string currentPath, string fileNameWithExtension)
+        {
+            string[] parts = currentPath.Split('\\');
+            string current = parts[^1];
+            if (current != "FamilyTreeProject")
+            {
+                return GetFileNameFromResources(currentPath[..(currentPath.Length - current.Length - 1)], fileNameWithExtension);
+            }
+            return $"{currentPath}\\Resources\\{fileNameWithExtension}";
+        }
+
+        public static bool IsMonth(string token)
+        {
+            IReadOnlySet<string> months = new HashSet<string>
+            {
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "June",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec"
+            };
+            return months.Contains(token);
         }
 
         public static AbstractOrderingType[] IncrementGeneration(AbstractOrderingType[] temp)
@@ -47,15 +73,23 @@ namespace FamilyTreeLibrary
             }
             return null;
         }
-
-        public static string[] GetSubCollection(string[] collection, int start, int end)
+        public static string ReformatToken(string token)
         {
-            return collection.AsSpan(start, end - start + 1).ToArray();
-        }
-
-        public static string[] GetSubCollection(string[] collection, int start)
-        {
-            return collection.AsSpan(start).ToArray();
+            string pattern = "^[A-Z][a-z]+\\d+$";
+            if (Regex.IsMatch(token, pattern))
+            {
+                StringBuilder newTokenBuilder = new();
+                foreach (char c in token)
+                {
+                    if (char.IsDigit(c))
+                    {
+                        newTokenBuilder.Append(' ');
+                    }
+                    newTokenBuilder.Append(token);
+                }
+                return newTokenBuilder.ToString();
+            }
+            return token;
         }
 
         public static AbstractOrderingType[] ReplaceWithIncrementByKey(AbstractOrderingType[] temp)
@@ -64,39 +98,6 @@ namespace FamilyTreeLibrary
             Array.Copy(temp, collection, temp.Length - 1);
             collection[^1] = AbstractOrderingType.GetOrderingType(temp[^1].ConversionPair.Key + 1, temp.Length);
             return collection;
-        }
-
-        public static IList<string> SubTokenCollection(IList<string> tokens, int start, int end)
-        {
-            return tokens.Skip(start).Take(end - start + 1).ToList();
-        }
-
-        private class DateComparer : IComparer<DateTime>
-        {
-            public int Compare(DateTime a, DateTime b)
-            {
-                int yearDiff = a.Year - b.Year;
-                int monthDiff = a.Month - b.Month;
-                int dayDiff = a.Day - b.Day;
-                if (yearDiff == 0)
-                {
-                    if (monthDiff == 0)
-                    {
-                        return dayDiff;
-                    }
-                    return monthDiff;
-                }
-                return yearDiff;
-            }
-        }
-
-        private class PersonComparer : IComparer<Family>
-        {
-            public int Compare(Family a, Family b)
-            {
-                int birthDateCompare = DateComp.Compare(a.Member.BirthDate, b.Member.BirthDate);
-                return birthDateCompare == 0 ? DateComp.Compare(a.MarriageDate, b.MarriageDate) : birthDateCompare;
-            }
         }
     }
 }

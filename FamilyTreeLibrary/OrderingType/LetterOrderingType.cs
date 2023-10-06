@@ -1,5 +1,6 @@
 using FamilyTreeLibrary.Exceptions;
 using System.Collections;
+using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary.OrderingType
 {
@@ -17,13 +18,16 @@ namespace FamilyTreeLibrary.OrderingType
 
         protected override int FindKey(string value)
         {
-            string v = value.Trim('.').ToUpper();
-            foreach (char c in v)
+            string pattern;
+            switch (Type)
             {
-                if (!char.IsAsciiLetterUpper(c))
-                {
-                    throw new InvalidValueException(value);
-                }
+                case OrderingTypeTypes.CapitalLetter: pattern = "^[A-Z]+\\.$"; break;
+                case OrderingTypeTypes.LowerCaseLetter: pattern = "^[a-z]+\\.$"; break;
+                default: return 0;
+            }
+            if (!Regex.IsMatch(value, pattern))
+            {
+                return 0;
             }
             int key = 1;
             while (FindValue(key) != value)
@@ -37,7 +41,7 @@ namespace FamilyTreeLibrary.OrderingType
         {
             if (key < 0)
             {
-                throw new InvalidKeyException(key);
+                return "";
             }
             IEnumerator<string> enumerator = new LetterEnumerator();
             for (int k = 1; k < key; k++)
@@ -49,7 +53,7 @@ namespace FamilyTreeLibrary.OrderingType
             {
                 case OrderingTypeTypes.CapitalLetter: value += "."; break;
                 case OrderingTypeTypes.LowerCaseLetter: value = $"{value.ToLower()}."; break;
-                default: throw new ArgumentNullException("Ordering Type Options", "A letter is either capitalized or not capitalized.");
+                default: return "";
             }
             enumerator.Reset();
             return value;

@@ -1,6 +1,6 @@
 ﻿using FamilyTreeLibrary;
 using FamilyTreeLibrary.OrderingType;
-PdfClient client = new("PfingstenBook2023.pdf", 50);
+PdfClient client = new("PfingstenBook2023.pdf", 110);
 // IReadOnlyDictionary<AbstractOrderingType[],string> nodes = client.Nodes;
 // foreach (KeyValuePair<AbstractOrderingType[], string> node in nodes)
 // {

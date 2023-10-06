@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using FamilyTreeLibrary.Exceptions;
 
@@ -20,13 +21,16 @@ namespace FamilyTreeLibrary.OrderingType
 
         protected override int FindKey(string value)
         {
-            string v = value[..(value.Length - 1)].ToUpper();
-            foreach (char c in v)
+            string pattern;
+            switch (Type)
             {
-                if (!(c == 'M' || c == 'D' || c == 'C' || c == 'L' || c == 'X' || c == 'V' || c == 'I'))
-                {
-                    throw new InvalidValueException(value);
-                }
+                case OrderingTypeTypes.RomanNumeralUpper: pattern = "^[MDCLXVI]+\\.$"; break;
+                case OrderingTypeTypes.RomanNumeralLower: pattern = "^[mdclxvi]+\\)$$"; break;
+                default: return 0;
+            }
+            if (!Regex.IsMatch(value, pattern))
+            {
+                return 0;
             }
             int key = 1;
             while (FindValue(key) != value)
@@ -40,7 +44,7 @@ namespace FamilyTreeLibrary.OrderingType
         {
             if (key < 0)
             {
-                throw new InvalidKeyException(key);
+                return "";
             }
             string result = "";
             int number = key;
@@ -56,7 +60,7 @@ namespace FamilyTreeLibrary.OrderingType
             {
                 case OrderingTypeTypes.RomanNumeralUpper: result += "."; break;
                 case OrderingTypeTypes.RomanNumeralLower: result = result.ToLower() + ")"; break;
-                default: throw new ArgumentNullException("Ordering Type Options", "A Roman Numeral is either capitalized or not capitalized.");
+                default: return "";
             }
             return result;
         }

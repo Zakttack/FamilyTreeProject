@@ -7,7 +7,7 @@ namespace FamilyTreeLibrary.Models
     public class Person
     {
         private DateTime deceasedDate;
-        public Person(string name, DateTime birthDate, DateTime deceasedDate = new())
+        public Person(string name, DateTime birthDate, DateTime deceasedDate = default)
         {
             Name = name;
             BirthDate = birthDate;
@@ -17,8 +17,8 @@ namespace FamilyTreeLibrary.Models
         public Person(JObject obj)
         {
             Name = obj["Name"] == null ? "" : JsonConvert.DeserializeObject<string>(obj["Name"].ToString());
-            BirthDate = obj["BirthDate"] == null ? FamilyTreeUtils.DefaultDate : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["BirthDate"].ToString()));
-            DeceasedDate = obj["DeceasedDate"] == null ? FamilyTreeUtils.DefaultDate : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["DeceasedDate"].ToString()));
+            BirthDate = obj["BirthDate"] == null ? default : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["BirthDate"].ToString()));
+            DeceasedDate = obj["DeceasedDate"] == null ? default : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["DeceasedDate"].ToString()));
         }
 
         public string Name
@@ -29,6 +29,7 @@ namespace FamilyTreeLibrary.Models
         public DateTime BirthDate
         {
             get;
+            set;
         }
 
         public DateTime DeceasedDate
@@ -39,8 +40,8 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                if (FamilyTreeUtils.DateComp.Compare(value, FamilyTreeUtils.DefaultDate) != 0 &&
-                    FamilyTreeUtils.DateComp.Compare(value, BirthDate) < 0)
+                if (FamilyTreeUtils.ComparerDate.Compare(value, default) != 0 &&
+                    FamilyTreeUtils.ComparerDate.Compare(value, BirthDate) < 0)
                 {
                     throw new DeceasedDateException(Name, BirthDate, value);
                 }
@@ -56,17 +57,6 @@ namespace FamilyTreeLibrary.Models
         public override int GetHashCode()
         {
             return ToString().GetHashCode();
-        }
-
-        public bool PersonEquivalent(Person other, string familyTreeName)
-        {
-            bool birthDateCompareWithDefault = FamilyTreeUtils.DateComp.Compare(BirthDate, FamilyTreeUtils.DefaultDate) == 0;
-            bool otherBirthDateCompareWithDefault = FamilyTreeUtils.DateComp.Compare(other.BirthDate, FamilyTreeUtils.DefaultDate) == 0;
-            bool temp = (birthDateCompareWithDefault && !otherBirthDateCompareWithDefault) || (!birthDateCompareWithDefault && otherBirthDateCompareWithDefault);
-            IList<string> parts1 = Name.Split(' ');
-            IList<string> parts2 = other.Name.Split(' ');
-            bool nameEquivalent = parts1[0] == parts2[0] && parts1.Contains(familyTreeName) && parts2.Contains(familyTreeName);
-            return temp && nameEquivalent;
         }
 
         public override string ToString()
