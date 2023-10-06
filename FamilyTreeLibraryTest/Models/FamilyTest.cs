@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace FamilyTreeLibraryTest
+namespace FamilyTreeLibraryTest.Models
 {
-    public class FamilyTreeUtilsTest
+    public class FamilyTest
     {
         [SetUp]
         public void Setup()

@@ -56,12 +56,7 @@ namespace FamilyTreeLibrary.Models
 
         public override bool Equals(object obj)
         {
-            if (obj is not Family)
-            {
-                return false;
-            }
-            Family other = (Family)obj;
-            return ToString() == other.ToString();
+            return obj != null && ToString() == obj.ToString();
         }
 
         public override int GetHashCode()

@@ -19,7 +19,7 @@ namespace FamilyTreeLibrary
         {
             get
             {
-                return new FamilyComparer(ComparerDate);
+                return new FamilyComparer();
             }
         }
         public static string GetFileNameFromResources(string currentPath, string fileNameWithExtension)

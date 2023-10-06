@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace FamilyTreeLibraryTest
+namespace FamilyTreeLibraryTest.PDF
 {
-    public class FamilyTreeUtilsTest
+    public class PdfUtilsTest
     {
         [SetUp]
         public void Setup()

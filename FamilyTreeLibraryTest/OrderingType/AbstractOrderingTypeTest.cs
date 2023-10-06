@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace FamilyTreeLibraryTest
+namespace FamilyTreeLibraryTest.OrderingType
 {
-    public class FamilyTreeUtilsTest
+    public class AbstractOrderingTypeTest
     {
         [SetUp]
         public void Setup()
