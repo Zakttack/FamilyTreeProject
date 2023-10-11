@@ -23,28 +23,29 @@ namespace FamilyTreeLibrary.PDF
                 string temp2 = "";
                 foreach (string line in parts)
                 {
-                    if (lines.Count < lineLimit)
+                    string temp = line.TrimStart();
+                    AbstractOrderingType orderingType = FamilyTreeUtils.GetOrderingTypeByLine(temp);
+                    if (orderingType == null && temp2 != "" && Regex.IsMatch(temp, "^[a-zA-Z0-9 ]*$"))
                     {
-                        string temp = line.TrimStart();
-                        AbstractOrderingType orderingType = FamilyTreeUtils.GetOrderingTypeByLine(temp);
-                        if (orderingType == null && lines.Count > 0 && Regex.IsMatch(temp, "^[a-zA-Z0-9 ]*$"))
+                        temp2 += $" {temp}";
+                    }
+                    else if (orderingType != null)
+                    {
+                        if (temp2 != "")
                         {
-                            temp2 += " " + temp;
-                        }
-                        else if (orderingType != null)
-                        {
-                            if (temp2 != "")
+                            string[] tokens = temp2.Split(' ');
+                            StringBuilder tokenRebuilder = new();
+                            foreach (string token in tokens)
                             {
-                                string[] tokens = temp2.Split(' ');
-                                StringBuilder tokenRebuilder = new();
-                                foreach (string token in tokens)
-                                {
-                                    tokenRebuilder.Append(FamilyTreeUtils.ReformatToken(token) + " ");
-                                }
-                                lines.Enqueue(tokenRebuilder.ToString().Trim());
+                                tokenRebuilder.Append($"{FamilyTreeUtils.ReformatToken(token)} ");
                             }
-                            temp2 = temp;
+                            lines.Enqueue(tokenRebuilder.ToString().Trim());
+                            if (lines.Count >= lineLimit)
+                            {
+                                return lines;
+                            }
                         }
+                        temp2 = temp;
                     }
                 }
             }
@@ -74,7 +75,7 @@ namespace FamilyTreeLibrary.PDF
                         lines.Enqueue(tempLine.Copy());
                         tempLine = new();
                     }
-                    tempName += tokens[i] + " ";
+                    tempName += $"{tokens[i]} ";
                 }
                 else
                 {
@@ -83,7 +84,7 @@ namespace FamilyTreeLibrary.PDF
                         tempLine.Name = tempName.Trim();
                     }
                     tempName = "";
-                    tempDate += tokens[i] + " ";
+                    tempDate += $"{tokens[i]} ";
                     if (FamilyTreeUtils.IsMonth(tokens[i - 1]))
                     {
                         DateTime dateItem2 = Convert.ToDateTime(tempDate.Trim());

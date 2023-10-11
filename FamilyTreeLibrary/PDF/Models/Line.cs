@@ -28,5 +28,25 @@ namespace FamilyTreeLibrary.PDF.Models
         {
             return new(Name,Dates);
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj != null && ToString() == obj.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            string result = Name ?? "";
+            foreach (DateTime d in Dates)
+            {
+                result += $" {d.ToString().Split(' ')[0]}";
+            }
+            return result;
+        }
     }
 }

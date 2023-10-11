@@ -4,6 +4,7 @@ namespace FamilyTreeLibraryTest
 {
     public class FamilyTreeUtilsTest
     {
+        public const string PDF_FILE = @"C:\Users\zakme\Documents\FamilyTreeProject\Resources\PfingstenBook2023.pdf";
         [SetUp]
         public void Setup()
         {
@@ -12,9 +13,8 @@ namespace FamilyTreeLibraryTest
         [Test]
         public void TestGetFileNameFromResources()
         {
-            string expected = @"C:\Users\zakme\Documents\FamilyTreeProject\Resources\PfingstenBook2023.pdf";
             string actaul = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), "PfingstenBook2023.pdf");
-            Assert.That(actaul, Is.EqualTo(expected));
+            Assert.That(actaul, Is.EqualTo(PDF_FILE));
         }
 
         [Test]

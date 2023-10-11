@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
 using FamilyTreeLibrary.OrderingType.Comparers;
@@ -9,7 +8,7 @@ namespace FamilyTreeLibrary.PDF
     public class PdfClient
     {
         private readonly Queue<string> textLines;
-        private readonly SortedDictionary<AbstractOrderingType[],Queue<Family>> nodes;
+        private readonly SortedDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> nodes;
 
         public PdfClient(string pdfFileName, int lineLimit = int.MaxValue)
         {
@@ -23,7 +22,7 @@ namespace FamilyTreeLibrary.PDF
             get;
         }
 
-        public IReadOnlyDictionary<AbstractOrderingType[],Queue<Family>> Nodes
+        public IReadOnlyDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> Nodes
         {
             get
             {
@@ -35,6 +34,7 @@ namespace FamilyTreeLibrary.PDF
         {
             AbstractOrderingType[] previous = new AbstractOrderingType[] {AbstractOrderingType.GetOrderingType(1,1)};
             AbstractOrderingType[] current = new AbstractOrderingType[] {AbstractOrderingType.GetOrderingType(1,1)};
+            int i = 0;
             while (textLines.Count > 0)
             {
                 string line = textLines.Dequeue();
@@ -46,27 +46,28 @@ namespace FamilyTreeLibrary.PDF
                 {
                     if (subNode.Key == default && Comparer.Compare(previous, current) < 0)
                     {
-                        Family first = nodes[previous].Peek();
+                        Family first = nodes[previous].Peek().Value;
                         subNode.Value.Member.BirthDate = first.Member.BirthDate;
                         subNode.Value.Member.DeceasedDate = first.Member.DeceasedDate;
-                        nodes[previous].Enqueue(subNode.Value);
+                        nodes[previous].Enqueue(new(i, subNode.Value));
                     }
                     else if (subNode.Key != default && subNode.Key.ConversionPair.Key == 1)
                     {
                         previous = current;
                         current = FamilyTreeUtils.IncrementGeneration(previous);
-                        Queue<Family> families = new();
-                        families.Enqueue(subNode.Value);
-                        nodes.Add(current, families);
+                        Queue<KeyValuePair<int,Family>> families = new();
+                        families.Enqueue(new(i, subNode.Value));
+                        nodes.Add(previous, families);
                     }
                     else if (subNode.Key != default && subNode.Key.ConversionPair.Key > 1)
                     {
                         previous = current;
                         current = FamilyTreeUtils.ReplaceWithIncrementByKey(previous);
-                        Queue<Family> families = new();
-                        families.Enqueue(subNode.Value);
-                        nodes.Add(current, families);
+                        Queue<KeyValuePair<int,Family>> families = new();
+                        families.Enqueue(new(i, subNode.Value));
+                        nodes.Add(previous, families);
                     }
+                    i++;
                 }
             }
         }

@@ -48,6 +48,16 @@ namespace FamilyTreeLibrary.OrderingType
             return temp == 0 ? ConversionPair.Key - other.ConversionPair.Key : temp;
         }
 
+        public override bool Equals(object obj)
+        {
+            return obj != null && ToString() == obj.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return ConversionPair.GetHashCode();
+        }
+
         public static AbstractOrderingType GetOrderingType(int key, int generation)
         {
             return generation switch
@@ -60,6 +70,11 @@ namespace FamilyTreeLibrary.OrderingType
                 6 => new RomanNumeralOrderingType(key, false),
                 _ => null
             };
+        }
+
+        public override string ToString()
+        {
+            return ConversionPair.ToString();
         }
 
         public static bool TryGetOrderingType(out AbstractOrderingType orderingType, string value, int generation)
