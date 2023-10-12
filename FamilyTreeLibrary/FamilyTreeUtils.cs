@@ -22,6 +22,14 @@ namespace FamilyTreeLibrary
                 return new FamilyComparer();
             }
         }
+
+        public static AbstractOrderingType[] CopyOrderingType(AbstractOrderingType[] temp)
+        {
+            AbstractOrderingType[] collection = new AbstractOrderingType[temp.Length];
+            Array.Copy(temp, collection, temp.Length);
+            return collection;
+        }
+
         public static string GetFileNameFromResources(string currentPath, string fileNameWithExtension)
         {
             string[] parts = currentPath.Split('\\');
@@ -31,6 +39,19 @@ namespace FamilyTreeLibrary
                 return GetFileNameFromResources(currentPath[..(currentPath.Length - current.Length - 1)], fileNameWithExtension);
             }
             return $"{currentPath}\\Resources\\{fileNameWithExtension}";
+        }
+
+        public static AbstractOrderingType GetOrderingTypeByLine(string line)
+        {
+            string token = line.Split(' ')[0];
+            for (int generation = 1; generation <= 6; generation++)
+            {
+                if (AbstractOrderingType.TryGetOrderingType(out AbstractOrderingType orderingType, token, generation))
+                {
+                    return orderingType;
+                }
+            }
+            return null;
         }
 
         public static bool IsMonth(string token)
@@ -54,24 +75,33 @@ namespace FamilyTreeLibrary
             return months.Contains(token);
         }
 
-        public static AbstractOrderingType[] IncrementGeneration(AbstractOrderingType[] temp)
+        public static AbstractOrderingType[] NextOrderingType(AbstractOrderingType[] temp, AbstractOrderingType orderingType)
         {
-            IList<AbstractOrderingType> collection = temp.ToList();
-            collection.Add(AbstractOrderingType.GetOrderingType(1, temp.Length + 1));
-            return collection.ToArray();
-        }
-
-        public static AbstractOrderingType GetOrderingTypeByLine(string line)
-        {
-            string token = line.Split(' ')[0];
-            for (int generation = 1; generation <= 6; generation++)
+            if (temp.Length == 0)
             {
-                if (AbstractOrderingType.TryGetOrderingType(out AbstractOrderingType orderingType, token, generation))
-                {
-                    return orderingType;
-                }
+                return IncrementGeneration(new AbstractOrderingType[0]);
+            }
+            IReadOnlyList<AbstractOrderingType[]> possibleNexts = new List<AbstractOrderingType[]>
+            {
+                IncrementGeneration(temp),
+                ReplaceWithIncrementByKey(temp)
+            };
+            if (possibleNexts[0][^1].Equals(orderingType))
+            {
+                return possibleNexts[0];
+            }
+            else if (possibleNexts[1][^1].Equals(orderingType))
+            {
+                return possibleNexts[1];
             }
             return null;
+        }
+
+        public static AbstractOrderingType[] PreviousOrderingType(AbstractOrderingType[] current)
+        {
+            AbstractOrderingType[] previous = new AbstractOrderingType[current.Length - 1];
+            Array.Copy(current, previous, current.Length - 1);
+            return previous;
         }
         public static string ReformatToken(string token)
         {
@@ -92,11 +122,25 @@ namespace FamilyTreeLibrary
             return token;
         }
 
-        public static AbstractOrderingType[] ReplaceWithIncrementByKey(AbstractOrderingType[] temp)
+        private static AbstractOrderingType[] IncrementGeneration(AbstractOrderingType[] temp)
+        {
+            IList<AbstractOrderingType> collection = temp.ToList();
+            collection.Add(AbstractOrderingType.GetOrderingType(1, temp.Length + 1));
+            return collection.ToArray();
+        }
+
+        private static AbstractOrderingType[] ReplaceWithIncrementByKey(AbstractOrderingType[] temp)
         {
             AbstractOrderingType[] collection = new AbstractOrderingType[temp.Length];
-            Array.Copy(temp, collection, temp.Length - 1);
-            collection[^1] = AbstractOrderingType.GetOrderingType(temp[^1].ConversionPair.Key + 1, temp.Length);
+            if (temp.Length == 1)
+            {
+                collection[0] = AbstractOrderingType.GetOrderingType(temp[0].ConversionPair.Key + 1, temp.Length);
+            }
+            else
+            {
+                Array.Copy(temp, collection, temp.Length - 1);
+                collection[^1] = AbstractOrderingType.GetOrderingType(temp[^1].ConversionPair.Key + 1, temp.Length);
+            }
             return collection;
         }
     }

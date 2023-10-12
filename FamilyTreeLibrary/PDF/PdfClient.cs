@@ -32,40 +32,31 @@ namespace FamilyTreeLibrary.PDF
 
         public void LoadNodes()
         {
-            AbstractOrderingType[] previous = new AbstractOrderingType[] {AbstractOrderingType.GetOrderingType(1,1)};
-            AbstractOrderingType[] current = new AbstractOrderingType[] {AbstractOrderingType.GetOrderingType(1,1)};
+            AbstractOrderingType[] current = new AbstractOrderingType[0];
             int i = 0;
             while (textLines.Count > 0)
             {
                 string line = textLines.Dequeue();
                 AbstractOrderingType orderingType = FamilyTreeUtils.GetOrderingTypeByLine(line);
+                current = FamilyTreeUtils.NextOrderingType(current, orderingType);
                 string[] tokens = line.Split(' ');
                 Queue<Line> lines = PdfUtils.GetLines(tokens);
                 IReadOnlyDictionary<AbstractOrderingType,Family> subNodes = PdfUtils.ParseAsSubNodes(orderingType, lines);
                 foreach (KeyValuePair<AbstractOrderingType,Family> subNode in subNodes)
                 {
-                    if (subNode.Key == default && Comparer.Compare(previous, current) < 0)
+                    if (subNode.Key == default)
                     {
+                        AbstractOrderingType[] previous = FamilyTreeUtils.PreviousOrderingType(current);
                         Family first = nodes[previous].Peek().Value;
                         subNode.Value.Member.BirthDate = first.Member.BirthDate;
                         subNode.Value.Member.DeceasedDate = first.Member.DeceasedDate;
                         nodes[previous].Enqueue(new(i, subNode.Value));
                     }
-                    else if (subNode.Key != default && subNode.Key.ConversionPair.Key == 1)
+                    else
                     {
-                        previous = current;
-                        current = FamilyTreeUtils.IncrementGeneration(previous);
                         Queue<KeyValuePair<int,Family>> families = new();
                         families.Enqueue(new(i, subNode.Value));
-                        nodes.Add(previous, families);
-                    }
-                    else if (subNode.Key != default && subNode.Key.ConversionPair.Key > 1)
-                    {
-                        previous = current;
-                        current = FamilyTreeUtils.ReplaceWithIncrementByKey(previous);
-                        Queue<KeyValuePair<int,Family>> families = new();
-                        families.Enqueue(new(i, subNode.Value));
-                        nodes.Add(previous, families);
+                        nodes.Add(FamilyTreeUtils.CopyOrderingType(current), families);
                     }
                     i++;
                 }
