@@ -63,9 +63,9 @@ namespace FamilyTreeLibrary.Models
         {
             JObject obj = new()
             {
-                {"Name", Name},
-                {"BirthDate", BirthDate.ToString().Split()[0]},
-                {"DeceasedDate", DeceasedDate.ToString().Split()[0]}
+                {"Name", Name == null ? JValue.CreateNull() : Name},
+                {"BirthDate", FamilyTreeUtils.ComparerDate.Compare(BirthDate, default) == 0 ? JValue.CreateNull() : BirthDate.ToString().Split()[0]},
+                {"DeceasedDate", FamilyTreeUtils.ComparerDate.Compare(DeceasedDate, default) == 0 ? JValue.CreateNull() : DeceasedDate.ToString().Split()[0]}
             };
             return obj.ToString();
         }

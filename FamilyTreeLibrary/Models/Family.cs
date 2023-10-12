@@ -68,9 +68,9 @@ namespace FamilyTreeLibrary.Models
         {
             JObject obj = new()
             {
-                { "Member", JObject.Parse(Member.ToString()) },
-                { "InLaw", JObject.Parse(InLaw.ToString()) },
-                {"MarriageDate", MarriageDate.ToString().Split()[0]}
+                { "Member", Member == null ? JValue.CreateNull() : JObject.Parse(Member.ToString()) },
+                { "InLaw", InLaw == null ? JValue.CreateNull() : JObject.Parse(InLaw.ToString()) },
+                {"MarriageDate", FamilyTreeUtils.ComparerDate.Compare(MarriageDate, default) == 0 ? JValue.CreateNull() : MarriageDate.ToString().Split()[0]}
             };
             JArray array = new();
             foreach (Family child in Children)
