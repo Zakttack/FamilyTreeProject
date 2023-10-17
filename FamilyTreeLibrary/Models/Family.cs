@@ -1,22 +1,36 @@
+using FamilyTreeLibrary.Exceptions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace FamilyTreeLibrary.Models
 {
-    public class Family
+    public class Family : IComparable<Family>
     {
-        public Family(Person member, Person inLaw = null, DateTime marriageDate = new())
+        private DateTime marriageDate;
+        public Family(Person member)
         {
+            Parent = default;
             Member = member;
-            InLaw = inLaw;
-            MarriageDate = marriageDate;
+            InLaw = default;
+            MarriageDate = default;
             LoadChildren();
         }
 
         public Family(JObject obj)
         {
-            Member = obj["Member"] == null ? null : new(JObject.Parse(obj["Member"].ToString()));
-            InLaw = obj["InLaw"] == null ? null : new(JObject.Parse(obj["InLaw"].ToString()));
+            object parent = obj["Parent"];
+            if (parent == default)
+            {
+                Parent = default;
+            }
+            else
+            {
+                JObject parentMember = JObject.Parse(parent.ToString());
+                Person member = new(parentMember);
+                Parent = new(member);
+            }
+            Member = obj["Member"] == null ? default : new(JObject.Parse(obj["Member"].ToString()));
+            InLaw = obj["InLaw"] == null ? default : new(JObject.Parse(obj["InLaw"].ToString()));
             MarriageDate = obj["MarriageDate"] == null ? default : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["MarriageDate"].ToString()));
             ICollection<Person> people = new List<Person>();
             if (obj["Children"] != null)
@@ -33,6 +47,12 @@ namespace FamilyTreeLibrary.Models
             LoadChildren(people);
         }
 
+        public Family Parent
+        {
+            get;
+            set;
+        }
+
         public Person Member
         {
             get;
@@ -41,17 +61,36 @@ namespace FamilyTreeLibrary.Models
         public Person InLaw
         {
             get;
+            set;
         }
 
-        public ICollection<Person> Children
+        public DateTime MarriageDate
+        {
+            get
+            {
+                return marriageDate;
+            }
+            set
+            {
+                if (FamilyTreeUtils.ComparerDate.Compare(value, default) != 0 &&
+                    FamilyTreeUtils.ComparerDate.Compare(value, Member.BirthDate) < 0)
+                {
+                    throw new MarriageDateException(Member.Name, value, Member.BirthDate);
+                }
+                marriageDate = value;
+            }
+        }
+
+        public ICollection<Family> Children
         {
             private set;
             get;
         }
 
-        public DateTime MarriageDate
+        public int CompareTo(Family other)
         {
-            get;
+            int birthDateCompare = FamilyTreeUtils.ComparerDate.Compare(Member.BirthDate, other.Member.BirthDate);
+            return birthDateCompare == 0 ? FamilyTreeUtils.ComparerDate.Compare(MarriageDate, other.MarriageDate) : birthDateCompare;
         }
 
         public override bool Equals(object obj)
@@ -68,14 +107,15 @@ namespace FamilyTreeLibrary.Models
         {
             JObject obj = new()
             {
-                { "Member", Member == null ? JValue.CreateNull() : JObject.Parse(Member.ToString()) },
-                { "InLaw", InLaw == null ? JValue.CreateNull() : JObject.Parse(InLaw.ToString()) },
+                {"Parent", Parent == default ? JValue.CreateNull() : JObject.Parse(Parent.Member.ToString())},
+                { "Member", Member == default ? JValue.CreateNull() : JObject.Parse(Member.ToString()) },
+                { "InLaw", InLaw == default ? JValue.CreateNull() : JObject.Parse(InLaw.ToString()) },
                 {"MarriageDate", FamilyTreeUtils.ComparerDate.Compare(MarriageDate, default) == 0 ? JValue.CreateNull() : MarriageDate.ToString().Split()[0]}
             };
             JArray array = new();
-            foreach (Person child in Children)
+            foreach (Family child in Children)
             {
-                array.Add(JObject.Parse(child.ToString()));
+                array.Add(JObject.Parse(child.Member.ToString()));
             }
             obj.Add("Children", array);
             return obj.ToString();
@@ -83,12 +123,12 @@ namespace FamilyTreeLibrary.Models
 
         private void LoadChildren(IEnumerable<Person> people = null)
         {
-            Children = new SortedSet<Person>();
+            Children = new SortedSet<Family>();
             if (people != null)
             {
                 foreach (Person child in people)
                 {
-                    Children.Add(child);
+                    Children.Add(new(child));
                 }
             }
         }

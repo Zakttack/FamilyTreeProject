@@ -4,14 +4,14 @@ using Newtonsoft.Json.Linq;
 
 namespace FamilyTreeLibrary.Models
 {
-    public class Person : IComparable<Person>
+    public class Person
     {
         private DateTime deceasedDate;
-        public Person(string name, DateTime birthDate, DateTime deceasedDate = default)
+        public Person(string name)
         {
             Name = name;
-            BirthDate = birthDate;
-            DeceasedDate = deceasedDate;
+            BirthDate = default;
+            DeceasedDate = default;
         }
 
         public Person(JObject obj)
@@ -47,12 +47,6 @@ namespace FamilyTreeLibrary.Models
                 }
                 deceasedDate = value;
             }
-        }
-
-        public int CompareTo(Person person)
-        {
-            int birthDateCompare = FamilyTreeUtils.ComparerDate.Compare(BirthDate, person.BirthDate);
-            return birthDateCompare == 0 ? Name.CompareTo(person.Name) : birthDateCompare;
         }
 
         public override bool Equals(object obj)

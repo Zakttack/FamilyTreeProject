@@ -41,7 +41,8 @@ namespace FamilyTreeLibrary.PDF
                     {
                         KeyValuePair<int,Family> familyPair = familyNodes.Value.Dequeue();
                         nodes.Add(familyPair.Value);
-                        FamilyTreeUtils.Root.Children.Add(familyPair.Value.Member);
+                        FamilyTreeUtils.Root.Children.Add(familyPair.Value);
+                        familyPair.Value.Parent = FamilyTreeUtils.Root;
                         familyQueue.Enqueue(familyPair);
                     }
                     subFamilyNodeCollection.Add(familyQueue);
@@ -77,7 +78,8 @@ namespace FamilyTreeLibrary.PDF
                             {
                                 KeyValuePair<int,Family> familarPair = familyNodes.Value.Dequeue();
                                 nodes.Add(familarPair.Value);
-                                start.Value.Children.Add(familarPair.Value.Member);
+                                start.Value.Children.Add(familarPair.Value);
+                                familarPair.Value.Parent = start.Value;
                                 familyQueue.Enqueue(familarPair);
                             }
                             if (familyQueue.Count > 0)
@@ -93,7 +95,8 @@ namespace FamilyTreeLibrary.PDF
                             {
                                 KeyValuePair<int,Family> familarPair = familyNodes.Value.Dequeue();
                                 nodes.Add(familarPair.Value);
-                                start.Value.Children.Add(familarPair.Value.Member);
+                                start.Value.Children.Add(familarPair.Value);
+                                familarPair.Value.Parent = start.Value;
                                 familyQueue.Enqueue(familarPair);
                             }
                             if (familyQueue.Count > 0)

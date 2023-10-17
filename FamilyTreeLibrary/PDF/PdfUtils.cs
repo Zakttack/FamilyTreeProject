@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
 using FamilyTreeLibrary.OrderingType.Comparers;
+using iText.Commons.Actions;
 
 namespace FamilyTreeLibrary.PDF
 {
@@ -164,67 +165,101 @@ namespace FamilyTreeLibrary.PDF
         public static IReadOnlyDictionary<AbstractOrderingType,Family> ParseAsSubNodes(AbstractOrderingType orderingType, Queue<Line> lines)
         {
             Dictionary<AbstractOrderingType,Family> subNodes = new();
-            DateTime marriage;
-            Family fam;
-            Family famDuplicate;
-            Line memberLine;
-            Line inLawLine;
-            Line duplicateMemberLine;
-            Line duplicateInLawLine;
-            Person member;
-            Person inLaw;
-            Person duplicateMember;
-            Person duplicateInlaw;
-            switch (lines.Count)
+            Family family = GetFamily(lines);
+            if (family != default)
             {
-                case 1: memberLine = lines.Dequeue();
-                member = memberLine.Dates.Count > 1 ? new(memberLine.Name, memberLine.Dates.Dequeue(), memberLine.Dates.Dequeue()) : new(memberLine.Name, memberLine.Dates.Dequeue());
-                fam = new(member);
-                subNodes.Add(orderingType, fam);
-                break;
-                case 2: memberLine = lines.Dequeue();
-                member = new(memberLine.Name, memberLine.Dates.Dequeue());
-                marriage = memberLine.Dates.Dequeue();
-                if (memberLine.Dates.Count > 0)
-                {
-                    member.DeceasedDate = memberLine.Dates.Dequeue();
-                }
-                inLawLine = lines.Dequeue();
-                inLaw = inLawLine.Dates.Count > 1 ? new(inLawLine.Name, inLawLine.Dates.Dequeue(), inLawLine.Dates.Dequeue()) : new(inLawLine.Name, inLawLine.Dates.Dequeue());
-                fam = new(member, inLaw, marriage);
-                subNodes.Add(orderingType, fam);
-                break;
-                case 3: memberLine = lines.Dequeue();
-                member = memberLine.Dates.Count > 1 ? new(memberLine.Name, memberLine.Dates.Dequeue(), memberLine.Dates.Dequeue()) : new(memberLine.Name, memberLine.Dates.Dequeue());
-                fam = new(member);
-                subNodes.Add(orderingType, fam);
-                duplicateMemberLine = lines.Dequeue();
-                duplicateMember = new(duplicateMemberLine.Name, default);
-                duplicateInLawLine = lines.Dequeue();
-                duplicateInlaw = duplicateInLawLine.Dates.Count > 1 ? new(duplicateInLawLine.Name, duplicateInLawLine.Dates.Dequeue(), duplicateInLawLine.Dates.Dequeue()) : new(duplicateInLawLine.Name, duplicateInLawLine.Dates.Dequeue());
-                famDuplicate = new(duplicateMember, duplicateInlaw, duplicateMemberLine.Dates.Dequeue());
-                subNodes.Add(default, famDuplicate);
-                break;
-                case 4: memberLine = lines.Dequeue();
-                member = new(memberLine.Name, memberLine.Dates.Dequeue());
-                marriage = memberLine.Dates.Dequeue();
-                if (memberLine.Dates.Count > 0)
-                {
-                    member.DeceasedDate = memberLine.Dates.Dequeue();
-                }
-                inLawLine = lines.Dequeue();
-                inLaw = inLawLine.Dates.Count > 1 ? new(inLawLine.Name, inLawLine.Dates.Dequeue(), inLawLine.Dates.Dequeue()) : new(inLawLine.Name, inLawLine.Dates.Dequeue());
-                fam = new(member, inLaw, marriage);
-                subNodes.Add(orderingType, fam);
-                duplicateMemberLine = lines.Dequeue();
-                duplicateMember = new(duplicateMemberLine.Name, default);
-                duplicateInLawLine = lines.Dequeue();
-                duplicateInlaw = duplicateInLawLine.Dates.Count > 1 ? new(duplicateInLawLine.Name, duplicateInLawLine.Dates.Dequeue(), duplicateInLawLine.Dates.Dequeue()) : new(duplicateInLawLine.Name, duplicateInLawLine.Dates.Dequeue());
-                famDuplicate = new(duplicateMember, duplicateInlaw, duplicateMemberLine.Dates.Dequeue());
-                subNodes.Add(default, famDuplicate);
-                break;
+                subNodes.Add(orderingType, family);
+            }
+            Family duplicateFamily = GetDuplicateFamily(lines);
+            if (duplicateFamily != default)
+            {
+                subNodes.Add(default, duplicateFamily);
             }
             return subNodes;
+        }
+
+        private static Family GetDuplicateFamily(Queue<Line> lines)
+        {
+            if (lines.Count == 2)
+            {
+                Line memberLine = lines.Dequeue();
+                Line inLawLine = lines.Dequeue();
+                Person member = new(memberLine.Name);
+                DateTime marriage;
+                if (memberLine.Dates.Count > 1)
+                {
+                    member.BirthDate = memberLine.Dates.Dequeue();
+                    marriage = memberLine.Dates.Dequeue();
+                    if (memberLine.Dates.TryDequeue(out DateTime value))
+                    {
+                        member.DeceasedDate = value;
+                    }
+                }
+                else
+                {
+                    marriage = memberLine.Dates.Dequeue();
+                }
+                Person inLaw = new(inLawLine.Name)
+                {
+                    BirthDate = inLawLine.Dates.Dequeue()
+                };
+                if (inLawLine.Dates.TryDequeue(out DateTime value1))
+                {
+                    inLaw.DeceasedDate = value1;
+                }
+                return new(member)
+                {
+                    InLaw = inLaw,
+                    MarriageDate = marriage
+                };
+            }
+            return default;
+        }
+
+        private static Family GetFamily(Queue<Line> lines)
+        {
+            Line memberLine;
+            Person member;
+            DateTime marriage;
+            Line inLawLine;
+            Person inLaw;
+            if (lines.Count % 2 == 0)
+            {
+                memberLine = lines.Dequeue();
+                member = new(memberLine.Name)
+                {
+                    BirthDate = memberLine.Dates.Dequeue()
+                };
+                marriage = memberLine.Dates.Dequeue();
+                if (memberLine.Dates.TryDequeue(out DateTime value2))
+                {
+                    member.DeceasedDate = value2;
+                }
+                inLawLine = lines.Dequeue();
+                inLaw = new(inLawLine.Name)
+                {
+                    BirthDate = inLawLine.Dates.Dequeue()
+                };
+                if (inLawLine.Dates.TryDequeue(out DateTime value3))
+                {
+                    inLaw.DeceasedDate = value3;
+                }
+                return new(member)
+                {
+                    InLaw = inLaw,
+                    MarriageDate = marriage
+                };
+            }
+            memberLine = lines.Dequeue();
+            member = new(memberLine.Name)
+            {
+                BirthDate = memberLine.Dates.Dequeue()
+            };
+            if (memberLine.Dates.TryDequeue(out DateTime value1))
+            {
+                member.DeceasedDate = value1;
+            }
+            return new(member);
         }
     }
 }

@@ -27,7 +27,8 @@ namespace FamilyTreeLibrary
         {
             get
             {
-                return new(new Person(default,default));
+                string name = default;
+                return new(new Person(name));
             }
         }
 
