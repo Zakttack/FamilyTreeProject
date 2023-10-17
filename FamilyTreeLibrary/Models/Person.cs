@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 
 namespace FamilyTreeLibrary.Models
 {
-    public class Person
+    public class Person : IComparable<Person>
     {
         private DateTime deceasedDate;
         public Person(string name, DateTime birthDate, DateTime deceasedDate = default)
@@ -47,6 +47,12 @@ namespace FamilyTreeLibrary.Models
                 }
                 deceasedDate = value;
             }
+        }
+
+        public int CompareTo(Person person)
+        {
+            int birthDateCompare = FamilyTreeUtils.ComparerDate.Compare(BirthDate, person.BirthDate);
+            return birthDateCompare == 0 ? Name.CompareTo(person.Name) : birthDateCompare;
         }
 
         public override bool Equals(object obj)

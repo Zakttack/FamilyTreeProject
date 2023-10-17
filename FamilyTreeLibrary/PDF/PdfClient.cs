@@ -1,20 +1,19 @@
+using FamilyTreeLibrary.Comparers;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
-using FamilyTreeLibrary.OrderingType.Comparers;
-using FamilyTreeLibrary.PDF.Models;
 
 namespace FamilyTreeLibrary.PDF
 {
     public class PdfClient
     {
-        private readonly Queue<string> textLines;
-        private readonly SortedDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> nodes;
+        private readonly ICollection<Family> nodes;
+        private readonly IReadOnlyDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> familyNodeCollection;
 
         public PdfClient(string pdfFileName, int lineLimit = int.MaxValue)
         {
             FilePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), pdfFileName);
-            nodes = new(Comparer);
-            textLines = PdfUtils.GetPDFLinesAsQueue(lineLimit, pdfFileName);
+            nodes = new SortedSet<Family>(new FamilyComparer());
+            familyNodeCollection = PdfUtils.ParseAsFamilyNodes(PdfUtils.GetPDFLinesAsQueue(lineLimit, pdfFileName));
         }
 
         public string FilePath
@@ -22,7 +21,7 @@ namespace FamilyTreeLibrary.PDF
             get;
         }
 
-        public IReadOnlyDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> Nodes
+        public IEnumerable<Family> Nodes
         {
             get
             {
@@ -32,42 +31,83 @@ namespace FamilyTreeLibrary.PDF
 
         public void LoadNodes()
         {
-            AbstractOrderingType[] current = new AbstractOrderingType[0];
-            int i = 0;
-            while (textLines.Count > 0)
+            List<Queue<KeyValuePair<int,Family>>> subFamilyNodeCollection = new();
+            foreach (KeyValuePair<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> familyNodes in familyNodeCollection)
             {
-                string line = textLines.Dequeue();
-                AbstractOrderingType orderingType = FamilyTreeUtils.GetOrderingTypeByLine(line);
-                current = FamilyTreeUtils.NextOrderingType(current, orderingType);
-                string[] tokens = line.Split(' ');
-                Queue<Line> lines = PdfUtils.GetLines(tokens);
-                IReadOnlyDictionary<AbstractOrderingType,Family> subNodes = PdfUtils.ParseAsSubNodes(orderingType, lines);
-                foreach (KeyValuePair<AbstractOrderingType,Family> subNode in subNodes)
+                if (familyNodes.Key.Length == 1)
                 {
-                    if (subNode.Key == default)
+                    Queue<KeyValuePair<int,Family>> familyQueue = new();
+                    while(familyNodes.Value.Count > 0)
                     {
-                        AbstractOrderingType[] previous = FamilyTreeUtils.PreviousOrderingType(current);
-                        Family first = nodes[previous].Peek().Value;
-                        subNode.Value.Member.BirthDate = first.Member.BirthDate;
-                        subNode.Value.Member.DeceasedDate = first.Member.DeceasedDate;
-                        nodes[previous].Enqueue(new(i, subNode.Value));
+                        KeyValuePair<int,Family> familyPair = familyNodes.Value.Dequeue();
+                        nodes.Add(familyPair.Value);
+                        FamilyTreeUtils.Root.Children.Add(familyPair.Value.Member);
+                        familyQueue.Enqueue(familyPair);
                     }
-                    else
-                    {
-                        Queue<KeyValuePair<int,Family>> families = new();
-                        families.Enqueue(new(i, subNode.Value));
-                        nodes.Add(FamilyTreeUtils.CopyOrderingType(current), families);
-                    }
-                    i++;
+                    subFamilyNodeCollection.Add(familyQueue);
                 }
             }
+            LoadNodes(subFamilyNodeCollection, 2, 0);
         }
 
-        private IComparer<AbstractOrderingType[]> Comparer
+        private void LoadNodes(IReadOnlyList<Queue<KeyValuePair<int,Family>>> subFamilyNodeCollection, int generation, int index)
         {
-            get
+            if (subFamilyNodeCollection.Count > 0)
             {
-                return new OrderingTypeComparer();
+                List<Queue<KeyValuePair<int,Family>>> subCollection = new();
+                foreach (KeyValuePair<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> familyNodes in familyNodeCollection)
+                {
+                    if (familyNodes.Key.Length == generation)
+                    {
+                        KeyValuePair<int,Family> start;
+                        if (index < subFamilyNodeCollection.Count - 1)
+                        {
+                            start = subFamilyNodeCollection[index].Dequeue();
+                            KeyValuePair<int,Family> end;
+                            if (subFamilyNodeCollection[index].Count > 0)
+                            {
+                                end = subFamilyNodeCollection[index].Peek();
+                            }
+                            else
+                            {
+                                end = subFamilyNodeCollection[index + 1].Peek();
+                            }
+                            Queue<KeyValuePair<int,Family>> familyQueue = new();
+                            while (familyNodes.Value.TryPeek(out KeyValuePair<int,Family> current) && start.Key < current.Key && current.Key < end.Key)
+                            {
+                                KeyValuePair<int,Family> familarPair = familyNodes.Value.Dequeue();
+                                nodes.Add(familarPair.Value);
+                                start.Value.Children.Add(familarPair.Value.Member);
+                                familyQueue.Enqueue(familarPair);
+                            }
+                            if (familyQueue.Count > 0)
+                            {
+                                subCollection.Add(familyQueue);
+                            }
+                        }
+                        else if (index == subFamilyNodeCollection.Count - 1)
+                        {
+                            start = subFamilyNodeCollection[index].Dequeue();
+                            Queue<KeyValuePair<int,Family>> familyQueue = new();
+                            while (familyNodes.Value.TryPeek(out KeyValuePair<int,Family> current) && start.Key < current.Key)
+                            {
+                                KeyValuePair<int,Family> familarPair = familyNodes.Value.Dequeue();
+                                nodes.Add(familarPair.Value);
+                                start.Value.Children.Add(familarPair.Value.Member);
+                                familyQueue.Enqueue(familarPair);
+                            }
+                            if (familyQueue.Count > 0)
+                            {
+                                subCollection.Add(familyQueue);
+                            }
+                        }
+                        else
+                        {
+                            LoadNodes(subCollection, generation + 1, 0);
+                        }
+                    }
+                }
+                LoadNodes(subCollection, generation, index + 1);
             }
         }
     }

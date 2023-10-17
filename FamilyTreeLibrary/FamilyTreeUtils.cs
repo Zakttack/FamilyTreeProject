@@ -23,11 +23,46 @@ namespace FamilyTreeLibrary
             }
         }
 
+        public static Family Root
+        {
+            get
+            {
+                return new(new Person(default,default));
+            }
+        }
+
         public static AbstractOrderingType[] CopyOrderingType(AbstractOrderingType[] temp)
         {
             AbstractOrderingType[] collection = new AbstractOrderingType[temp.Length];
             Array.Copy(temp, collection, temp.Length);
             return collection;
+        }
+
+        public static DateTime GetDate(string input)
+        {
+            string[] values = input.Split(' ');
+            StringBuilder builder = new();
+            if (values.Length < 3)
+            {
+                if (IsMonth(values[0]))
+                {
+                    builder.Append("01");
+                    foreach (string value in values)
+                    {
+                        builder.Append($" {value}");
+                    }
+                }
+                else if (IsMonth(values[1]))
+                {
+                    foreach (string value in values)
+                    {
+                        builder.Append($"{value} ");
+                    }
+                    builder.Append("0001");
+                }
+                return Convert.ToDateTime(builder.ToString());
+            }
+            return Convert.ToDateTime(input);
         }
 
         public static string GetFileNameFromResources(string currentPath, string fileNameWithExtension)
@@ -41,17 +76,18 @@ namespace FamilyTreeLibrary
             return $"{currentPath}\\Resources\\{fileNameWithExtension}";
         }
 
-        public static AbstractOrderingType GetOrderingTypeByLine(string line)
+        public static Queue<AbstractOrderingType> GetOrderingTypeByLine(string line)
         {
+            Queue<AbstractOrderingType> result = new();
             string token = line.Split(' ')[0];
             for (int generation = 1; generation <= 6; generation++)
             {
                 if (AbstractOrderingType.TryGetOrderingType(out AbstractOrderingType orderingType, token, generation))
                 {
-                    return orderingType;
+                    result.Enqueue(orderingType);
                 }
             }
-            return null;
+            return result;
         }
 
         public static bool IsMonth(string token)
@@ -81,18 +117,27 @@ namespace FamilyTreeLibrary
             {
                 return IncrementGeneration(new AbstractOrderingType[0]);
             }
-            IReadOnlyList<AbstractOrderingType[]> possibleNexts = new List<AbstractOrderingType[]>
+            List<AbstractOrderingType[]> possibleNexts = new()
             {
                 IncrementGeneration(temp),
                 ReplaceWithIncrementByKey(temp)
             };
-            if (possibleNexts[0][^1].Equals(orderingType))
+            AbstractOrderingType[] previous = temp;
+            while (true)
             {
-                return possibleNexts[0];
+                previous = PreviousOrderingType(previous);
+                if (previous.Length == 0)
+                {
+                    break;
+                }
+                possibleNexts.Add(ReplaceWithIncrementByKey(previous));
             }
-            else if (possibleNexts[1][^1].Equals(orderingType))
+            foreach (AbstractOrderingType[] value in possibleNexts)
             {
-                return possibleNexts[1];
+                if (value[^1].Equals(orderingType))
+                {
+                    return value;
+                }
             }
             return null;
         }
@@ -105,19 +150,19 @@ namespace FamilyTreeLibrary
         }
         public static string ReformatToken(string token)
         {
-            string pattern = "^[A-Z][a-z]+\\d+$";
-            if (Regex.IsMatch(token, pattern))
+            if (token.Length > 0)
             {
-                StringBuilder newTokenBuilder = new();
-                foreach (char c in token)
+                StringBuilder tokenRebuilder = new();
+                for (int i = 0; i < token.Length - 1; i++)
                 {
-                    if (char.IsDigit(c))
+                    tokenRebuilder.Append(token[i]);
+                    if (char.IsDigit(token[i]) ^ char.IsDigit(token[i+1]))
                     {
-                        newTokenBuilder.Append(' ');
+                        tokenRebuilder.Append(' ');
                     }
-                    newTokenBuilder.Append(token);
                 }
-                return newTokenBuilder.ToString();
+                tokenRebuilder.Append(token[^1]);
+                return tokenRebuilder.ToString();
             }
             return token;
         }

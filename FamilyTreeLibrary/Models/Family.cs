@@ -43,7 +43,7 @@ namespace FamilyTreeLibrary.Models
             get;
         }
 
-        public ICollection<Family> Children
+        public ICollection<Person> Children
         {
             private set;
             get;
@@ -73,9 +73,9 @@ namespace FamilyTreeLibrary.Models
                 {"MarriageDate", FamilyTreeUtils.ComparerDate.Compare(MarriageDate, default) == 0 ? JValue.CreateNull() : MarriageDate.ToString().Split()[0]}
             };
             JArray array = new();
-            foreach (Family child in Children)
+            foreach (Person child in Children)
             {
-                array.Add(JObject.Parse(child.Member.ToString()));
+                array.Add(JObject.Parse(child.ToString()));
             }
             obj.Add("Children", array);
             return obj.ToString();
@@ -83,12 +83,12 @@ namespace FamilyTreeLibrary.Models
 
         private void LoadChildren(IEnumerable<Person> people = null)
         {
-            Children = new SortedSet<Family>(FamilyTreeUtils.ComparerFamily);
+            Children = new SortedSet<Person>();
             if (people != null)
             {
                 foreach (Person child in people)
                 {
-                    Children.Add(new(child));
+                    Children.Add(child);
                 }
             }
         }

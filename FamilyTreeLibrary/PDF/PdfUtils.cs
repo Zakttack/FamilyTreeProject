@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
+using FamilyTreeLibrary.OrderingType.Comparers;
 
 namespace FamilyTreeLibrary.PDF
 {
@@ -24,22 +25,33 @@ namespace FamilyTreeLibrary.PDF
                 foreach (string line in parts)
                 {
                     string temp = line.TrimStart();
-                    AbstractOrderingType orderingType = FamilyTreeUtils.GetOrderingTypeByLine(temp);
-                    if (orderingType == null && temp2 != "" && Regex.IsMatch(temp, "^[a-zA-Z0-9 ]*$"))
+                    Queue<AbstractOrderingType> orderingTypePossibilities = FamilyTreeUtils.GetOrderingTypeByLine(temp);
+                    if (orderingTypePossibilities.Count == 0 && temp2 != "" && Regex.IsMatch(temp, "^[a-zA-Z0-9 ]*$"))
                     {
                         temp2 += $" {temp}";
                     }
-                    else if (orderingType != null)
+                    else if (orderingTypePossibilities.Count > 0)
                     {
                         if (temp2 != "")
                         {
                             string[] tokens = temp2.Split(' ');
                             StringBuilder tokenRebuilder = new();
-                            foreach (string token in tokens)
+                            for (int i = 0; i < tokens.Length; i++)
                             {
-                                tokenRebuilder.Append($"{FamilyTreeUtils.ReformatToken(token)} ");
+                                if (i > 0)
+                                {
+                                    string tokenUpdate = FamilyTreeUtils.ReformatToken(tokens[i]);
+                                    if (tokenUpdate.Length > 0)
+                                    {
+                                        tokenRebuilder.Append($" {tokenUpdate}");
+                                    }
+                                }
+                                else
+                                {
+                                    tokenRebuilder.Append($"{tokens[i]} ");
+                                }
                             }
-                            lines.Enqueue(tokenRebuilder.ToString().Trim());
+                            lines.Enqueue(tokenRebuilder.ToString());
                             if (lines.Count >= lineLimit)
                             {
                                 return lines;
@@ -62,42 +74,91 @@ namespace FamilyTreeLibrary.PDF
             Line tempLine = new();
             for (int i = 1; i < tokens.Length - 1; i++)
             {
-                if (readAsName)
+                if (tokens[i] != "")
                 {
-                    if (tempDate.Length > 0)
+                    if (readAsName)
                     {
-                        DateTime dateItem1 = Convert.ToDateTime(tempDate.Trim());
-                        tempLine.Dates.Enqueue(dateItem1);
-                    }
-                    tempDate = "";
-                    if (tempLine.Name != null)
-                    {
-                        lines.Enqueue(tempLine.Copy());
-                        tempLine = new();
-                    }
-                    tempName += $"{tokens[i]} ";
-                }
-                else
-                {
-                    if (tempName.Length > 0)
-                    {
-                        tempLine.Name = tempName.Trim();
-                    }
-                    tempName = "";
-                    tempDate += $"{tokens[i]} ";
-                    if (FamilyTreeUtils.IsMonth(tokens[i - 1]))
-                    {
-                        DateTime dateItem2 = Convert.ToDateTime(tempDate.Trim());
-                        tempLine.Dates.Enqueue(dateItem2);
+                        if (tempDate.Length > 0)
+                        {
+                            DateTime dateItem1 = FamilyTreeUtils.GetDate(tempDate.Trim());
+                            tempLine.Dates.Enqueue(dateItem1);
+                        }
                         tempDate = "";
+                        if (tempLine.Name != null)
+                        {
+                            lines.Enqueue(tempLine.Copy());
+                            tempLine = new();
+                        }
+                        tempName += $"{tokens[i]} ";
                     }
+                    else
+                    {
+                        if (tempName.Length > 0)
+                        {
+                            tempLine.Name = tempName.Trim();
+                        }
+                        tempName = "";
+                        tempDate += $"{tokens[i]} ";
+                        if (FamilyTreeUtils.IsMonth(tokens[i - 1]))
+                        {
+                            DateTime dateItem2 = FamilyTreeUtils.GetDate(tempDate.Trim());
+                            tempLine.Dates.Enqueue(dateItem2);
+                            tempDate = "";
+                        }
+                    }
+                    readAsName = !Regex.IsMatch(tokens[i + 1], pattern) && !FamilyTreeUtils.IsMonth(tokens[i+1]);
                 }
-                readAsName = !Regex.IsMatch(tokens[i + 1], pattern) && !FamilyTreeUtils.IsMonth(tokens[i+1]);
             }
-            DateTime dateItem3 = Convert.ToDateTime(tempDate + tokens[^1]);
+            DateTime dateItem3 = FamilyTreeUtils.GetDate(tempDate + tokens[^1]);
             tempLine.Dates.Enqueue(dateItem3);
             lines.Enqueue(tempLine);
             return lines;
+        }
+
+        public static IReadOnlyDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> ParseAsFamilyNodes(Queue<string> textLines)
+        {
+            SortedDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> familyNodes = new(new OrderingTypeComparer());
+            AbstractOrderingType[] current = new AbstractOrderingType[0];
+            int i = 0;
+            while (textLines.Count > 0)
+            {
+                string line = textLines.Dequeue();
+                Queue<AbstractOrderingType> orderingTypePossibilities = FamilyTreeUtils.GetOrderingTypeByLine(line);
+                AbstractOrderingType orderingType = null;
+                AbstractOrderingType[] temp;
+                while (orderingTypePossibilities.Count > 0)
+                {
+                    orderingType = orderingTypePossibilities.Dequeue();
+                    temp = FamilyTreeUtils.NextOrderingType(current, orderingType);
+                    if (temp != null)
+                    {
+                        current = temp;
+                        break;
+                    } 
+                }
+                string[] tokens = line.Split(' ');
+                Queue<Line> lines = GetLines(tokens);
+                IReadOnlyDictionary<AbstractOrderingType,Family> subNodes = ParseAsSubNodes(orderingType, lines);
+                foreach (KeyValuePair<AbstractOrderingType,Family> subNode in subNodes)
+                {
+                    if (subNode.Key == default)
+                    {
+                        AbstractOrderingType[] previous = FamilyTreeUtils.PreviousOrderingType(current);
+                        Family first = familyNodes[previous].Peek().Value;
+                        subNode.Value.Member.BirthDate = first.Member.BirthDate;
+                        subNode.Value.Member.DeceasedDate = first.Member.DeceasedDate;
+                        familyNodes[previous].Enqueue(new(i, subNode.Value));
+                    }
+                    else
+                    {
+                        Queue<KeyValuePair<int,Family>> families = new();
+                        families.Enqueue(new(i, subNode.Value));
+                        familyNodes.Add(FamilyTreeUtils.CopyOrderingType(current), families);
+                    }
+                    i++;
+                }
+            }
+            return familyNodes;
         }
 
         public static IReadOnlyDictionary<AbstractOrderingType,Family> ParseAsSubNodes(AbstractOrderingType orderingType, Queue<Line> lines)

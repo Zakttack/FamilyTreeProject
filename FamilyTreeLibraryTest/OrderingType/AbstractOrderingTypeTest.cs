@@ -125,6 +125,16 @@ namespace FamilyTreeLibraryTest.OrderingType
         }
 
         [Test]
+        public void TestGetOrderingType13()
+        {
+            int key = 3;
+            int generation = 2;
+            KeyValuePair<int,string> expected = new(3, "C.");
+            AbstractOrderingType orderingType = AbstractOrderingType.GetOrderingType(key, generation);
+            Assert.That(orderingType.ConversionPair, Is.EqualTo(expected));
+        }
+
+        [Test]
         public void TestTryGetOrderingType1()
         {
             string value = "I.";
