@@ -1,12 +1,11 @@
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
+using FamilyTreeLibrary.OrderingType.Comparers;
 using FamilyTreeLibrary.PDF.Models;
 using System.Text;
 using System.Text.RegularExpressions;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
-using FamilyTreeLibrary.OrderingType.Comparers;
-using iText.Commons.Actions;
 
 namespace FamilyTreeLibrary.PDF
 {
@@ -27,7 +26,8 @@ namespace FamilyTreeLibrary.PDF
                 {
                     string temp = line.TrimStart();
                     Queue<AbstractOrderingType> orderingTypePossibilities = FamilyTreeUtils.GetOrderingTypeByLine(temp);
-                    if (orderingTypePossibilities.Count == 0 && temp2 != "" && Regex.IsMatch(temp, "^[a-zA-Z0-9 ]*$"))
+                    string pattern = "^[a-zA-Z0-9\\,\\. ]*$";
+                    if (orderingTypePossibilities.Count == 0 && temp2 != "" && Regex.IsMatch(temp, pattern))
                     {
                         temp2 += $" {temp}";
                     }
@@ -49,7 +49,7 @@ namespace FamilyTreeLibrary.PDF
                                 }
                                 else
                                 {
-                                    tokenRebuilder.Append($"{tokens[i]} ");
+                                    tokenRebuilder.Append($"{tokens[i]}");
                                 }
                             }
                             lines.Enqueue(tokenRebuilder.ToString());
@@ -110,8 +110,15 @@ namespace FamilyTreeLibrary.PDF
                     readAsName = !Regex.IsMatch(tokens[i + 1], pattern) && !FamilyTreeUtils.IsMonth(tokens[i+1]);
                 }
             }
-            DateTime dateItem3 = FamilyTreeUtils.GetDate(tempDate + tokens[^1]);
-            tempLine.Dates.Enqueue(dateItem3);
+            if (Regex.IsMatch(tokens[^1], pattern))
+            {
+                DateTime dateItem3 = FamilyTreeUtils.GetDate(tempDate + tokens[^1]);
+                tempLine.Dates.Enqueue(dateItem3);
+            }
+            else
+            {
+                tempLine.Name = tokens.Length > 1 ? $"{tempName}{tokens[^1]}" : "";
+            }
             lines.Enqueue(tempLine);
             return lines;
         }
@@ -144,11 +151,18 @@ namespace FamilyTreeLibrary.PDF
                 {
                     if (subNode.Key == default)
                     {
-                        AbstractOrderingType[] previous = FamilyTreeUtils.PreviousOrderingType(current);
-                        Family first = familyNodes[previous].Peek().Value;
-                        subNode.Value.Member.BirthDate = first.Member.BirthDate;
-                        subNode.Value.Member.DeceasedDate = first.Member.DeceasedDate;
-                        familyNodes[previous].Enqueue(new(i, subNode.Value));
+                        AbstractOrderingType[] previous = current;
+                        do
+                        {
+                            previous = FamilyTreeUtils.PreviousOrderingType(previous);
+                        } while(previous.Length > 0 && !FamilyTreeUtils.MemberEquivalent(familyNodes[previous].Peek().Value, subNode.Value));
+                        if (previous.Length > 0)
+                        {
+                            Family first = familyNodes[previous].Peek().Value;
+                            subNode.Value.Member.BirthDate = first.Member.BirthDate;
+                            subNode.Value.Member.DeceasedDate = first.Member.DeceasedDate;
+                            familyNodes[previous].Enqueue(new(i, subNode.Value));
+                        }
                     }
                     else
                     {
@@ -251,10 +265,11 @@ namespace FamilyTreeLibrary.PDF
                 };
             }
             memberLine = lines.Dequeue();
-            member = new(memberLine.Name)
+            member = new(memberLine.Name);
+            if (memberLine.Dates.TryDequeue(out DateTime value))
             {
-                BirthDate = memberLine.Dates.Dequeue()
-            };
+                member.BirthDate = value;
+            }
             if (memberLine.Dates.TryDequeue(out DateTime value1))
             {
                 member.DeceasedDate = value1;

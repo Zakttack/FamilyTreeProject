@@ -42,28 +42,36 @@ namespace FamilyTreeLibrary
         public static DateTime GetDate(string input)
         {
             string[] values = input.Split(' ');
-            StringBuilder builder = new();
-            if (values.Length < 3)
+            string digitPattern = @"^\d+$";
+            switch (values.Length)
             {
-                if (IsMonth(values[0]))
-                {
-                    builder.Append("01");
-                    foreach (string value in values)
+                case 1: 
+                    if (IsMonth(input))
                     {
-                        builder.Append($" {value}");
+                        return Convert.ToDateTime($"01 {input} 0001");
                     }
-                }
-                else if (IsMonth(values[1]))
-                {
-                    foreach (string value in values)
+                    if (Regex.IsMatch(input, digitPattern))
                     {
-                        builder.Append($"{value} ");
+                        switch (input.Length)
+                        {
+                            case 2: return Convert.ToDateTime($"{input} Jan 0001");
+                            case 4: return Convert.ToDateTime($"01 Jan {input}");
+                        }
                     }
-                    builder.Append("0001");
-                }
-                return Convert.ToDateTime(builder.ToString());
+                break;
+                case 2:
+                    if (IsMonth(values[0]))
+                    {
+                        return Convert.ToDateTime($"01 {values[0]} {values[1]}");
+                    }
+                    else if (Regex.IsMatch(values[0], digitPattern) && values[0].Length == 2 && IsMonth(values[1]))
+                    {
+                        return Convert.ToDateTime($"{values[0]} {values[1]} 0001");
+                    }
+                break;
+                case 3: return Convert.ToDateTime(input);
             }
-            return Convert.ToDateTime(input);
+            return default;
         }
 
         public static string GetFileNameFromResources(string currentPath, string fileNameWithExtension)
@@ -112,6 +120,32 @@ namespace FamilyTreeLibrary
             return months.Contains(token);
         }
 
+        public static bool MemberEquivalent(Family main, Family duplicate)
+        {
+            string[] memberMainNameParts = main.Member.Name.Split(' ');
+            string[] memberDuplicateNameParts = duplicate.Member.Name.Split(' ');
+            int index = -1;
+            for (int i = 0; i < Math.Min(memberMainNameParts.Length, memberDuplicateNameParts.Length) - 1 && index < 0; i++)
+            {
+                if (memberMainNameParts[i] == memberDuplicateNameParts[i])
+                {
+                    index = i;
+                }
+            }
+            if (index < 0 || index > Math.Min(memberMainNameParts.Length, memberDuplicateNameParts.Length) - 2)
+            {
+                return false;
+            }
+            for (int i1 = index + 1; i1 < memberDuplicateNameParts.Length; i1++)
+            {
+                if (memberDuplicateNameParts[i1] == memberMainNameParts[^1])
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static AbstractOrderingType[] NextOrderingType(AbstractOrderingType[] temp, AbstractOrderingType orderingType)
         {
             if (temp.Length == 0)
@@ -153,7 +187,33 @@ namespace FamilyTreeLibrary
         {
             if (token.Length > 0)
             {
+                string pattern = @"^[0-9]+\-[0-9]+$";
                 StringBuilder tokenRebuilder = new();
+                if (Regex.IsMatch(token, pattern))
+                {
+                    string[] values = token.Split('-');
+                    int v1 = Convert.ToInt32(values[0]);
+                    int v2;
+                    if (values[0].Length == values[1].Length)
+                    {
+                        v2 = Convert.ToInt32(values[1]);
+                    }
+                    else
+                    {
+                        int stop = values[0].Length - values[1].Length;
+                        for (int i = 0; i < values[0].Length; i++)
+                        {
+                            tokenRebuilder.Append(i < stop ? values[0][i] : values[1][i - stop]);
+                        }
+                        v2 = Convert.ToInt32(tokenRebuilder.ToString());
+                    }
+                    return $"{(v1 + v2) / 2}";
+                }
+                string pattern1 = @"^[^a-zA-Z0-9]$";
+                if (Regex.IsMatch(token, pattern1))
+                {
+                    return "";
+                }
                 for (int i = 0; i < token.Length - 1; i++)
                 {
                     tokenRebuilder.Append(token[i]);
