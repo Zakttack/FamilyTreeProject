@@ -1,4 +1,9 @@
 {
+    "Parent": {
+        "Name": null,
+        "BirthDate": null,
+        "DeceasedDate": null
+    },
     "Member": {
         "Name": "August Fred Pfingsten",
         "BirthDate": "26 Jun 1896",
