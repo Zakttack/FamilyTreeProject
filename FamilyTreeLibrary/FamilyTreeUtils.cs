@@ -1,27 +1,11 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
-using FamilyTreeLibrary.Comparers;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
 namespace FamilyTreeLibrary
 {
     public static class FamilyTreeUtils
     {
-        public static IComparer<DateTime> ComparerDate
-        {
-            get
-            {
-                return new DateComparer();
-            }
-        }
-
-        public static IComparer<Family> ComparerFamily
-        {
-            get
-            {
-                return new FamilyComparer();
-            }
-        }
 
         public static Family Root
         {
@@ -36,41 +20,6 @@ namespace FamilyTreeLibrary
             AbstractOrderingType[] collection = new AbstractOrderingType[temp.Length];
             Array.Copy(temp, collection, temp.Length);
             return collection;
-        }
-
-        public static DateTime GetDate(string input)
-        {
-            string[] values = input.Split(' ');
-            string digitPattern = @"^\d+$";
-            switch (values.Length)
-            {
-                case 1: 
-                    if (IsMonth(input))
-                    {
-                        return Convert.ToDateTime($"01 {input} 0001");
-                    }
-                    if (Regex.IsMatch(input, digitPattern))
-                    {
-                        switch (input.Length)
-                        {
-                            case 2: return Convert.ToDateTime($"{input} Jan 0001");
-                            case 4: return Convert.ToDateTime($"01 Jan {input}");
-                        }
-                    }
-                break;
-                case 2:
-                    if (IsMonth(values[0]))
-                    {
-                        return Convert.ToDateTime($"01 {values[0]} {values[1]}");
-                    }
-                    else if (Regex.IsMatch(values[0], digitPattern) && values[0].Length == 2 && IsMonth(values[1]))
-                    {
-                        return Convert.ToDateTime($"{values[0]} {values[1]} 0001");
-                    }
-                break;
-                case 3: return Convert.ToDateTime(input);
-            }
-            return default;
         }
 
         public static string GetFileNameFromResources(string currentPath, string fileNameWithExtension)
@@ -96,27 +45,6 @@ namespace FamilyTreeLibrary
                 }
             }
             return result;
-        }
-
-        public static bool IsMonth(string token)
-        {
-            IReadOnlySet<string> months = new HashSet<string>
-            {
-                "Jan",
-                "Feb",
-                "Mar",
-                "Apr",
-                "May",
-                "Jun",
-                "June",
-                "Jul",
-                "Aug",
-                "Sep",
-                "Oct",
-                "Nov",
-                "Dec"
-            };
-            return months.Contains(token);
         }
 
         public static bool MemberEquivalent(Family main, Family duplicate)
@@ -186,9 +114,9 @@ namespace FamilyTreeLibrary
         {
             if (token.Length > 0)
             {
-                string pattern = @"^[0-9]+\-[0-9]+$";
+                string rangePattern = @"^[0-9]+\-[0-9]+$";
                 StringBuilder tokenRebuilder = new();
-                if (Regex.IsMatch(token, pattern))
+                if (Regex.IsMatch(token, rangePattern))
                 {
                     string[] values = token.Split('-');
                     int v1 = Convert.ToInt32(values[0]);

@@ -6,19 +6,19 @@ namespace FamilyTreeLibrary.Models
 {
     public class Person
     {
-        private DateTime deceasedDate;
+        private FamilyTreeDate deceasedDate;
         public Person(string name)
         {
             Name = name;
-            BirthDate = default;
-            DeceasedDate = default;
+            BirthDate = new();
+            DeceasedDate = new();
         }
 
         public Person(JObject obj)
         {
-            Name = obj["Name"] == null ? "" : JsonConvert.DeserializeObject<string>(obj["Name"].ToString());
-            BirthDate = obj["BirthDate"] == null ? default : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["BirthDate"].ToString()));
-            DeceasedDate = obj["DeceasedDate"] == null ? default : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["DeceasedDate"].ToString()));
+            Name = obj[nameof(Name)] == null ? "" : JsonConvert.DeserializeObject<string>(obj[nameof(Name)].ToString());
+            BirthDate = obj[nameof(BirthDate)] == null ? new() : new(JsonConvert.DeserializeObject<string>(obj[nameof(BirthDate)].ToString()));
+            DeceasedDate = obj[nameof(DeceasedDate)] == null ? new() : new(JsonConvert.DeserializeObject<string>(obj[nameof(DeceasedDate)].ToString()));
         }
 
         public string Name
@@ -26,13 +26,13 @@ namespace FamilyTreeLibrary.Models
             get;
         }
 
-        public DateTime BirthDate
+        public FamilyTreeDate BirthDate
         {
             get;
             set;
         }
 
-        public DateTime DeceasedDate
+        public FamilyTreeDate DeceasedDate
         {
             get
             {
@@ -40,10 +40,9 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                if (FamilyTreeUtils.ComparerDate.Compare(value, default) != 0 &&
-                    FamilyTreeUtils.ComparerDate.Compare(value, BirthDate) < 0)
+                if (value.CompareTo(new()) != 0 && value.CompareTo(BirthDate) < 0)
                 {
-                    throw new DeceasedDateException(Name, BirthDate, value);
+                    throw new DeceasedDateException(this, value);
                 }
                 deceasedDate = value;
             }
@@ -63,9 +62,9 @@ namespace FamilyTreeLibrary.Models
         {
             JObject obj = new()
             {
-                {"Name", Name == null ? JValue.CreateNull() : Name},
-                {"BirthDate", FamilyTreeUtils.ComparerDate.Compare(BirthDate, default) == 0 ? JValue.CreateNull() : BirthDate.ToString().Split()[0]},
-                {"DeceasedDate", FamilyTreeUtils.ComparerDate.Compare(DeceasedDate, default) == 0 ? JValue.CreateNull() : DeceasedDate.ToString().Split()[0]}
+                {nameof(Name), Name == null ? JValue.CreateNull() : Name},
+                {nameof(BirthDate), BirthDate.CompareTo(new()) == 0 ? JValue.CreateNull() : BirthDate.ToString()},
+                {nameof(DeceasedDate), DeceasedDate.CompareTo(new()) == 0 ? JValue.CreateNull() : DeceasedDate.ToString()}
             };
             return obj.ToString();
         }

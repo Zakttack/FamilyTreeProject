@@ -6,7 +6,7 @@ namespace FamilyTreeLibrary.Models
 {
     public class Family : IComparable<Family>
     {
-        private DateTime marriageDate;
+        private FamilyTreeDate marriageDate;
         public Family(Person member)
         {
             Parent = default;
@@ -18,7 +18,7 @@ namespace FamilyTreeLibrary.Models
 
         public Family(JObject obj)
         {
-            object parent = obj["Parent"];
+            object parent = obj[nameof(Parent)];
             if (parent == default)
             {
                 Parent = default;
@@ -29,13 +29,13 @@ namespace FamilyTreeLibrary.Models
                 Person member = new(parentMember);
                 Parent = new(member);
             }
-            Member = obj["Member"] == null ? default : new(JObject.Parse(obj["Member"].ToString()));
-            InLaw = obj["InLaw"] == null ? default : new(JObject.Parse(obj["InLaw"].ToString()));
-            MarriageDate = obj["MarriageDate"] == null ? default : Convert.ToDateTime(JsonConvert.DeserializeObject<string>(obj["MarriageDate"].ToString()));
+            Member = obj[nameof(Member)] == null ? default : new(JObject.Parse(obj[nameof(Member)].ToString()));
+            InLaw = obj[nameof(InLaw)] == null ? default : new(JObject.Parse(obj[nameof(InLaw)].ToString()));
+            MarriageDate = obj[nameof(MarriageDate)] == null ? new() : new(JsonConvert.DeserializeObject<string>(obj[nameof(MarriageDate)].ToString()));
             ICollection<Person> people = new List<Person>();
-            if (obj["Children"] != null)
+            if (obj[nameof(Children)] != null)
             {
-                JArray array = JArray.Parse(obj["Children"].ToString());
+                JArray array = JArray.Parse(obj[nameof(Children)].ToString());
                 foreach (JToken token in array)
                 {
                     if (token != null)
@@ -64,7 +64,7 @@ namespace FamilyTreeLibrary.Models
             set;
         }
 
-        public DateTime MarriageDate
+        public FamilyTreeDate MarriageDate
         {
             get
             {
@@ -72,10 +72,9 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                if (FamilyTreeUtils.ComparerDate.Compare(value, default) != 0 &&
-                    FamilyTreeUtils.ComparerDate.Compare(value, Member.BirthDate) < 0)
+                if (value.CompareTo(new()) != 0 && (value.CompareTo(Member.BirthDate) < 0 || value.CompareTo(InLaw.BirthDate) < 0))
                 {
-                    throw new MarriageDateException(Member.Name, value, Member.BirthDate);
+                    throw new MarriageDateException(this, value);
                 }
                 marriageDate = value;
             }
@@ -89,8 +88,8 @@ namespace FamilyTreeLibrary.Models
 
         public int CompareTo(Family other)
         {
-            int birthDateCompare = FamilyTreeUtils.ComparerDate.Compare(Member.BirthDate, other.Member.BirthDate);
-            return birthDateCompare == 0 ? FamilyTreeUtils.ComparerDate.Compare(MarriageDate, other.MarriageDate) : birthDateCompare;
+            int birthDateCompare = Member.BirthDate.CompareTo(other.Member.BirthDate);
+            return birthDateCompare == 0 ? MarriageDate.CompareTo(other.MarriageDate) : birthDateCompare;
         }
 
         public override bool Equals(object obj)
@@ -107,17 +106,17 @@ namespace FamilyTreeLibrary.Models
         {
             JObject obj = new()
             {
-                {"Parent", Parent == default ? JValue.CreateNull() : JObject.Parse(Parent.Member.ToString())},
-                { "Member", Member == default ? JValue.CreateNull() : JObject.Parse(Member.ToString()) },
-                { "InLaw", InLaw == default ? JValue.CreateNull() : JObject.Parse(InLaw.ToString()) },
-                {"MarriageDate", FamilyTreeUtils.ComparerDate.Compare(MarriageDate, default) == 0 ? JValue.CreateNull() : MarriageDate.ToString().Split()[0]}
+                {nameof(Parent), Parent == default ? JValue.CreateNull() : JObject.Parse(Parent.Member.ToString())},
+                {nameof(Member), Member == default ? JValue.CreateNull() : JObject.Parse(Member.ToString()) },
+                {nameof(InLaw), InLaw == default ? JValue.CreateNull() : JObject.Parse(InLaw.ToString()) },
+                {nameof(MarriageDate), MarriageDate.CompareTo(new()) == 0 ? JValue.CreateNull() : MarriageDate.ToString()}
             };
             JArray array = new();
             foreach (Family child in Children)
             {
                 array.Add(JObject.Parse(child.Member.ToString()));
             }
-            obj.Add("Children", array);
+            obj.Add(nameof(Children), array);
             return obj.ToString();
         }
 

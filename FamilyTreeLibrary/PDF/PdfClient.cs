@@ -1,4 +1,3 @@
-using FamilyTreeLibrary.Comparers;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
 
@@ -12,7 +11,7 @@ namespace FamilyTreeLibrary.PDF
         public PdfClient(string pdfFileName, int lineLimit = int.MaxValue)
         {
             FilePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), pdfFileName);
-            nodes = new SortedSet<Family>(new FamilyComparer());
+            nodes = new SortedSet<Family>();
             familyNodeCollection = PdfUtils.ParseAsFamilyNodes(PdfUtils.GetPDFLinesAsQueue(lineLimit, pdfFileName));
         }
 

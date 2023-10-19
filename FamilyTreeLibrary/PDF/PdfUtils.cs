@@ -15,27 +15,23 @@ namespace FamilyTreeLibrary.PDF
         public static Queue<string> GetPDFLinesAsQueue(int lineLimit, string fileName)
         {
             Queue<string> lines = new();
-            PdfReader reader = new(fileName);
-            PdfDocument document = new(reader);
-            for (int n = 1; n <= document.GetNumberOfPages(); n++)
+            string previousLine = "";
+            IEnumerable<string[]> pages = GetLinesFromDocument(fileName);
+            foreach (string[] page in pages)
             {
-                string page = PdfTextExtractor.GetTextFromPage(document.GetPage(n));
-                string[] parts = page.Split("\n");
-                string temp2 = "";
-                foreach (string line in parts)
+                foreach (string line in page)
                 {
-                    string temp = line.TrimStart();
-                    Queue<AbstractOrderingType> orderingTypePossibilities = FamilyTreeUtils.GetOrderingTypeByLine(temp);
-                    string pattern = "^[a-zA-Z0-9\\,\\. ]*$";
-                    if (orderingTypePossibilities.Count == 0 && temp2 != "" && Regex.IsMatch(temp, pattern))
+                    string currentLine = line.TrimStart();
+                    Queue<AbstractOrderingType> orderingTypePossibilities = FamilyTreeUtils.GetOrderingTypeByLine(currentLine);
+                    if (IsInLaw(orderingTypePossibilities, previousLine, currentLine))
                     {
-                        temp2 += $" {temp}";
+                        previousLine += $" {currentLine}";
                     }
-                    else if (orderingTypePossibilities.Count > 0)
+                    else if (IsMember(orderingTypePossibilities))
                     {
-                        if (temp2 != "")
+                        if (previousLine != "")
                         {
-                            string[] tokens = temp2.Split(' ');
+                            string[] tokens = previousLine.Split(' ');
                             StringBuilder tokenRebuilder = new();
                             for (int i = 0; i < tokens.Length; i++)
                             {
@@ -58,7 +54,7 @@ namespace FamilyTreeLibrary.PDF
                                 return lines;
                             }
                         }
-                        temp2 = temp;
+                        previousLine = currentLine.TrimStart();
                     }
                 }
             }
@@ -81,7 +77,7 @@ namespace FamilyTreeLibrary.PDF
                     {
                         if (tempDate.Length > 0)
                         {
-                            DateTime dateItem1 = FamilyTreeUtils.GetDate(tempDate.Trim());
+                            FamilyTreeDate dateItem1 = new(tempDate.Trim());
                             tempLine.Dates.Enqueue(dateItem1);
                         }
                         tempDate = "";
@@ -100,19 +96,19 @@ namespace FamilyTreeLibrary.PDF
                         }
                         tempName = "";
                         tempDate += $"{tokens[i]} ";
-                        if (FamilyTreeUtils.IsMonth(tokens[i - 1]))
+                        if (FamilyTreeDate.Months.Contains(tokens[i - 1]))
                         {
-                            DateTime dateItem2 = FamilyTreeUtils.GetDate(tempDate.Trim());
+                            FamilyTreeDate dateItem2 = new(tempDate.Trim());
                             tempLine.Dates.Enqueue(dateItem2);
                             tempDate = "";
                         }
                     }
-                    readAsName = !Regex.IsMatch(tokens[i + 1], pattern) && !FamilyTreeUtils.IsMonth(tokens[i+1]);
+                    readAsName = !Regex.IsMatch(tokens[i + 1], pattern) && !FamilyTreeDate.Months.Contains(tokens[i+1]);
                 }
             }
             if (Regex.IsMatch(tokens[^1], pattern))
             {
-                DateTime dateItem3 = FamilyTreeUtils.GetDate(tempDate + tokens[^1]);
+                FamilyTreeDate dateItem3 = new(tempDate + tokens[^1]);
                 tempLine.Dates.Enqueue(dateItem3);
             }
             else
@@ -126,7 +122,7 @@ namespace FamilyTreeLibrary.PDF
         public static IReadOnlyDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> ParseAsFamilyNodes(Queue<string> textLines)
         {
             SortedDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> familyNodes = new(new OrderingTypeComparer());
-            AbstractOrderingType[] current = new AbstractOrderingType[0];
+            AbstractOrderingType[] current = Array.Empty<AbstractOrderingType>();
             int i = 0;
             while (textLines.Count > 0)
             {
@@ -199,12 +195,12 @@ namespace FamilyTreeLibrary.PDF
                 Line memberLine = lines.Dequeue();
                 Line inLawLine = lines.Dequeue();
                 Person member = new(memberLine.Name);
-                DateTime marriage;
+                FamilyTreeDate marriage;
                 if (memberLine.Dates.Count > 1)
                 {
                     member.BirthDate = memberLine.Dates.Dequeue();
                     marriage = memberLine.Dates.Dequeue();
-                    if (memberLine.Dates.TryDequeue(out DateTime value))
+                    if (memberLine.Dates.TryDequeue(out FamilyTreeDate value))
                     {
                         member.DeceasedDate = value;
                     }
@@ -217,7 +213,7 @@ namespace FamilyTreeLibrary.PDF
                 {
                     BirthDate = inLawLine.Dates.Dequeue()
                 };
-                if (inLawLine.Dates.TryDequeue(out DateTime value1))
+                if (inLawLine.Dates.TryDequeue(out FamilyTreeDate value1))
                 {
                     inLaw.DeceasedDate = value1;
                 }
@@ -234,7 +230,7 @@ namespace FamilyTreeLibrary.PDF
         {
             Line memberLine;
             Person member;
-            DateTime marriage;
+            FamilyTreeDate marriage;
             Line inLawLine;
             Person inLaw;
             if (lines.Count % 2 == 0)
@@ -245,7 +241,7 @@ namespace FamilyTreeLibrary.PDF
                     BirthDate = memberLine.Dates.Dequeue()
                 };
                 marriage = memberLine.Dates.Dequeue();
-                if (memberLine.Dates.TryDequeue(out DateTime value2))
+                if (memberLine.Dates.TryDequeue(out FamilyTreeDate value2))
                 {
                     member.DeceasedDate = value2;
                 }
@@ -254,7 +250,7 @@ namespace FamilyTreeLibrary.PDF
                 {
                     BirthDate = inLawLine.Dates.Dequeue()
                 };
-                if (inLawLine.Dates.TryDequeue(out DateTime value3))
+                if (inLawLine.Dates.TryDequeue(out FamilyTreeDate value3))
                 {
                     inLaw.DeceasedDate = value3;
                 }
@@ -266,15 +262,41 @@ namespace FamilyTreeLibrary.PDF
             }
             memberLine = lines.Dequeue();
             member = new(memberLine.Name);
-            if (memberLine.Dates.TryDequeue(out DateTime value))
+            if (memberLine.Dates.TryDequeue(out FamilyTreeDate value))
             {
                 member.BirthDate = value;
             }
-            if (memberLine.Dates.TryDequeue(out DateTime value1))
+            if (memberLine.Dates.TryDequeue(out FamilyTreeDate value1))
             {
                 member.DeceasedDate = value1;
             }
             return new(member);
+        }
+
+        private static IEnumerable<string[]> GetLinesFromDocument(string fileName)
+        {
+            PdfReader reader = new(fileName);
+            PdfDocument document = new(reader);
+            ICollection<string[]> pages = new List<string[]>();
+            for (int pageNumber = 1; pageNumber <= document.GetNumberOfPages(); pageNumber++)
+            {
+                IList<string> page = PdfTextExtractor.GetTextFromPage(document.GetPage(pageNumber)).Split('\n');
+                page.RemoveAt(0);
+                page.RemoveAt(page.Count - 1);
+                pages.Add(page.ToArray());
+            }
+            return pages;
+        }
+
+        private static bool IsInLaw(Queue<AbstractOrderingType> orderingTypePossibilities, string previousLine, string currentLine)
+        {
+            string inLawPattern = "^[a-zA-Z0-9\\,\\. ]*$";
+            return orderingTypePossibilities.Count == 0 && previousLine != "" && Regex.IsMatch(currentLine, inLawPattern);
+        }
+
+        private static bool IsMember(Queue<AbstractOrderingType> orderingTypePossibilities)
+        {
+            return orderingTypePossibilities.Count > 0;
         }
     }
 }

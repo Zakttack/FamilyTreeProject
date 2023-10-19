@@ -2,15 +2,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FamilyTreeLibrary.Models;
 
 namespace FamilyTreeLibrary.Exceptions
 {
-    public class DeceasedDateException : ArgumentException
+    public class DeceasedDateException : InvalidDateException
     {
-        public DeceasedDateException(string name, DateTime birthDate, DateTime date)
-        :base($"{name} can't be deceased on {date.ToString().Split()[0]}, since they were born on {birthDate.ToString().Split()[0]}")
+        private readonly string name;
+        private readonly FamilyTreeDate birthDate;
+        private readonly FamilyTreeDate date;
+        public DeceasedDateException(Person p, FamilyTreeDate date)
+        :base(date) 
         {
-
+            name = p.Name;
+            birthDate = p.BirthDate;
+            this.date = date;
         }
+
+        public override string Message
+        {
+            get
+            {
+                return $"{name} can't be deceased on {date}, since {name} was born on {birthDate}.";
+            }
+        }
+
+
     }
 }

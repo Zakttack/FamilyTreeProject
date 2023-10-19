@@ -3,12 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FamilyTreeLibrary.Models;
 
 namespace FamilyTreeLibrary.PDF.Models
 {
     public class Line
     {
-        public Line(string name = null, Queue<DateTime> dates = default)
+        public Line(string name = null, Queue<FamilyTreeDate> dates = default)
         {
             Name = name;
             Dates = dates == default ? new() : dates;
@@ -19,7 +20,7 @@ namespace FamilyTreeLibrary.PDF.Models
             set;
         }
 
-        public Queue<DateTime> Dates
+        public Queue<FamilyTreeDate> Dates
         {
             get;
         }
@@ -42,9 +43,9 @@ namespace FamilyTreeLibrary.PDF.Models
         public override string ToString()
         {
             string result = Name ?? "";
-            foreach (DateTime d in Dates)
+            foreach (FamilyTreeDate d in Dates)
             {
-                result += $" {d.ToString().Split(' ')[0]}";
+                result += $" {d}";
             }
             return result;
         }

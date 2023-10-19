@@ -1,14 +1,25 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
+using FamilyTreeLibrary.Models;
 
 namespace FamilyTreeLibrary.Exceptions
 {
-    public class MarriageDateException : ArgumentException
+    public class MarriageDateException : InvalidDateException
     {
-        public MarriageDateException(string name, DateTime marriageDate, DateTime birthDate)
-         :base($"{name} can't be married on {marriageDate.ToString().Split()[0]}, since {name} was born on {birthDate.ToString().Split()[0]}")
-         {}
+        private readonly Family family;
+        private readonly FamilyTreeDate date;
+        public MarriageDateException(Family f, FamilyTreeDate date)
+            :base(date)
+        {
+            family = f;
+            this.date = date;
+        }
+
+        public override string Message
+        {
+            get
+            {
+                return $"{family.Member.Name} can't be married to {family.InLaw.Name} on {date}, since {family.Member.Name} was born on {family.Member.BirthDate} and {family.InLaw.Name} was born on {family.InLaw.BirthDate}.";
+            }
+        }
     }
 }
