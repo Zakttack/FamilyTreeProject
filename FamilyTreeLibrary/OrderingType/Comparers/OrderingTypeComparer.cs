@@ -9,7 +9,7 @@ namespace FamilyTreeLibrary.OrderingType.Comparers
     {
         public int Compare(AbstractOrderingType[] a, AbstractOrderingType[] b)
         {
-            for (int i = 0; i < a.Length && i < b.Length; i++)
+            for (int i = 0; i < Math.Min(a.Length, b.Length); i++)
             {
                 if (a[i].CompareTo(b[i]) < 0)
                 {

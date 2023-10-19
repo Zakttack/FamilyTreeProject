@@ -16,8 +16,8 @@ namespace FamilyTreeLibrary.PDF
         {
             Queue<string> lines = new();
             string previousLine = "";
-            IEnumerable<string[]> pages = GetLinesFromDocument(fileName);
-            foreach (string[] page in pages)
+            IEnumerable<IEnumerable<string>> pages = GetLinesFromDocument(fileName);
+            foreach (IEnumerable<string> page in pages)
             {
                 foreach (string line in page)
                 {
@@ -64,7 +64,7 @@ namespace FamilyTreeLibrary.PDF
         public static Queue<Line> GetLines(string[] tokens)
         {
             Queue<Line> lines = new();
-            string pattern = "^\\d+$";
+            string dayOrYearPattern = @"^\\d+$";
             string tempName = "";
             string tempDate = "";
             bool readAsName = true;
@@ -103,10 +103,10 @@ namespace FamilyTreeLibrary.PDF
                             tempDate = "";
                         }
                     }
-                    readAsName = !Regex.IsMatch(tokens[i + 1], pattern) && !FamilyTreeDate.Months.Contains(tokens[i+1]);
+                    readAsName = !Regex.IsMatch(tokens[i + 1], dayOrYearPattern) && !FamilyTreeDate.Months.Contains(tokens[i+1]);
                 }
             }
-            if (Regex.IsMatch(tokens[^1], pattern))
+            if (Regex.IsMatch(tokens[^1], dayOrYearPattern))
             {
                 FamilyTreeDate dateItem3 = new(tempDate + tokens[^1]);
                 tempLine.Dates.Enqueue(dateItem3);
@@ -273,17 +273,17 @@ namespace FamilyTreeLibrary.PDF
             return new(member);
         }
 
-        private static IEnumerable<string[]> GetLinesFromDocument(string fileName)
+        private static IEnumerable<IEnumerable<string>> GetLinesFromDocument(string fileName)
         {
             PdfReader reader = new(fileName);
             PdfDocument document = new(reader);
-            ICollection<string[]> pages = new List<string[]>();
+            ICollection<IEnumerable<string>> pages = new List<IEnumerable<string>>();
             for (int pageNumber = 1; pageNumber <= document.GetNumberOfPages(); pageNumber++)
             {
-                IList<string> page = PdfTextExtractor.GetTextFromPage(document.GetPage(pageNumber)).Split('\n');
+                IList<string> page = PdfTextExtractor.GetTextFromPage(document.GetPage(pageNumber)).Split('\n').ToList();
                 page.RemoveAt(0);
                 page.RemoveAt(page.Count - 1);
-                pages.Add(page.ToArray());
+                pages.Add(page);
             }
             return pages;
         }
