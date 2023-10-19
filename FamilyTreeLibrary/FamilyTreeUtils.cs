@@ -30,7 +30,7 @@ namespace FamilyTreeLibrary
             {
                 return GetFileNameFromResources(currentPath[..(currentPath.Length - current.Length - 1)], fileNameWithExtension);
             }
-            return $"{currentPath}\\Resources\\{fileNameWithExtension}";
+            return $@"{currentPath}\Resources\{fileNameWithExtension}";
         }
 
         public static Queue<AbstractOrderingType> GetOrderingTypeByLine(string line)
