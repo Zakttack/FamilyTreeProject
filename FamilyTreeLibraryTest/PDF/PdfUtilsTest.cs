@@ -26,16 +26,16 @@ namespace FamilyTreeLibraryTest.PDF
             {
                 Name = "August Fred Pfingsten"
             };
-            expectedMember.Dates.Enqueue(Convert.ToDateTime("26 Jun 1896"));
-            expectedMember.Dates.Enqueue(Convert.ToDateTime("14 Sep 1921"));
-            expectedMember.Dates.Enqueue(Convert.ToDateTime("24 Aug 1980"));
+            expectedMember.Dates.Enqueue(new FamilyTreeDate("26 Jun 1896"));
+            expectedMember.Dates.Enqueue(new FamilyTreeDate("14 Sep 1921"));
+            expectedMember.Dates.Enqueue(new FamilyTreeDate("24 Aug 1980"));
             expected.Enqueue(expectedMember);
             Line expectedInLaw = new()
             {
                 Name = "Frieda nee Schobinger"
             };
-            expectedInLaw.Dates.Enqueue(Convert.ToDateTime("10 Nov 1902"));
-            expectedInLaw.Dates.Enqueue(Convert.ToDateTime("13 Jul 1938"));
+            expectedInLaw.Dates.Enqueue(new FamilyTreeDate("10 Nov 1902"));
+            expectedInLaw.Dates.Enqueue(new FamilyTreeDate("13 Jul 1938"));
             expected.Enqueue(expectedInLaw);
             Queue<Line> actual = PdfUtils.GetLines(tokens);
             Assert.That(actual, Is.EqualTo(expected));
@@ -46,18 +46,18 @@ namespace FamilyTreeLibraryTest.PDF
         {
             Person member = new("August Fred Pfingsten")
             {
-                BirthDate = Convert.ToDateTime("26 Jun 1896"),
-                DeceasedDate = Convert.ToDateTime("24 Aug 1980")
+                BirthDate = new FamilyTreeDate("26 Jun 1896"),
+                DeceasedDate = new FamilyTreeDate("24 Aug 1980")
             };
             Person inLaw = new("Frieda nee Schobinger")
             {
-                BirthDate = Convert.ToDateTime("10 Nov 1902"),
-                DeceasedDate = Convert.ToDateTime("13 Jul 1938")
+                BirthDate = new FamilyTreeDate("10 Nov 1902"),
+                DeceasedDate = new FamilyTreeDate("13 Jul 1938")
             };
             Family family = new(member)
             {
                 InLaw = inLaw,
-                MarriageDate = Convert.ToDateTime("14 Sep 1921")
+                MarriageDate = new FamilyTreeDate("14 Sep 1921")
             };
             IReadOnlyDictionary<AbstractOrderingType,Family> expected = new Dictionary<AbstractOrderingType,Family>()
             {
@@ -74,16 +74,16 @@ namespace FamilyTreeLibraryTest.PDF
         {
             Person member = new("Beth Marie Breyer")
             {
-                BirthDate = Convert.ToDateTime("26 Feb 1976")
+                BirthDate = new FamilyTreeDate("26 Feb 1976")
             };
             Person inLaw = new("Bobby Trabue")
             {
-                BirthDate = Convert.ToDateTime("07 Jun 1979")
+                BirthDate = new FamilyTreeDate("07 Jun 1979")
             };
             Family fam = new(member)
             {
                 InLaw = inLaw,
-                MarriageDate = Convert.ToDateTime("Mar 2002")
+                MarriageDate = new FamilyTreeDate("Mar 2002")
             };
             IReadOnlyDictionary<AbstractOrderingType,Family> expected = new Dictionary<AbstractOrderingType,Family>()
             {
@@ -100,18 +100,18 @@ namespace FamilyTreeLibraryTest.PDF
         {
             Person member = new("August Fred Pfingsten")
             {
-                BirthDate = Convert.ToDateTime("26 Jun 1896"),
-                DeceasedDate = Convert.ToDateTime("24 Aug 1980")
+                BirthDate = new FamilyTreeDate("26 Jun 1896"),
+                DeceasedDate = new FamilyTreeDate("24 Aug 1980")
             };
             Person inLaw = new("Frieda nee Schobinger")
             {
-                BirthDate = Convert.ToDateTime("10 Nov 1902"),
-                DeceasedDate = Convert.ToDateTime("13 Jul 1938")
+                BirthDate = new FamilyTreeDate("10 Nov 1902"),
+                DeceasedDate = new FamilyTreeDate("13 Jul 1938")
             };
             Family family = new(member)
             {
                 InLaw = inLaw,
-                MarriageDate = Convert.ToDateTime("14 Sep 1921")
+                MarriageDate = new FamilyTreeDate("14 Sep 1921")
             };
             KeyValuePair<int,Family> expectedPair = new(0, family);
             Queue<KeyValuePair<int,Family>> expectedQueue = new();
@@ -130,26 +130,26 @@ namespace FamilyTreeLibraryTest.PDF
         {
             Person member = new("August Fred Pfingsten")
             {
-                BirthDate = Convert.ToDateTime("26 Jun 1896"),
-                DeceasedDate = Convert.ToDateTime("24 Aug 1980")
+                BirthDate = new FamilyTreeDate("26 Jun 1896"),
+                DeceasedDate = new FamilyTreeDate("24 Aug 1980")
             };
             Person inLaw = new("Frieda nee Schobinger")
             {
-                BirthDate = Convert.ToDateTime("10 Nov 1902"),
-                DeceasedDate = Convert.ToDateTime("13 Jul 1938")
+                BirthDate = new FamilyTreeDate("10 Nov 1902"),
+                DeceasedDate = new FamilyTreeDate("13 Jul 1938")
             };
             Family family1 = new(member)
             {
                 InLaw = inLaw,
-                MarriageDate = Convert.ToDateTime("14 Sep 1921")
+                MarriageDate = new FamilyTreeDate("14 Sep 1921")
             };
             KeyValuePair<int,Family> expectedPair1 = new(0, family1);
             Queue<KeyValuePair<int,Family>> expectedQueue1 = new();
             expectedQueue1.Enqueue(expectedPair1);
             Person member2 = new("Lillian Pfingsten")
             {
-                BirthDate = Convert.ToDateTime("12 Nov 1922"),
-                DeceasedDate = Convert.ToDateTime("9 Oct 1924")
+                BirthDate = new FamilyTreeDate("12 Nov 1922"),
+                DeceasedDate = new FamilyTreeDate("9 Oct 1924")
             };
             Family family2 = new(member2);
             KeyValuePair<int,Family> expectedPair2 = new(1, family2);
@@ -170,17 +170,17 @@ namespace FamilyTreeLibraryTest.PDF
         {
             Person member7 = new("Evelyn Pfingsten")
             {
-                BirthDate = Convert.ToDateTime("14 Mar 1926")
+                BirthDate = new FamilyTreeDate("14 Mar 1926")
             };
             Person inLaw7 = new("Gordon Fred Kuder")
             {
-                BirthDate = Convert.ToDateTime("07 Mar 1924"),
-                DeceasedDate = Convert.ToDateTime("11 Dec 2014")
+                BirthDate = new FamilyTreeDate("07 Mar 1924"),
+                DeceasedDate = new FamilyTreeDate("11 Dec 2014")
             };
             Family family7 = new(member7)
             {
                 InLaw = inLaw7,
-                MarriageDate = Convert.ToDateTime("07 Aug 1947")
+                MarriageDate = new FamilyTreeDate("07 Aug 1947")
             };
             KeyValuePair<int,Family> pair7 = new(6, family7);
             Queue<KeyValuePair<int,Family>> queue7 = new();
@@ -199,18 +199,18 @@ namespace FamilyTreeLibraryTest.PDF
         {
             Person member11 = new("Gladys Lydia Pfingsten")
             {
-                BirthDate = Convert.ToDateTime("03 Jan 1931"),
-                DeceasedDate = Convert.ToDateTime("12 Apr 2004")
+                BirthDate = new FamilyTreeDate("03 Jan 1931"),
+                DeceasedDate = new FamilyTreeDate("12 Apr 2004")
             };
             Person inLaw11 = new("Owen Clayton Wallace")
             {
-                BirthDate = Convert.ToDateTime("09 Apr 1928"),
-                DeceasedDate = Convert.ToDateTime("31 May 2017")
+                BirthDate = new FamilyTreeDate("09 Apr 1928"),
+                DeceasedDate = new FamilyTreeDate("31 May 2017")
             };
             Family family11 = new(member11)
             {
                 InLaw = inLaw11,
-                MarriageDate = Convert.ToDateTime("20 Jan 1951")
+                MarriageDate = new FamilyTreeDate("20 Jan 1951")
             };
             KeyValuePair<int,Family> pair11 = new(10, family11);
             Queue<KeyValuePair<int,Family>> queue11 = new();
@@ -229,18 +229,18 @@ namespace FamilyTreeLibraryTest.PDF
         {
             Person member13 = new("Beth Marie Breyer")
             {
-                BirthDate = Convert.ToDateTime("20 Jan 1951"),
-                DeceasedDate = Convert.ToDateTime("26 Feb 1976")
+                BirthDate = new FamilyTreeDate("20 Jan 1951"),
+                DeceasedDate = new FamilyTreeDate("26 Feb 1976")
             };
             Person inLaw13 = new("Bobby Trabue")
             {
-                BirthDate = Convert.ToDateTime("26 Feb 1976"),
-                DeceasedDate = Convert.ToDateTime("07 Jun 1979")
+                BirthDate = new FamilyTreeDate("26 Feb 1976"),
+                DeceasedDate = new FamilyTreeDate("07 Jun 1979")
             };
             Family fam = new(member13)
             {
                 InLaw = inLaw13,
-                MarriageDate = Convert.ToDateTime("01 Mar 2002")
+                MarriageDate = new FamilyTreeDate("01 Mar 2002")
             };
             KeyValuePair<int,Family> pair13 = new(12,fam);
             Queue<KeyValuePair<int,Family>> queue13 = new();
@@ -261,8 +261,8 @@ namespace FamilyTreeLibraryTest.PDF
         {
             Person member21 = new("Taryn Elizabeth Allmaras")
             {
-                BirthDate = Convert.ToDateTime("01 Mar 2002"),
-                DeceasedDate = Convert.ToDateTime("04 Apr 2001")
+                BirthDate = new FamilyTreeDate("01 Mar 2002"),
+                DeceasedDate = new FamilyTreeDate("04 Apr 2001")
             };
             Family family21 = new(member21);
             KeyValuePair<int,Family> pair21 = new(20, family21);

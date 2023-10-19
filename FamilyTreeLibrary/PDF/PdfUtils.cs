@@ -11,7 +11,6 @@ namespace FamilyTreeLibrary.PDF
 {
     public static class PdfUtils
     {
-
         public static Queue<string> GetPDFLinesAsQueue(int lineLimit, string fileName)
         {
             Queue<string> lines = new();
@@ -54,7 +53,7 @@ namespace FamilyTreeLibrary.PDF
                                 return lines;
                             }
                         }
-                        previousLine = currentLine.TrimStart();
+                        previousLine = currentLine;
                     }
                 }
             }
@@ -64,7 +63,8 @@ namespace FamilyTreeLibrary.PDF
         public static Queue<Line> GetLines(string[] tokens)
         {
             Queue<Line> lines = new();
-            string dayOrYearPattern = @"^\\d+$";
+            string numberPattern = @"^\d+$";
+            string rangePattern = @"^\d+-\d+$";
             string tempName = "";
             string tempDate = "";
             bool readAsName = true;
@@ -75,12 +75,6 @@ namespace FamilyTreeLibrary.PDF
                 {
                     if (readAsName)
                     {
-                        if (tempDate.Length > 0)
-                        {
-                            FamilyTreeDate dateItem1 = new(tempDate.Trim());
-                            tempLine.Dates.Enqueue(dateItem1);
-                        }
-                        tempDate = "";
                         if (tempLine.Name != null)
                         {
                             lines.Enqueue(tempLine.Copy());
@@ -96,17 +90,17 @@ namespace FamilyTreeLibrary.PDF
                         }
                         tempName = "";
                         tempDate += $"{tokens[i]} ";
-                        if (FamilyTreeDate.Months.Contains(tokens[i - 1]))
+                        if (tokens[i].Length == 4 && tokens[i] != "June")
                         {
                             FamilyTreeDate dateItem2 = new(tempDate.Trim());
                             tempLine.Dates.Enqueue(dateItem2);
                             tempDate = "";
                         }
                     }
-                    readAsName = !Regex.IsMatch(tokens[i + 1], dayOrYearPattern) && !FamilyTreeDate.Months.Contains(tokens[i+1]);
+                    readAsName = !Regex.IsMatch(tokens[i + 1], numberPattern) && !Regex.IsMatch(tokens[i+1], rangePattern) && !FamilyTreeDate.Months.Contains(tokens[i+1]);
                 }
             }
-            if (Regex.IsMatch(tokens[^1], dayOrYearPattern))
+            if (Regex.IsMatch(tokens[^1], numberPattern) | Regex.IsMatch(tokens[^1], rangePattern))
             {
                 FamilyTreeDate dateItem3 = new(tempDate + tokens[^1]);
                 tempLine.Dates.Enqueue(dateItem3);
@@ -290,7 +284,7 @@ namespace FamilyTreeLibrary.PDF
 
         private static bool IsInLaw(Queue<AbstractOrderingType> orderingTypePossibilities, string previousLine, string currentLine)
         {
-            string inLawPattern = "^[a-zA-Z0-9\\,\\. ]*$";
+            string inLawPattern = "^[a-zA-Z0-9,. ]*$";
             return orderingTypePossibilities.Count == 0 && previousLine != "" && Regex.IsMatch(currentLine, inLawPattern);
         }
 

@@ -1,3 +1,4 @@
+using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.PDF.Models;
 
 namespace FamilyTreeLibraryTest.PDF.Models
@@ -12,9 +13,9 @@ namespace FamilyTreeLibraryTest.PDF.Models
             {
                 Name = "August Fred Pfingsten"
             };
-            expected.Dates.Enqueue(Convert.ToDateTime("26 Jun 1896"));
-            expected.Dates.Enqueue(Convert.ToDateTime("14 Sep 1921"));
-            expected.Dates.Enqueue(Convert.ToDateTime("24 Aug 1980"));
+            expected.Dates.Enqueue(new FamilyTreeDate("26 Jun 1896"));
+            expected.Dates.Enqueue(new FamilyTreeDate("14 Sep 1921"));
+            expected.Dates.Enqueue(new FamilyTreeDate("24 Aug 1980"));
             Assert.That(expected.Copy(), Is.EqualTo(expected));
         }
     }

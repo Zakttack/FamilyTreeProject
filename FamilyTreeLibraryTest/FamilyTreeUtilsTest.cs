@@ -1,4 +1,5 @@
 using FamilyTreeLibrary;
+using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
 
 namespace FamilyTreeLibraryTest
@@ -6,14 +7,6 @@ namespace FamilyTreeLibraryTest
     public class FamilyTreeUtilsTest
     {
         internal const string PDF_FILE = @"C:\Users\zakme\Documents\FamilyTreeProject\Resources\PfingstenBook2023.pdf";
-
-        [Test]
-        public void TestGateDate1()
-        {
-            DateTime expected = Convert.ToDateTime("01 Mar 2002");
-            DateTime actual = FamilyTreeUtils.GetDate("Mar 2002");
-            Assert.That(actual, Is.EqualTo(expected));
-        }
 
         [Test]
         public void TestGetFileNameFromResources()

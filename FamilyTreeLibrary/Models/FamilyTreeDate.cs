@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using FamilyTreeLibrary.Exceptions;
 
 namespace FamilyTreeLibrary.Models
@@ -7,8 +8,8 @@ namespace FamilyTreeLibrary.Models
     {
         private int day;
         private string month;
-        private int year;
-        public FamilyTreeDate(int day = 0, string month = "", int year = 0)
+        private string year;
+        public FamilyTreeDate(int day = 0, string month = "", string year = "")
         {
             Day = day;
             Month = month;
@@ -20,48 +21,10 @@ namespace FamilyTreeLibrary.Models
             string[] values = input.Split(' ');
             switch (values.Length)
             {
-                case 0: Day = 0; Month = ""; Year = 0; break;
-                case 1:
-                    switch (input.Length)
-                    {
-                        case 2: Day = Convert.ToInt32(input); Month = ""; Year = 0; break;
-                        case 3: Day = 0; Month = input; Year = 0; break;
-                        case 4: Day = 0;
-                            if (int.TryParse(input, out int value))
-                            {
-                                Month = "";
-                                Year = value;
-                            }
-                            else
-                            {
-                                Month = input;
-                                Year = 0;
-                            }
-                        break;
-                        default: throw new InvalidDateException(input);
-                    }
-                break;
-                case 2:
-                    bool foundDay = int.TryParse(values[0], out int day);
-                    bool foundYear = int.TryParse(values[1], out int year);
-                    if (foundDay & foundYear)
-                    {
-                        Day = day; Month = ""; Year = year;
-                    }
-                    else if (foundDay & !foundYear)
-                    {
-                        Day = day; Month = values[1]; Year = 0;
-                    }
-                    else if (!foundDay & foundYear)
-                    {
-                        Day = 0; Month = values[0]; Year = year;
-                    }
-                    else
-                    {
-                        throw new InvalidDateException(input);
-                    }
-                break;
-                case 3: Day = Convert.ToInt32(values[0]); Month = values[1]; Year = Convert.ToInt32(values[2]); break;
+                case 0: Day = 0; Month = ""; Year = ""; break;
+                case 1: Day = 0; Month = ""; Year = input; break;
+                case 2: Day = 0; Month = values[0]; Year = values[1]; break;
+                case 3: Day = Convert.ToInt32(values[0]); Month = values[1]; Year = values[2]; break;
                 default: throw new InvalidDateException(input);
             }
         }
@@ -105,7 +68,7 @@ namespace FamilyTreeLibrary.Models
             }
         }
 
-        public int Year
+        public string Year
         {
             readonly get
             {
@@ -113,17 +76,29 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                if (value < 0)
+                string numberPattern = @"^\d+$";
+                if (Regex.IsMatch(value, numberPattern))
                 {
-                    throw new InvalidDateException(value, DateAttributes.Year);
+                    year = value;
                 }
-                year = value;
+                else
+                {
+                    string rangePattern = @"^\d+\-\d+$";
+                    if (Regex.IsMatch(value, rangePattern))
+                    {
+                        year = value;
+                    }
+                    else
+                    {
+                        throw new InvalidDateException(value, DateAttributes.Year);
+                    }
+                }
             }
         }
 
         public readonly int CompareTo(FamilyTreeDate other)
         {
-            int yearDiff = Math.Abs(Year - other.Year);
+            int yearDiff = Year.CompareTo(other.Year);
             if (yearDiff != 0)
             {
                 return yearDiff;
@@ -158,7 +133,7 @@ namespace FamilyTreeLibrary.Models
             {
                 output += $" {Month} ";
             }
-            if (Year > 0)
+            if (Year != "")
             {
                 output += Year;
             }

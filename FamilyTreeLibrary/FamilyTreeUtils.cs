@@ -77,7 +77,7 @@ namespace FamilyTreeLibrary
         {
             if (temp.Length == 0)
             {
-                return IncrementGeneration(new AbstractOrderingType[0]);
+                return IncrementGeneration(Array.Empty<AbstractOrderingType>());
             }
             List<AbstractOrderingType[]> possibleNexts = new()
             {
@@ -114,30 +114,9 @@ namespace FamilyTreeLibrary
         {
             if (token.Length > 0)
             {
-                string rangePattern = @"^[0-9]+\-[0-9]+$";
                 StringBuilder tokenRebuilder = new();
-                if (Regex.IsMatch(token, rangePattern))
-                {
-                    string[] values = token.Split('-');
-                    int v1 = Convert.ToInt32(values[0]);
-                    int v2;
-                    if (values[0].Length == values[1].Length)
-                    {
-                        v2 = Convert.ToInt32(values[1]);
-                    }
-                    else
-                    {
-                        int stop = values[0].Length - values[1].Length;
-                        for (int i = 0; i < values[0].Length; i++)
-                        {
-                            tokenRebuilder.Append(i < stop ? values[0][i] : values[1][i - stop]);
-                        }
-                        v2 = Convert.ToInt32(tokenRebuilder.ToString());
-                    }
-                    return $"{(v1 + v2) / 2}";
-                }
-                string pattern1 = @"^[^a-zA-Z0-9]$";
-                if (Regex.IsMatch(token, pattern1))
+                string specialCharacterPattern = "[^a-zA-Z0-9]";
+                if (Regex.IsMatch(token, specialCharacterPattern))
                 {
                     return "";
                 }
