@@ -19,7 +19,7 @@ namespace FamilyTreeLibrary.OrderingType
         protected override int FindKey(string value)
         {
             string v = Regex.IsMatch(value, "^\\(\\d+\\)$") ? value[1..^1] : "";
-            return Type == OrderingTypeTypes.ParenthesizedNumbering && Regex.IsMatch(v, "^[0-9]+$") ? Convert.ToInt32(v) : 0;
+            return Type == OrderingTypeTypes.ParenthesizedNumbering && Regex.IsMatch(v, FamilyTreeUtils.NUMBER_PATTERN) ? Convert.ToInt32(v) : 0;
         }
 
         protected override string FindValue(int key)

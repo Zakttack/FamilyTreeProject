@@ -2,17 +2,20 @@
 using FamilyTreeLibrary.OrderingType;
 using FamilyTreeLibrary.PDF;
 
-Queue<string> textLines = PdfUtils.GetPDFLinesAsQueue(26, @"C:\Users\zakme\Documents\FamilyTreeProject\Resources\PfingstenBook2023.pdf");
-foreach (string line in textLines)
+Queue<string> textLines = PdfUtils.GetPDFLinesAsQueue(31, @"C:\Users\zakme\Documents\FamilyTreeProject\Resources\PfingstenBook2023.pdf");
+IReadOnlyDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> nodesWithoutChildren = PdfUtils.ParseAsFamilyNodes(textLines);
+foreach (KeyValuePair<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> node in nodesWithoutChildren)
 {
-    Console.WriteLine(line);
+    foreach (KeyValuePair<int,Family> familyPairs in node.Value)
+    {
+        Console.WriteLine(familyPairs.Value);
+        Console.WriteLine();
+    }
 }
-// IReadOnlyDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> nodesWithoutChildren = PdfUtils.ParseAsFamilyNodes(textLines);
-// foreach (KeyValuePair<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> node in nodesWithoutChildren)
+// PdfClient client = new(@"C:\Users\zakme\Documents\FamilyTreeProject\Resources\PfingstenBook2023.pdf", 26);
+// client.LoadNodes();
+// IEnumerable<Family> families = client.Nodes;
+// foreach (Family family in families)
 // {
-//     foreach (KeyValuePair<int,Family> familyPairs in node.Value)
-//     {
-//         Console.WriteLine(familyPairs.Value);
-//         Console.WriteLine();
-//     }
+//     Console.WriteLine(family);
 // }

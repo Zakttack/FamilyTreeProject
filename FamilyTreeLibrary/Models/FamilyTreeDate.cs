@@ -53,18 +53,11 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                if (value == "June")
-                {
-                    month = "Jun";
-                }
-                else if(!Months.Contains(value))
+                if(!Months.Contains(value))
                 {
                     throw new InvalidDateException(value, DateAttributes.Month);
                 }
-                else
-                {
-                    month = value;
-                }
+                month = value;
             }
         }
 
@@ -76,15 +69,13 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                string numberPattern = @"^\d+$";
-                if (Regex.IsMatch(value, numberPattern))
+                if (Regex.IsMatch(value, FamilyTreeUtils.NUMBER_PATTERN))
                 {
                     year = value;
                 }
                 else
                 {
-                    string rangePattern = @"^\d+\-\d+$";
-                    if (Regex.IsMatch(value, rangePattern))
+                    if (Regex.IsMatch(value, FamilyTreeUtils.RANGE_PATTERN))
                     {
                         year = value;
                     }

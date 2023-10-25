@@ -22,7 +22,7 @@ namespace FamilyTreeLibrary.OrderingType
                 return 0;
             }
             string v = value.Length > 0 ? value[..(value.Length - 1)] : value;
-            return Regex.IsMatch(v, "^[0-9]+$") ? Convert.ToInt32(v) : 0;
+            return Regex.IsMatch(v, FamilyTreeUtils.NUMBER_PATTERN) ? Convert.ToInt32(v) : 0;
         }
 
         protected override string FindValue(int key)

@@ -9,10 +9,7 @@ namespace FamilyTreeLibrary.Models
         private FamilyTreeDate marriageDate;
         public Family(Person member)
         {
-            Parent = default;
             Member = member;
-            InLaw = default;
-            MarriageDate = default;
             LoadChildren();
         }
 
@@ -109,7 +106,7 @@ namespace FamilyTreeLibrary.Models
                 {nameof(Parent), Parent == default ? JValue.CreateNull() : JObject.Parse(Parent.Member.ToString())},
                 {nameof(Member), Member == default ? JValue.CreateNull() : JObject.Parse(Member.ToString()) },
                 {nameof(InLaw), InLaw == default ? JValue.CreateNull() : JObject.Parse(InLaw.ToString()) },
-                {nameof(MarriageDate), MarriageDate.CompareTo(new()) == 0 ? JValue.CreateNull() : MarriageDate.ToString()}
+                {nameof(MarriageDate), MarriageDate == default | MarriageDate.ToString() == "" ? JValue.CreateNull() : MarriageDate.ToString()}
             };
             JArray array = new();
             foreach (Family child in Children)

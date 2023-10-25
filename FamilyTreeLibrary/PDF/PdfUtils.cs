@@ -34,7 +34,11 @@ namespace FamilyTreeLibrary.PDF
                             StringBuilder tokenRebuilder = new();
                             for (int i = 0; i < tokens.Length; i++)
                             {
-                                if (i > 0)
+                                if (tokens[i] == "June")
+                                {
+                                    tokenRebuilder.Append(Regex.IsMatch(tokens[i+1], FamilyTreeUtils.NUMBER_PATTERN) ? " Jun" : $" {tokens[i]}");
+                                }
+                                else if (i > 0)
                                 {
                                     string tokenUpdate = FamilyTreeUtils.ReformatToken(tokens[i]);
                                     if (tokenUpdate.Length > 0)
@@ -63,8 +67,6 @@ namespace FamilyTreeLibrary.PDF
         public static Queue<Line> GetLines(string[] tokens)
         {
             Queue<Line> lines = new();
-            string numberPattern = @"^\d+$";
-            string rangePattern = @"^\d+-\d+$";
             string tempName = "";
             string tempDate = "";
             bool readAsName = true;
@@ -97,10 +99,10 @@ namespace FamilyTreeLibrary.PDF
                             tempDate = "";
                         }
                     }
-                    readAsName = !Regex.IsMatch(tokens[i + 1], numberPattern) && !Regex.IsMatch(tokens[i+1], rangePattern) && !FamilyTreeDate.Months.Contains(tokens[i+1]);
+                    readAsName = !Regex.IsMatch(tokens[i + 1], FamilyTreeUtils.NUMBER_PATTERN) && !Regex.IsMatch(tokens[i+1], FamilyTreeUtils.RANGE_PATTERN) && !FamilyTreeDate.Months.Contains(tokens[i+1]);
                 }
             }
-            if (Regex.IsMatch(tokens[^1], numberPattern) | Regex.IsMatch(tokens[^1], rangePattern))
+            if (Regex.IsMatch(tokens[^1], FamilyTreeUtils.NUMBER_PATTERN) | Regex.IsMatch(tokens[^1], FamilyTreeUtils.RANGE_PATTERN))
             {
                 FamilyTreeDate dateItem3 = new(tempDate + tokens[^1]);
                 tempLine.Dates.Enqueue(dateItem3);

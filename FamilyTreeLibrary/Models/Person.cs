@@ -10,8 +10,6 @@ namespace FamilyTreeLibrary.Models
         public Person(string name)
         {
             Name = name;
-            BirthDate = new();
-            DeceasedDate = new();
         }
 
         public Person(JObject obj)
@@ -63,8 +61,8 @@ namespace FamilyTreeLibrary.Models
             JObject obj = new()
             {
                 {nameof(Name), Name == null ? JValue.CreateNull() : Name},
-                {nameof(BirthDate), BirthDate.CompareTo(new()) == 0 ? JValue.CreateNull() : BirthDate.ToString()},
-                {nameof(DeceasedDate), DeceasedDate.CompareTo(new()) == 0 ? JValue.CreateNull() : DeceasedDate.ToString()}
+                {nameof(BirthDate), BirthDate == default | BirthDate.ToString() == "" ? JValue.CreateNull() : BirthDate.ToString()},
+                {nameof(DeceasedDate), DeceasedDate == default | DeceasedDate.ToString() == "" ? JValue.CreateNull() : DeceasedDate.ToString()}
             };
             return obj.ToString();
         }

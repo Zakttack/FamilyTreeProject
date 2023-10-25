@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
@@ -6,12 +7,14 @@ namespace FamilyTreeLibrary
 {
     public static class FamilyTreeUtils
     {
-
+        internal const string NUMBER_PATTERN = @"^\d+$";
+        internal const string RANGE_PATTERN = @"^\d+-\d+$";
         public static Family Root
         {
             get
             {
-                return new(new Person(""));
+                string value = default;
+                return new(new Person(value));
             }
         }
 
@@ -115,7 +118,7 @@ namespace FamilyTreeLibrary
             if (token.Length > 0)
             {
                 StringBuilder tokenRebuilder = new();
-                string specialCharacterPattern = "[^a-zA-Z0-9]";
+                string specialCharacterPattern = "[^a-zA-Z0-9,.-]";
                 if (Regex.IsMatch(token, specialCharacterPattern))
                 {
                     return "";

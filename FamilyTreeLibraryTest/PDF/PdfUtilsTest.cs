@@ -18,6 +18,15 @@ namespace FamilyTreeLibraryTest.PDF
         }
 
         [Test]
+        public void TestGetPDFLinesAsQueue32()
+        {
+            Queue<string> expected = PdfUtils.GetPDFLinesAsQueue(31, FamilyTreeUtilsTest.PDF_FILE);
+            expected.Enqueue("(1) Ella Elizabeth Egeberg 01 Dec 2014 Sharon Lynn Wallace Sellie 03 Feb 1958 18 Apr 2015 Joseph Burgard 26 Apr 1960");
+            Queue<string> actual = PdfUtils.GetPDFLinesAsQueue(32, FamilyTreeUtilsTest.PDF_FILE);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [Test]
         public void TestGetLines1()
         {
             string[] tokens = "I. August Fred Pfingsten 26 Jun 1896 14 Sep 1921 24 Aug 1980 Frieda nee Schobinger 10 Nov 1902 13 Jul 1938".Split(' ');

@@ -85,6 +85,7 @@ namespace FamilyTreeLibrary.PDF
                             {
                                 subCollection.Add(familyQueue);
                             }
+                            subFamilyNodeCollection[index].Enqueue(start);
                         }
                         else if (index == subFamilyNodeCollection.Count - 1)
                         {
@@ -102,6 +103,7 @@ namespace FamilyTreeLibrary.PDF
                             {
                                 subCollection.Add(familyQueue);
                             }
+                            subFamilyNodeCollection[index].Enqueue(start);
                         }
                         else
                         {
