@@ -2,7 +2,8 @@
 using FamilyTreeLibrary.OrderingType;
 using FamilyTreeLibrary.PDF;
 
-Queue<string> textLines = PdfUtils.GetPDFLinesAsQueue(31, @"C:\Users\zakme\Documents\FamilyTreeProject\Resources\PfingstenBook2023.pdf");
+const string PDF_FILE = @"C:\Users\zakme\Documents\FamilyTreeProject\Resources\PfingstenBook2023.pdf";
+Queue<string> textLines = PdfUtils.GetPDFLinesAsQueue(31, PDF_FILE);
 IReadOnlyDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> nodesWithoutChildren = PdfUtils.ParseAsFamilyNodes(textLines);
 foreach (KeyValuePair<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> node in nodesWithoutChildren)
 {
