@@ -11,6 +11,37 @@ namespace FamilyTreeLibrary.PDF
 {
     public static class PdfUtils
     {
+        public static AbstractOrderingType[] FillSection(ICollection<Section> sections, AbstractOrderingType[] previous, string line, int index)
+        {
+            Queue<AbstractOrderingType> possibilities = FamilyTreeUtils.GetOrderingTypeByLine(line);
+            string[] tokens = line.Split(' ');
+            Queue<Line> lines = GetLines(tokens);
+            Family node = GetFamily(lines);
+            Section section;
+            while (possibilities.Count > 0)
+            {
+                AbstractOrderingType type = possibilities.Dequeue();
+                if (IsDuplicate(sections, previous, type, node))
+                {
+                    AbstractOrderingType[] orderingType = previous;
+                    while (!orderingType[^1].Equals(type))
+                    {
+                        orderingType = FamilyTreeUtils.PreviousOrderingType(orderingType);
+                    }
+                    section = new(orderingType, node, index);
+                    sections.Add(section);
+                    break;
+                }
+                AbstractOrderingType[] next = FamilyTreeUtils.NextOrderingType(previous, type);
+                if (next != null)
+                {
+                    section = new(next, node, index);
+                    sections.Add(section);
+                    return next;
+                }
+            }
+            return previous;
+        }
         public static Queue<string> GetPDFLinesAsQueue(int lineLimit, string fileName)
         {
             Queue<string> lines = new();
@@ -114,6 +145,43 @@ namespace FamilyTreeLibrary.PDF
             lines.Enqueue(tempLine);
             return lines;
         }
+
+        public static ICollection<Section> GetSections(Queue<string> textLines)
+        {
+            ICollection<Section> sections = new SortedSet<Section>();
+            int index = 0;
+            AbstractOrderingType[] previous = Array.Empty<AbstractOrderingType>();
+            while (textLines.Count > 0)
+            {
+                AbstractOrderingType[] temp = previous;
+                previous = FillSection(sections, temp, textLines.Dequeue(), index++);
+            }
+            return sections;
+        }
+
+        public static bool IsDuplicate(ICollection<Section> sections, AbstractOrderingType[] previous, AbstractOrderingType temp, Family node)
+        {
+            ICollection<AbstractOrderingType> current = new SortedSet<AbstractOrderingType>();
+            foreach (AbstractOrderingType type in previous)
+            {
+                current.Add(type);
+                if (temp.Equals(type))
+                {
+                    break;
+                }
+            }
+            if (current.Count != previous.Length)
+            {
+                foreach (Section sec in sections)
+                {
+                    if (sec.OrderingType == current.ToArray())
+                    {
+                        return FamilyTreeUtils.MemberEquivalent(sec.Node, node);
+                    }
+                }
+            }
+            return false;
+        } 
 
         public static IReadOnlyDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> ParseAsFamilyNodes(Queue<string> textLines)
         {

@@ -19,13 +19,21 @@ namespace FamilyTreeLibrary.Models
         public FamilyTreeDate(string input)
         {
             string[] values = input.Split(' ');
-            switch (values.Length)
+            Day = 0; Month = ""; Year = "";
+            foreach (string value in values)
             {
-                case 0: Day = 0; Month = ""; Year = ""; break;
-                case 1: Day = 0; Month = ""; Year = input; break;
-                case 2: Day = 0; Month = values[0]; Year = values[1]; break;
-                case 3: Day = Convert.ToInt32(values[0]); Month = values[1]; Year = values[2]; break;
-                default: throw new InvalidDateException(input);
+                if (value.Length < 3)
+                {
+                    Day = Convert.ToInt32(value);
+                }
+                else if (value.Length == 3)
+                {
+                    Month = value;
+                }
+                else
+                {
+                    Year = value;
+                }
             }
         }
 
