@@ -24,8 +24,8 @@ namespace FamilyTreeLibrary.OrderingType
             string pattern;
             switch (Type)
             {
-                case OrderingTypeTypes.RomanNumeralUpper: pattern = "^[MDCLXVI]+\\.$"; break;
-                case OrderingTypeTypes.RomanNumeralLower: pattern = "^[mdclxvi]+\\)$$"; break;
+                case OrderingTypeTypes.RomanNumeralUpper: pattern = @"^[MDCLXVI]+\.$"; break;
+                case OrderingTypeTypes.RomanNumeralLower: pattern = @"^[mdclxvi]+\)$"; break;
                 default: return 0;
             }
             if (!Regex.IsMatch(value, pattern))
@@ -59,13 +59,13 @@ namespace FamilyTreeLibrary.OrderingType
             switch (Type)
             {
                 case OrderingTypeTypes.RomanNumeralUpper: result += "."; break;
-                case OrderingTypeTypes.RomanNumeralLower: result = result.ToLower() + ")"; break;
+                case OrderingTypeTypes.RomanNumeralLower: result = $"{result.ToLower()})"; break;
                 default: return "";
             }
             return result;
         }
 
-        private IReadOnlyDictionary<int,string> SpecialConversionPairs
+        private static IReadOnlyDictionary<int,string> SpecialConversionPairs
         {
             get
             {

@@ -106,6 +106,11 @@ namespace FamilyTreeLibrary.PDF
             {
                 if (tokens[i] == "" && tempName != "")
                 {
+                    if (tempLine.Name != null)
+                    {
+                        lines.Enqueue(tempLine.Copy());
+                        tempLine = new();
+                    }
                     tempLine.Name = tempName.Trim();
                     tempName = "";
                 }
@@ -123,7 +128,7 @@ namespace FamilyTreeLibrary.PDF
                 {
                     tempDate += $"{tokens[i]} ";
                 }
-                readAsName = !Regex.IsMatch(tokens[i + 1], FamilyTreeUtils.NUMBER_PATTERN) && !Regex.IsMatch(tokens[i+1], FamilyTreeUtils.RANGE_PATTERN) && !FamilyTreeDate.Months.Contains(tokens[i+1]);
+                readAsName = !Regex.IsMatch(tokens[i + 1], FamilyTreeUtils.NUMBER_PATTERN) && !Regex.IsMatch(tokens[i+1], FamilyTreeUtils.RANGE_PATTERN) && !new FamilyTreeDate(0).Months.ContainsKey(tokens[i+1]);
             }
             if (Regex.IsMatch(tokens[^1], FamilyTreeUtils.NUMBER_PATTERN) | Regex.IsMatch(tokens[^1], FamilyTreeUtils.RANGE_PATTERN))
             {
@@ -155,18 +160,25 @@ namespace FamilyTreeLibrary.PDF
             return pages;
         }
 
-        public static string[] ReformtLine(string line)
+        public static string[] ReformatLine(string line)
         {
             IEnumerable<string> tokens = line.Split(' ');
             ICollection<string> adjustedTokens = new List<string>();
-            bool encounteredSpace = false;
+            int spaceCount = 0;
             foreach (string token in tokens)
             {
-                if (!encounteredSpace)
+                if (token == "")
+                {
+                    spaceCount++;
+                }
+                else
+                {
+                    spaceCount = 0;
+                }
+                if (spaceCount < 2)
                 {
                     adjustedTokens.Add(token);
                 }
-                encounteredSpace = token == "";
             }
             return adjustedTokens.ToArray();
         }

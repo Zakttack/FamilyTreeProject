@@ -36,6 +36,7 @@ namespace FamilyTreeLibrary.PDF
         {
             Console.WriteLine($"Reading {FilePath}.");
             AbstractOrderingType[] currentOrderingType = Array.Empty<AbstractOrderingType>();
+            Queue<AbstractOrderingType> previousPossibilities = new();
             string previousLine = "";
             int iterationNumber = 1;
             IEnumerable<IEnumerable<string>> pages = PdfUtils.GetLinesFromDocument(FilePath);
@@ -46,27 +47,32 @@ namespace FamilyTreeLibrary.PDF
                     try
                     {
                         string currentLine = line.Trim();
-                        Queue<AbstractOrderingType> orderingTypePossibilities = FamilyTreeUtils.GetOrderingTypeByLine(currentLine);
-                        if (PdfUtils.IsInLaw(orderingTypePossibilities, previousLine, currentLine))
+                        Queue<AbstractOrderingType> currentPossibilities = FamilyTreeUtils.GetOrderingTypeByLine(currentLine);
+                        if (PdfUtils.IsInLaw(currentPossibilities, previousLine, currentLine))
                         {
                             previousLine += $"  {currentLine}";
                         }
-                        else if (PdfUtils.IsMember(orderingTypePossibilities))
+                        else if (PdfUtils.IsMember(currentPossibilities))
                         {
-                            if (previousLine != "")
+                            if (previousLine != "" && previousPossibilities.Count > 0)
                             {
-                                string[] tokens = PdfUtils.ReformtLine(previousLine);
+                                string[] tokens = PdfUtils.ReformatLine(previousLine);
                                 Queue<Line> lines = PdfUtils.GetLines(tokens);
                                 Family node = PdfUtils.GetFamily(lines);
                                 AbstractOrderingType[] temp = currentOrderingType;
-                                currentOrderingType = PdfUtils.FillSection(familyNodeCollection, temp, orderingTypePossibilities, node);
+                                currentOrderingType = PdfUtils.FillSection(familyNodeCollection, temp, previousPossibilities, node);
                                 Console.WriteLine($"Section #{iterationNumber}: {node}");
                                 if (familyNodeCollection.Count >= LineLimit)
                                 {
                                     return;
                                 }
                             }
+                            else if (previousLine != "")
+                            {
+                                throw new InvalidOperationException("The ordering type is un-defined.");
+                            }
                             previousLine = currentLine;
+                            previousPossibilities = currentPossibilities;
                         }
                     }
                     catch (Exception ex)
