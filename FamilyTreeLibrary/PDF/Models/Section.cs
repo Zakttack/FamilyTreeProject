@@ -7,13 +7,12 @@ using FamilyTreeLibrary.OrderingType;
 
 namespace FamilyTreeLibrary.PDF.Models
 {
-    public class Section : IComparable<Section>
+    public class Section
     {
-        public Section(AbstractOrderingType[] orderingType, Family node, int index)
+        public Section(AbstractOrderingType[] orderingType, Family node)
         {
             OrderingType = orderingType;
             Node = node;
-            Index = index;
         }
         public AbstractOrderingType[] OrderingType
         {
@@ -23,16 +22,6 @@ namespace FamilyTreeLibrary.PDF.Models
         public Family Node
         {
             get;
-        }
-
-        public int Index
-        {
-            get;
-        }
-
-        public int CompareTo(Section section)
-        {
-            return Index - section.Index;
         }
     }
 }
