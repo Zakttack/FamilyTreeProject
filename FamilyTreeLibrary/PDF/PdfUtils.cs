@@ -104,29 +104,24 @@ namespace FamilyTreeLibrary.PDF
             Line tempLine = new();
             for (int i = 1; i < tokens.Length - 1; i++)
             {
-                if (readAsName)
+                if (tokens[i] == "" && tempName != "")
                 {
-                    if (tempLine.Name != null)
-                    {
-                        lines.Enqueue(tempLine.Copy());
-                        tempLine = new();
-                    }
+                    tempLine.Name = tempName.Trim();
+                    tempName = "";
+                }
+                else if (tokens[i] == "" && tempDate != "")
+                {
+                    FamilyTreeDate dateItem2 = new(tempDate.Trim());
+                    tempLine.Dates.Enqueue(dateItem2);
+                    tempDate = "";
+                }
+                else if (readAsName)
+                {
                     tempName += $"{tokens[i]} ";
                 }
                 else
                 {
-                    if (tempName.Length > 0)
-                    {
-                        tempLine.Name = tempName.Trim();
-                    }
-                    tempName = "";
                     tempDate += $"{tokens[i]} ";
-                    if (tokens[i].Length == 4)
-                    {
-                        FamilyTreeDate dateItem2 = new(tempDate.Trim());
-                        tempLine.Dates.Enqueue(dateItem2);
-                        tempDate = "";
-                    }
                 }
                 readAsName = !Regex.IsMatch(tokens[i + 1], FamilyTreeUtils.NUMBER_PATTERN) && !Regex.IsMatch(tokens[i+1], FamilyTreeUtils.RANGE_PATTERN) && !FamilyTreeDate.Months.Contains(tokens[i+1]);
             }
@@ -158,6 +153,22 @@ namespace FamilyTreeLibrary.PDF
                 pages.Add(page);
             }
             return pages;
+        }
+
+        public static string[] ReformtLine(string line)
+        {
+            IEnumerable<string> tokens = line.Split(' ');
+            ICollection<string> adjustedTokens = new List<string>();
+            bool encounteredSpace = false;
+            foreach (string token in tokens)
+            {
+                if (!encounteredSpace)
+                {
+                    adjustedTokens.Add(token);
+                }
+                encounteredSpace = token == "";
+            }
+            return adjustedTokens.ToArray();
         }
 
         private static bool IsDuplicate(ICollection<Section> sections, AbstractOrderingType[] previous, AbstractOrderingType temp, Family node)

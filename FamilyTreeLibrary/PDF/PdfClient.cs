@@ -45,18 +45,17 @@ namespace FamilyTreeLibrary.PDF
                 {
                     try
                     {
-                        string currentLine = line.TrimStart();
+                        string currentLine = line.Trim();
                         Queue<AbstractOrderingType> orderingTypePossibilities = FamilyTreeUtils.GetOrderingTypeByLine(currentLine);
                         if (PdfUtils.IsInLaw(orderingTypePossibilities, previousLine, currentLine))
                         {
-                            previousLine += $" {currentLine}";
+                            previousLine += $"  {currentLine}";
                         }
                         else if (PdfUtils.IsMember(orderingTypePossibilities))
                         {
                             if (previousLine != "")
                             {
-                                static bool FilterEmptyStrings(string token) => token.Length > 0;
-                                string[] tokens = previousLine.Split(' ').Where(FilterEmptyStrings).ToArray();
+                                string[] tokens = PdfUtils.ReformtLine(previousLine);
                                 Queue<Line> lines = PdfUtils.GetLines(tokens);
                                 Family node = PdfUtils.GetFamily(lines);
                                 AbstractOrderingType[] temp = currentOrderingType;
