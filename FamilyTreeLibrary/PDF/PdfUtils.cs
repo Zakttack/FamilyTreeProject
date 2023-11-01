@@ -157,21 +157,22 @@ namespace FamilyTreeLibrary.PDF
             return lines;
         }
 
-        public static IEnumerable<IEnumerable<string>> GetLinesFromDocument(string fileName)
+        public static IReadOnlyCollection<string> GetLinesFromDocument(string fileName)
         {
             PdfReader reader = new(fileName);
             PdfDocument document = new(reader);
-            ICollection<IEnumerable<string>> pages = new List<IEnumerable<string>>();
+            IReadOnlyCollection<string> pdfLines = new List<string>();
             string spacePattern = "^ +$";
             bool spaceFilter(string value) => !Regex.IsMatch(value, spacePattern);
             for (int pageNumber = 1; pageNumber <= document.GetNumberOfPages(); pageNumber++)
             {
-                IList<string> page = PdfTextExtractor.GetTextFromPage(document.GetPage(pageNumber)).Split('\n').Where(spaceFilter).ToList();
-                page.RemoveAt(0);
-                page.RemoveAt(page.Count - 1);
-                pages.Add(page);
+                IList<string> pageLines = PdfTextExtractor.GetTextFromPage(document.GetPage(pageNumber)).Split('\n').Where(spaceFilter).ToList();
+                pageLines.RemoveAt(0);
+                pageLines.RemoveAt(pageLines.Count - 1);
+                IEnumerable<string> initial = pdfLines;
+                pdfLines = initial.Concat(pageLines).ToList();
             }
-            return pages;
+            return pdfLines;
         }
 
         public static string[] ReformatLine(string line)

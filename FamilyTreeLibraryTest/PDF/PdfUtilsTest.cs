@@ -28,7 +28,7 @@ namespace FamilyTreeLibraryTest.PDF
             expectedInLaw.Dates.Enqueue(new FamilyTreeDate("10 Nov 1902"));
             expectedInLaw.Dates.Enqueue(new FamilyTreeDate("13 Jul 1938"));
             expected.Enqueue(expectedInLaw);
-            Queue<Line> actual = PdfUtils.GetLines(tokens).Result;
+            Queue<Line> actual = PdfUtils.GetLines(tokens);
             Assert.That(actual, Is.EqualTo(expected));
         }
 

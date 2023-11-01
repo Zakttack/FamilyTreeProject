@@ -39,52 +39,51 @@ namespace FamilyTreeLibrary.PDF
             Queue<AbstractOrderingType> previousPossibilities = new();
             string previousLine = "";
             int iterationNumber = 1;
-            IEnumerable<IEnumerable<string>> pages = PdfUtils.GetLinesFromDocument(FilePath);
-            foreach (IEnumerable<string> page in pages)
+            IReadOnlyCollection<string> pdfLines = PdfUtils.GetLinesFromDocument(FilePath);
+            Console.WriteLine($"{pdfLines.Count} lines were detected.");
+            foreach (string line in pdfLines)
             {
-                foreach (string line in page)
+                try
                 {
-                    try
+                    string currentLine = line.Trim();
+                    Queue<AbstractOrderingType> currentPossibilities = FamilyTreeUtils.GetOrderingTypeByLine(currentLine);
+                    if (PdfUtils.IsInLaw(currentPossibilities, previousLine, currentLine))
                     {
-                        string currentLine = line.Trim();
-                        Queue<AbstractOrderingType> currentPossibilities = FamilyTreeUtils.GetOrderingTypeByLine(currentLine);
-                        if (PdfUtils.IsInLaw(currentPossibilities, previousLine, currentLine))
-                        {
-                            previousLine += $"  {currentLine}";
-                        }
-                        else if (PdfUtils.IsMember(currentPossibilities))
-                        {
-                            if (previousLine != "" && previousPossibilities.Count > 0)
-                            {
-                                string[] tokens = PdfUtils.ReformatLine(previousLine);
-                                Queue<Line> lines = PdfUtils.GetLines(tokens);
-                                Family node = PdfUtils.GetFamily(lines);
-                                AbstractOrderingType[] temp = currentOrderingType;
-                                currentOrderingType = PdfUtils.FillSection(familyNodeCollection, temp, previousPossibilities, node);
-                                if (iterationNumber == familyNodeCollection.Count - 1)
-                                {
-                                    iterationNumber++;
-                                }
-                                Console.WriteLine($"Section #{iterationNumber}: {node}");
-                                if (familyNodeCollection.Count >= LineLimit)
-                                {
-                                    return;
-                                }
-                            }
-                            else if (previousLine != "")
-                            {
-                                throw new InvalidOperationException("The ordering type is un-defined.");
-                            }
-                            previousLine = currentLine;
-                            previousPossibilities = currentPossibilities;
-                        }
+                        previousLine += $"  {currentLine}";
                     }
-                    catch (Exception ex)
+                    else if (PdfUtils.IsMember(currentPossibilities))
                     {
-                        Console.WriteLine($"{ex.GetType().Name} on Section #{++iterationNumber}: {ex.Message}\n{ex.StackTrace}");
+                        if (previousLine != "" && previousPossibilities.Count > 0)
+                        {
+                            string[] tokens = PdfUtils.ReformatLine(previousLine);
+                            Queue<Line> lines = PdfUtils.GetLines(tokens);
+                            Family node = PdfUtils.GetFamily(lines);
+                            AbstractOrderingType[] temp = currentOrderingType;
+                            currentOrderingType = PdfUtils.FillSection(familyNodeCollection, temp, previousPossibilities, node);
+                            if (iterationNumber == familyNodeCollection.Count - 1)
+                            {
+                                iterationNumber++;
+                            }
+                            Console.WriteLine($"Section #{iterationNumber}: {node}");
+                            if (familyNodeCollection.Count >= LineLimit)
+                            {
+                                return;
+                            }
+                        }
+                        else if (previousLine != "")
+                        {
+                            throw new InvalidOperationException("The ordering type is undefined.");
+                        }
+                        previousLine = currentLine;
+                        previousPossibilities = currentPossibilities;
                     }
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"{ex.GetType().Name} on Section #{++iterationNumber}: {ex.Message}\n{ex.StackTrace}");
+                }
             }
+            Console.WriteLine($"{familyNodeCollection.Count} sections were detected.");
         }
 
         public void AttachNodes()
