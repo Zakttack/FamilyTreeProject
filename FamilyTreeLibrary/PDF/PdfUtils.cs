@@ -4,207 +4,237 @@ using FamilyTreeLibrary.PDF.Models;
 using System.Text.RegularExpressions;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
+using FamilyTreeLibrary.OrderingType.Comparers;
 
 namespace FamilyTreeLibrary.PDF
 {
     public static class PdfUtils
     {
-        public static bool IsInLaw(Queue<AbstractOrderingType> orderingTypePossibilities, string previousLine, string currentLine)
+        public static async Task<bool> IsInLaw(Queue<AbstractOrderingType> orderingTypePossibilities, string previousLine, string currentLine)
         {
-            string inLawPattern = "^[a-zA-Z0-9,. ]*$";
-            return orderingTypePossibilities.Count == 0 && previousLine != "" && Regex.IsMatch(currentLine, inLawPattern);
+            string inLawPattern = @"^[a-zA-Z0-9’,\-. ]*$";
+            return await Task.Run(() => {
+                return orderingTypePossibilities.Count == 0 && previousLine != "" && Regex.IsMatch(currentLine, inLawPattern);
+            });
         }
 
-        public static bool IsMember(Queue<AbstractOrderingType> orderingTypePossibilities)
+        public static async Task<bool> IsMember(Queue<AbstractOrderingType> orderingTypePossibilities)
         {
-            return orderingTypePossibilities.Count > 0;
+            return await Task.Run(() => { return orderingTypePossibilities.Count > 0;}); 
         }
         
-        public static AbstractOrderingType[] FillSection(ICollection<Section> sections, AbstractOrderingType[] previous, Queue<AbstractOrderingType> possibilities, Family node)
+        public static async Task<AbstractOrderingType[]> FillSection(ICollection<Section> sections, AbstractOrderingType[] previous, Queue<AbstractOrderingType> possibilities, Family node)
         {
             Section section;
-            while (possibilities.Count > 0)
+            return await Task.Run(async () => 
             {
-                AbstractOrderingType type = possibilities.Dequeue();
-                if (IsDuplicate(sections, previous, type, node))
+                while (possibilities.Count > 0)
                 {
-                    AbstractOrderingType[] orderingType = previous;
-                    while (!orderingType[^1].Equals(type))
+                    AbstractOrderingType type = possibilities.Dequeue();
+                    if (await IsDuplicate(sections, previous, type, node))
                     {
-                        orderingType = FamilyTreeUtils.PreviousOrderingType(orderingType);
+                        AbstractOrderingType[] orderingType = previous;
+                        while (!orderingType[^1].Equals(type))
+                        {
+                            orderingType = FamilyTreeUtils.PreviousOrderingType(orderingType);
+                        }
+                        section = new(orderingType, node);
+                        sections.Add(section);
+                        break;
                     }
-                    section = new(orderingType, node);
-                    sections.Add(section);
-                    break;
+                    AbstractOrderingType[] next = FamilyTreeUtils.NextOrderingType(previous, type);
+                    if (next != null)
+                    {
+                        section = new(next, node);
+                        sections.Add(section);
+                        return next;
+                    }
                 }
-                AbstractOrderingType[] next = FamilyTreeUtils.NextOrderingType(previous, type);
-                if (next != null)
-                {
-                    section = new(next, node);
-                    sections.Add(section);
-                    return next;
-                }
-            }
-            return previous;
+                return previous;
+            });
         }
 
-        public static Family GetFamily(Queue<Line> lines)
+        public static async Task<Family> GetFamily(Queue<Line> lines)
         {
             Line memberLine;
             Person member;
-            FamilyTreeDate marriage;
             Line inLawLine;
             Person inLaw;
-            if (lines.Count % 2 == 0)
+            Family fam;
+            return await Task.Run(() =>
             {
-                memberLine = lines.Dequeue();
-                member = new(memberLine.Name)
+                if (lines.Count % 2 == 0)
                 {
-                    BirthDate = memberLine.Dates.Dequeue()
-                };
-                marriage = memberLine.Dates.Dequeue();
-                if (memberLine.Dates.TryDequeue(out FamilyTreeDate value2))
-                {
-                    member.DeceasedDate = value2;
+                    memberLine = lines.Dequeue();
+                    member = new(memberLine.Name);
+                    if (memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirthDate))
+                    {
+                        member.BirthDate = memberBirthDate;
+                    }
+                    memberLine.Dates.TryDequeue(out FamilyTreeDate marriage);
+                    if (memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceasedDate))
+                    {
+                        member.DeceasedDate = memberDeceasedDate;
+                    }
+                    inLawLine = lines.Dequeue();
+                    inLaw = new(inLawLine.Name);
+                    if (inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawBirthDate))
+                    {
+                        inLaw.BirthDate = inLawBirthDate;
+                    }
+                    if (inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawDeceasedDate))
+                    {
+                        inLaw.DeceasedDate = inLawDeceasedDate;
+                    }
+                    fam = new Family(member)
+                    {
+                        InLaw = inLaw
+                    };
+                    if (!new FamilyTreeDate(0).Equals(marriage))
+                    {
+                        fam.MarriageDate = marriage;
+                    }
                 }
-                inLawLine = lines.Dequeue();
-                inLaw = new(inLawLine.Name)
+                else
                 {
-                    BirthDate = inLawLine.Dates.Dequeue()
-                };
-                if (inLawLine.Dates.TryDequeue(out FamilyTreeDate value3))
-                {
-                    inLaw.DeceasedDate = value3;
+                    memberLine = lines.Dequeue();
+                    member = new(memberLine.Name);
+                    if (memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirth))
+                    {
+                        member.BirthDate = memberBirth;
+                    }
+                    if (memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceased))
+                    {
+                        member.DeceasedDate = memberDeceased;
+                    }
+                    fam = new Family(member);
                 }
-                return new(member)
-                {
-                    InLaw = inLaw,
-                    MarriageDate = marriage
-                };
-            }
-            memberLine = lines.Dequeue();
-            member = new(memberLine.Name);
-            if (memberLine.Dates.TryDequeue(out FamilyTreeDate value))
-            {
-                member.BirthDate = value;
-            }
-            if (memberLine.Dates.TryDequeue(out FamilyTreeDate value1))
-            {
-                member.DeceasedDate = value1;
-            }
-            return new(member);
+                return fam;
+            });
         }
 
-        public static Queue<Line> GetLines(string[] tokens)
+        public static async Task<Queue<Line>> GetLines(string[] tokens)
         {
             Queue<Line> lines = new();
             string tempName = "";
             string tempDate = "";
             bool readAsName = true;
             Line tempLine = new();
-            for (int i = 1; i < tokens.Length - 1; i++)
+            return await Task.Run(() =>
             {
-                if (tokens[i] == "" && tempName != "")
+                for (int i = 1; i < tokens.Length - 1; i++)
                 {
-                    if (tempLine.Name != null)
+                    if (tokens[i] == "" && tempName != "")
                     {
-                        lines.Enqueue(tempLine.Copy());
-                        tempLine = new();
+                        if (tempLine.Name != null)
+                        {
+                            lines.Enqueue(tempLine.Copy());
+                            tempLine = new();
+                        }
+                        tempLine.Name = tempName.Trim();
+                        tempName = "";
                     }
-                    tempLine.Name = tempName.Trim();
-                    tempName = "";
+                    else if (tokens[i] == "" && tempDate != "")
+                    {
+                        FamilyTreeDate dateItem2 = new(tempDate.Trim());
+                        tempLine.Dates.Enqueue(dateItem2);
+                        tempDate = "";
+                    }
+                    else if (readAsName)
+                    {
+                        tempName += $"{tokens[i]} ";
+                    }
+                    else
+                    {
+                        tempDate += $"{tokens[i]} ";
+                    }
+                    readAsName = !Regex.IsMatch(tokens[i + 1], FamilyTreeUtils.NUMBER_PATTERN) && !Regex.IsMatch(tokens[i+1], FamilyTreeUtils.RANGE_PATTERN) && !new FamilyTreeDate(0).Months.ContainsKey(tokens[i+1]);
                 }
-                else if (tokens[i] == "" && tempDate != "")
+                if (Regex.IsMatch(tokens[^1], FamilyTreeUtils.NUMBER_PATTERN) | Regex.IsMatch(tokens[^1], FamilyTreeUtils.RANGE_PATTERN))
                 {
-                    FamilyTreeDate dateItem2 = new(tempDate.Trim());
-                    tempLine.Dates.Enqueue(dateItem2);
-                    tempDate = "";
-                }
-                else if (readAsName)
-                {
-                    tempName += $"{tokens[i]} ";
+                    FamilyTreeDate dateItem3 = new(tempDate + tokens[^1]);
+                    tempLine.Dates.Enqueue(dateItem3);
                 }
                 else
                 {
-                    tempDate += $"{tokens[i]} ";
+                    if (lines.Count == 0 && tempLine.Name != null)
+                    {
+                        lines.Enqueue(tempLine.Copy());
+                    }
+                    tempLine = new(tokens.Length > 1 ? $"{tempName}{tokens[^1]}" : "");
                 }
-                readAsName = !Regex.IsMatch(tokens[i + 1], FamilyTreeUtils.NUMBER_PATTERN) && !Regex.IsMatch(tokens[i+1], FamilyTreeUtils.RANGE_PATTERN) && !new FamilyTreeDate(0).Months.ContainsKey(tokens[i+1]);
-            }
-            if (Regex.IsMatch(tokens[^1], FamilyTreeUtils.NUMBER_PATTERN) | Regex.IsMatch(tokens[^1], FamilyTreeUtils.RANGE_PATTERN))
-            {
-                FamilyTreeDate dateItem3 = new(tempDate + tokens[^1]);
-                tempLine.Dates.Enqueue(dateItem3);
-            }
-            else
-            {
-                tempLine.Name = tokens.Length > 1 ? $"{tempName}{tokens[^1]}" : "";
-            }
-            lines.Enqueue(tempLine);
-            return lines;
+                lines.Enqueue(tempLine);
+                return lines;
+            });
         }
 
-        public static IEnumerable<IEnumerable<string>> GetLinesFromDocument(string fileName)
+        public static async Task<IEnumerable<IEnumerable<string>>> GetLinesFromDocument(string fileName)
         {
             PdfReader reader = new(fileName);
             PdfDocument document = new(reader);
             ICollection<IEnumerable<string>> pages = new List<IEnumerable<string>>();
             string spacePattern = "^ +$";
             bool spaceFilter(string value) => !Regex.IsMatch(value, spacePattern);
-            for (int pageNumber = 1; pageNumber <= document.GetNumberOfPages(); pageNumber++)
+            return await Task.Run(() =>
             {
-                IList<string> page = PdfTextExtractor.GetTextFromPage(document.GetPage(pageNumber)).Split('\n').Where(spaceFilter).ToList();
-                page.RemoveAt(0);
-                page.RemoveAt(page.Count - 1);
-                pages.Add(page);
-            }
-            return pages;
+                for (int pageNumber = 1; pageNumber <= document.GetNumberOfPages(); pageNumber++)
+                {
+                    IList<string> page = PdfTextExtractor.GetTextFromPage(document.GetPage(pageNumber)).Split('\n').Where(spaceFilter).ToList();
+                    page.RemoveAt(0);
+                    page.RemoveAt(page.Count - 1);
+                    pages.Add(page);
+                }
+                return pages;
+            });
         }
 
-        public static string[] ReformatLine(string line)
+        public static async Task<string[]> ReformatLine(string line)
         {
-            IEnumerable<string> tokens = line.Split(' ');
             ICollection<string> adjustedTokens = new List<string>();
             int spaceCount = 0;
-            foreach (string token in tokens)
+            return await Task.Run(() =>
             {
-                if (token == "")
+                IEnumerable<string> tokens = line.Split(' ');
+                foreach (string token in tokens)
                 {
-                    spaceCount++;
-                }
-                else
-                {
-                    spaceCount = 0;
-                }
-                if (spaceCount < 2)
-                {
-                    adjustedTokens.Add(token);
-                }
-            }
-            return adjustedTokens.ToArray();
-        }
-
-        private static bool IsDuplicate(ICollection<Section> sections, AbstractOrderingType[] previous, AbstractOrderingType temp, Family node)
-        {
-            ICollection<AbstractOrderingType> current = new SortedSet<AbstractOrderingType>();
-            foreach (AbstractOrderingType type in previous)
-            {
-                current.Add(type);
-                if (temp.Equals(type))
-                {
-                    break;
-                }
-            }
-            if (current.Count != previous.Length)
-            {
-                foreach (Section sec in sections)
-                {
-                    if (sec.OrderingType == current.ToArray())
+                    if (token == "")
                     {
-                        return FamilyTreeUtils.MemberEquivalent(sec.Node, node);
+                        spaceCount++;
+                    }
+                    else
+                    {
+                        spaceCount = 0;
+                    }
+                    if (spaceCount < 2)
+                    {
+                        adjustedTokens.Add(token);
                     }
                 }
-            }
-            return false;
+                return adjustedTokens.ToArray();
+            });
+        }
+
+        private static async Task<bool> IsDuplicate(ICollection<Section> sections, AbstractOrderingType[] previous, AbstractOrderingType temp, Family node)
+        {
+            ICollection<AbstractOrderingType> current = new SortedSet<AbstractOrderingType>();
+            return await Task.Run(() =>
+            {
+                foreach (AbstractOrderingType type in previous)
+                {
+                    current.Add(type);
+                    if (temp.Equals(type))
+                    {
+                        break;
+                    }
+                }
+                if (current.Count != previous.Length)
+                {
+                    IEqualityComparer<AbstractOrderingType[]> duplicateChecker = new OrderingTypeComparer();
+                    Section[] sectionMatches = sections.Where((sec) => duplicateChecker.Equals(sec.OrderingType, current.ToArray())).ToArray();
+                    return sectionMatches.Length != 0 && FamilyTreeUtils.MemberEquivalent(sectionMatches[0].Node, node);
+                }
+                return false;
+            });
         }
     }
 }

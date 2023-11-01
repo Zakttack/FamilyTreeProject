@@ -1,6 +1,6 @@
 namespace FamilyTreeLibrary.OrderingType.Comparers
 {
-    public class OrderingTypeComparer : IComparer<AbstractOrderingType[]>
+    public class OrderingTypeComparer : IComparer<AbstractOrderingType[]>, IEqualityComparer<AbstractOrderingType[]>
     {
         public int Compare(AbstractOrderingType[] a, AbstractOrderingType[] b)
         {
@@ -16,6 +16,16 @@ namespace FamilyTreeLibrary.OrderingType.Comparers
                 }
             }
             return a.Length - b.Length;
+        }
+
+        public bool Equals(AbstractOrderingType[] a, AbstractOrderingType[] b)
+        {
+            return Compare(a,b) == 0;
+        }
+
+        public int GetHashCode(AbstractOrderingType[] orderingType)
+        {
+            return orderingType.GetHashCode();
         }
     }
 }

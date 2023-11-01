@@ -2,5 +2,6 @@
 
 const string PDF_FILE = "2023PfingtenBookAlternate.pdf";
 PdfClient client = new(PDF_FILE);
-client.LoadNodes();
-client.AttachNodes();
+Task nodeCreationTask = client.LoadNodes();
+nodeCreationTask.Wait();
+Console.WriteLine("Nodes are Loaded.");

@@ -82,11 +82,12 @@ namespace FamilyTreeLibrary
             {
                 return IncrementGeneration(Array.Empty<AbstractOrderingType>());
             }
-            List<AbstractOrderingType[]> possibleNexts = new()
+            ICollection<AbstractOrderingType[]> possibleNexts = new List<AbstractOrderingType[]>();
+            if (temp.Length < 6)
             {
-                IncrementGeneration(temp),
-                ReplaceWithIncrementByKey(temp)
-            };
+                possibleNexts.Add(IncrementGeneration(temp));
+            }
+            possibleNexts.Add(ReplaceWithIncrementByKey(temp));
             AbstractOrderingType[] previous = temp;
             while (true)
             {

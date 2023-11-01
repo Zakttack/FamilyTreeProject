@@ -32,89 +32,92 @@ namespace FamilyTreeLibrary.PDF
             }
         }
 
-        public void LoadNodes()
+        public async Task LoadNodes()
         {
             Console.WriteLine($"Reading {FilePath}.");
             AbstractOrderingType[] currentOrderingType = Array.Empty<AbstractOrderingType>();
             Queue<AbstractOrderingType> previousPossibilities = new();
             string previousLine = "";
             int iterationNumber = 1;
-            IEnumerable<IEnumerable<string>> pages = PdfUtils.GetLinesFromDocument(FilePath);
-            foreach (IEnumerable<string> page in pages)
-            {
-                foreach (string line in page)
+            IEnumerable<IEnumerable<string>> pages = await PdfUtils.GetLinesFromDocument(FilePath);
+            await Task.Run(async () => {
+                foreach (IEnumerable<string> page in pages)
                 {
-                    try
+                    foreach (string line in page)
                     {
-                        string currentLine = line.Trim();
-                        Queue<AbstractOrderingType> currentPossibilities = FamilyTreeUtils.GetOrderingTypeByLine(currentLine);
-                        if (PdfUtils.IsInLaw(currentPossibilities, previousLine, currentLine))
+                        try
                         {
-                            previousLine += $"  {currentLine}";
-                        }
-                        else if (PdfUtils.IsMember(currentPossibilities))
-                        {
-                            if (previousLine != "" && previousPossibilities.Count > 0)
+                            string currentLine = line.Trim();
+                            Queue<AbstractOrderingType> currentPossibilities = FamilyTreeUtils.GetOrderingTypeByLine(currentLine);
+                            if (await PdfUtils.IsInLaw(currentPossibilities, previousLine, currentLine))
                             {
-                                string[] tokens = PdfUtils.ReformatLine(previousLine);
-                                Queue<Line> lines = PdfUtils.GetLines(tokens);
-                                Family node = PdfUtils.GetFamily(lines);
-                                AbstractOrderingType[] temp = currentOrderingType;
-                                currentOrderingType = PdfUtils.FillSection(familyNodeCollection, temp, previousPossibilities, node);
-                                Console.WriteLine($"Section #{iterationNumber}: {node}");
-                                if (familyNodeCollection.Count >= LineLimit)
+                                previousLine += $"  {currentLine}";
+                            }
+                            else if (await PdfUtils.IsMember(currentPossibilities))
+                            {
+                                if (previousLine != "" && previousPossibilities.Count > 0)
                                 {
-                                    return;
+                                    string[] tokens = await PdfUtils.ReformatLine(previousLine);
+                                    Queue<Line> lines = await PdfUtils.GetLines(tokens);
+                                    Family node = await PdfUtils.GetFamily(lines);
+                                    AbstractOrderingType[] temp = currentOrderingType;
+                                    currentOrderingType = await PdfUtils.FillSection(familyNodeCollection, temp, previousPossibilities, node);
+                                    if (iterationNumber == familyNodeCollection.Count - 1)
+                                    {
+                                        iterationNumber++;
+                                    }
+                                    Console.WriteLine($"Section #{iterationNumber}: {node}");
+                                    if (familyNodeCollection.Count >= LineLimit)
+                                    {
+                                        return;
+                                    }
                                 }
+                                else if (previousLine != "")
+                                {
+                                    throw new InvalidOperationException("The ordering type is un-defined.");
+                                }
+                                previousLine = currentLine;
+                                previousPossibilities = currentPossibilities;
                             }
-                            else if (previousLine != "")
-                            {
-                                throw new InvalidOperationException("The ordering type is un-defined.");
-                            }
-                            previousLine = currentLine;
-                            previousPossibilities = currentPossibilities;
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                       Console.WriteLine($"{ex.GetType().Name} on Section #{iterationNumber}: {ex.Message}\n{ex.StackTrace}");
-                    }
-                    finally
-                    {
-                        if (familyNodeCollection.Count > 0)
+                        catch (Exception ex)
                         {
-                            iterationNumber++;
+                            Console.WriteLine($"{ex.GetType().Name} on Section #{++iterationNumber}: {ex.Message}\n{ex.StackTrace}");
                         }
                     }
                 }
-            }
-            Console.WriteLine("Nodes have been loaded.");
+            });
         }
 
-        public void AttachNodes()
+        public async Task AttachNodes()
         {
-            Console.WriteLine("Now we need to attach the nodes.");
-            AttachNodes(familyNodeCollection, Root);
+            await Task.Run(async () =>
+            {
+                await AttachNodes(familyNodeCollection, Root);
+            });
         }
 
-        private void AttachNodes(IReadOnlyList<Section> familyNodeCollection, Section root)
+        private async Task AttachNodes(IReadOnlyList<Section> familyNodeCollection, Section root)
         {
             ICollection<Section> subFamilyNodeCollection = new List<Section>();
-            foreach (Section familyNode in familyNodeCollection)
+            await Task.Run(async () =>
             {
-                if (familyNode.OrderingType.Length == root.OrderingType.Length + 1)
+                foreach (Section familyNode in familyNodeCollection)
                 {
-                    root.Node.Children.Add(familyNode.Node);
-                    familyNode.Node.Parent = root.Node;
-                    nodes.Add(familyNode.Node);
-                    AttachNodes(subFamilyNodeCollection.ToList(), familyNode);
-                    subFamilyNodeCollection.Clear();
+                    if (familyNode.OrderingType.Length == root.OrderingType.Length + 1)
+                    {
+                        root.Node.Children.Add(familyNode.Node);
+                        familyNode.Node.Parent = root.Node;
+                        nodes.Add(familyNode.Node);
+                        await AttachNodes(subFamilyNodeCollection.ToList(), familyNode);
+                        subFamilyNodeCollection.Clear();
+                    }
+                    else
+                    {
+                        subFamilyNodeCollection.Add(familyNode);
+                    }
                 }
-                else
-                {
-                    subFamilyNodeCollection.Add(familyNode);
-                }
-            }
+            });
         }
 
         private Section Root
