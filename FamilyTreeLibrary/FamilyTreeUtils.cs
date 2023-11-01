@@ -18,13 +18,6 @@ namespace FamilyTreeLibrary
             }
         }
 
-        public static AbstractOrderingType[] CopyOrderingType(AbstractOrderingType[] temp)
-        {
-            AbstractOrderingType[] collection = new AbstractOrderingType[temp.Length];
-            Array.Copy(temp, collection, temp.Length);
-            return collection;
-        }
-
         public static string GetFileNameFromResources(string currentPath, string fileNameWithExtension)
         {
             string[] parts = currentPath.Split('\\');
@@ -36,13 +29,13 @@ namespace FamilyTreeLibrary
             return $@"{currentPath}\Resources\{fileNameWithExtension}";
         }
 
-        public static Queue<AbstractOrderingType> GetOrderingTypeByLine(string line)
+        public static Queue<AbstractOrderingType> GetOrderingTypeByLine(string line, int maxKey)
         {
             Queue<AbstractOrderingType> result = new();
             string token = line.Split(' ')[0];
             for (int generation = 1; generation <= 6; generation++)
             {
-                if (AbstractOrderingType.TryGetOrderingType(out AbstractOrderingType orderingType, token, generation))
+                if (AbstractOrderingType.TryGetOrderingType(out AbstractOrderingType orderingType, token, generation, maxKey))
                 {
                     result.Enqueue(orderingType);
                 }

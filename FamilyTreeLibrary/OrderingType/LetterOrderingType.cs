@@ -6,13 +6,13 @@ namespace FamilyTreeLibrary.OrderingType
 {
     public class LetterOrderingType : AbstractOrderingType
     {
-        internal LetterOrderingType(int key, bool isUpperCase)
-        :base(key, isUpperCase ? 2 : 4)
+        internal LetterOrderingType(int key, bool isUpperCase, int maxKey = int.MaxValue)
+        :base(key, isUpperCase ? 2 : 4, maxKey)
         {
         }
 
-        internal LetterOrderingType(string value, bool isUpperCase)
-        :base(value, isUpperCase ? 2 : 4)
+        internal LetterOrderingType(string value, bool isUpperCase, int maxKey = int.MaxValue)
+        :base(value, isUpperCase ? 2 : 4, maxKey)
         {
         }
 
@@ -33,13 +33,17 @@ namespace FamilyTreeLibrary.OrderingType
             while (FindValue(key) != value)
             {
                 key++;
+                if (key > MaxKey)
+                {
+                    return 0;
+                }
             }
             return key;
         }
 
         protected override string FindValue(int key)
         {
-            if (key < 0)
+            if (key < 0 || key > MaxKey)
             {
                 return "";
             }

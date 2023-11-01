@@ -46,7 +46,7 @@ namespace FamilyTreeLibrary.PDF
                 try
                 {
                     string currentLine = line.Trim();
-                    Queue<AbstractOrderingType> currentPossibilities = FamilyTreeUtils.GetOrderingTypeByLine(currentLine);
+                    Queue<AbstractOrderingType> currentPossibilities = FamilyTreeUtils.GetOrderingTypeByLine(currentLine, pdfLines.Count);
                     if (PdfUtils.IsInLaw(currentPossibilities, previousLine, currentLine))
                     {
                         previousLine += $"  {currentLine}";

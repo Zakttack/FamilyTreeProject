@@ -9,13 +9,13 @@ namespace FamilyTreeLibrary.OrderingType
 {
     public class RomanNumeralOrderingType : AbstractOrderingType
     {
-        internal RomanNumeralOrderingType(int key, bool isUpperCase)
-        :base(key, isUpperCase ? 1 : 6)
+        internal RomanNumeralOrderingType(int key, bool isUpperCase, int maxKey = int.MaxValue)
+        :base(key, isUpperCase ? 1 : 6, maxKey)
         {
         }
 
-        internal RomanNumeralOrderingType(string value, bool isUpperCase)
-        :base(value, isUpperCase ? 1 : 6)
+        internal RomanNumeralOrderingType(string value, bool isUpperCase, int maxKey = int.MaxValue)
+        :base(value, isUpperCase ? 1 : 6, maxKey)
         {
         }
 
@@ -36,13 +36,17 @@ namespace FamilyTreeLibrary.OrderingType
             while (FindValue(key) != value)
             {
                 key++;
+                if (key > MaxKey)
+                {
+                    return 0;
+                }
             }
             return key;
         }
 
         protected override string FindValue(int key)
         {
-            if (key < 0)
+            if (key < 0 || key > MaxKey)
             {
                 return "";
             }
