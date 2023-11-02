@@ -25,7 +25,7 @@ namespace FamilyTreeLibrary
                 string filePath = GetFileNameFromResources(Directory.GetCurrentDirectory(), "log.txt");
                 return new LoggerConfiguration()
                     .MinimumLevel.Debug()
-                    .WriteTo.File(filePath)
+                    .WriteTo.File(filePath, rollingInterval: RollingInterval.Infinite)
                     .CreateLogger();
             }
         }
