@@ -9,32 +9,39 @@ namespace FamilyTreeLibrary.Models
         private int day;
         private string month;
         private string year;
+
+        private IReadOnlyDictionary<string,int> months;
         public FamilyTreeDate(int day = 0, string month = "", string year = "")
         {
-            Day = day;
-            Month = month;
             Year = year;
+            Month = month;
+            Day = day;
         }
 
         public FamilyTreeDate(string input)
         {
             string[] values = input.Split(' ');
-            Day = 0; Month = ""; Year = "";
+            month = "";
+            day = 0;
+            year = "";
             foreach (string value in values)
             {
                 if (value.Length < 3)
                 {
-                    Day = Convert.ToInt32(value);
+                    day = value == "" ? 0 : Convert.ToInt32(value);
                 }
                 else if (value.Length == 3)
                 {
-                    Month = value;
+                    month = value;
                 }
                 else
                 {
-                    Year = value;
+                    year = value;
                 }
             }
+            Year = year;
+            Month = month;
+            Day = day;
         }
 
         public int Day
@@ -45,7 +52,7 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                if (value < 0)
+                if (value < 0 || value > months[Month])
                 {
                     throw new InvalidDateException(value, DateAttributes.Day);
                 }
@@ -61,7 +68,7 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                if(!Months.Contains(value))
+                if(!Months.ContainsKey(value))
                 {
                     throw new InvalidDateException(value, DateAttributes.Month);
                 }
@@ -77,21 +84,13 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                if (Regex.IsMatch(value, FamilyTreeUtils.NUMBER_PATTERN))
+                bool isNumber = Regex.IsMatch(value, FamilyTreeUtils.NUMBER_PATTERN);
+                if (value != "" && !isNumber && !Regex.IsMatch(value, FamilyTreeUtils.RANGE_PATTERN))
                 {
-                    year = value;
+                    throw new InvalidDateException(value, DateAttributes.Year);
                 }
-                else
-                {
-                    if (Regex.IsMatch(value, FamilyTreeUtils.RANGE_PATTERN))
-                    {
-                        year = value;
-                    }
-                    else
-                    {
-                        throw new InvalidDateException(value, DateAttributes.Year);
-                    }
-                }
+                year = value;
+                FillMonths(isNumber && DateTime.IsLeapYear(Convert.ToInt32(year)));
             }
         }
 
@@ -102,7 +101,7 @@ namespace FamilyTreeLibrary.Models
             {
                 return yearDiff;
             }
-            int monthDiff = Math.Abs(Months.ToList().IndexOf(Month) - Months.ToList().IndexOf(other.Month));
+            int monthDiff = Math.Abs(months.Keys.ToList().IndexOf(Month) - months.Keys.ToList().IndexOf(other.Month));
             if (monthDiff != 0)
             {
                 return monthDiff;
@@ -169,27 +168,32 @@ namespace FamilyTreeLibrary.Models
             return dateA.CompareTo(dateB) <= 0;
         }
 
-        internal static IReadOnlySet<string> Months
+        internal readonly IReadOnlyDictionary<string,int> Months
         {
             get
             {
-                return new HashSet<string>
-                {
-                    "",
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sep",
-                    "Oct",
-                    "Nov",
-                    "Dec"
-                };
+                return months;
             }
+        }
+
+        private void FillMonths(bool isLeapYear)
+        {
+            months = new Dictionary<string,int>
+                {
+                    {"", 0},
+                    {"Jan", 31},
+                    {"Feb",isLeapYear ? 29 : 28},
+                    {"Mar",31},
+                    {"Apr",30},
+                    {"May",31},
+                    {"Jun",30},
+                    {"Jul",31},
+                    {"Aug",31},
+                    {"Sep",30},
+                    {"Oct",31},
+                    {"Nov",30},
+                    {"Dec",31}
+                };
         }
     }
 }

@@ -1,18 +1,22 @@
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
+using FamilyTreeLibrary.PDF.Models;
 
 namespace FamilyTreeLibrary.PDF
 {
     public class PdfClient
     {
         private readonly ICollection<Family> nodes;
-        private readonly IReadOnlyDictionary<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> familyNodeCollection;
+
+        private readonly List<Section> familyNodeCollection;
 
         public PdfClient(string pdfFileName, int lineLimit = int.MaxValue)
         {
             FilePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), pdfFileName);
             nodes = new SortedSet<Family>();
-            familyNodeCollection = PdfUtils.ParseAsFamilyNodes(PdfUtils.GetPDFLinesAsQueue(lineLimit, pdfFileName));
+            Root = new Section(Array.Empty<AbstractOrderingType>(), FamilyTreeUtils.Root);
+            familyNodeCollection = new();
+            LineLimit = lineLimit;
         }
 
         public string FilePath
@@ -30,89 +34,91 @@ namespace FamilyTreeLibrary.PDF
 
         public void LoadNodes()
         {
-            List<Queue<KeyValuePair<int,Family>>> subFamilyNodeCollection = new();
-            foreach (KeyValuePair<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> familyNodes in familyNodeCollection)
+            Console.WriteLine($"Reading {FilePath}.");
+            AbstractOrderingType[] currentOrderingType = Array.Empty<AbstractOrderingType>();
+            Queue<AbstractOrderingType> previousPossibilities = new();
+            string previousLine = "";
+            int sectionNumber = 1;
+            IReadOnlyCollection<string> pdfLines = PdfUtils.GetLinesFromDocument(FilePath);
+            Console.WriteLine($"{pdfLines.Count} lines were detected.");
+            foreach (string line in pdfLines)
             {
-                if (familyNodes.Key.Length == 1)
+                try
                 {
-                    Queue<KeyValuePair<int,Family>> familyQueue = new();
-                    while(familyNodes.Value.Count > 0)
+                    string currentLine = line.Trim();
+                    Queue<AbstractOrderingType> currentPossibilities = FamilyTreeUtils.GetOrderingTypeByLine(currentLine, pdfLines.Count);
+                    if (PdfUtils.IsInLaw(currentPossibilities, previousLine, currentLine))
                     {
-                        KeyValuePair<int,Family> familyPair = familyNodes.Value.Dequeue();
-                        nodes.Add(familyPair.Value);
-                        FamilyTreeUtils.Root.Children.Add(familyPair.Value);
-                        familyPair.Value.Parent = FamilyTreeUtils.Root;
-                        familyQueue.Enqueue(familyPair);
+                        previousLine += $"  {currentLine}";
                     }
-                    subFamilyNodeCollection.Add(familyQueue);
+                    else if (PdfUtils.IsMember(currentPossibilities))
+                    {
+                        if (previousLine != "" && previousPossibilities.Count > 0)
+                        {
+                            string[] tokens = PdfUtils.ReformatLine(previousLine);
+                            Queue<Line> lines = PdfUtils.GetLines(tokens);
+                            Family node = PdfUtils.GetFamily(lines);
+                            AbstractOrderingType[] temp = currentOrderingType;
+                            currentOrderingType = PdfUtils.FillSection(familyNodeCollection, temp, previousPossibilities, node);
+                            if (sectionNumber == familyNodeCollection.Count - 1)
+                            {
+                                sectionNumber++;
+                            }
+                            Console.WriteLine($"Section #{sectionNumber}: {node}");
+                            if (familyNodeCollection.Count >= LineLimit)
+                            {
+                                return;
+                            }
+                        }
+                        else if (previousLine != "")
+                        {
+                            throw new InvalidOperationException("The ordering type is undefined.");
+                        }
+                        previousLine = currentLine;
+                        previousPossibilities = currentPossibilities;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"{ex.GetType().Name} on Section #{++sectionNumber}: {ex.Message}\n{ex.StackTrace}");
                 }
             }
-            LoadNodes(subFamilyNodeCollection, 2, 0);
+            Console.WriteLine($"{familyNodeCollection.Count} sections were detected.");
         }
 
-        private void LoadNodes(IReadOnlyList<Queue<KeyValuePair<int,Family>>> subFamilyNodeCollection, int generation, int index)
+        public void AttachNodes()
         {
-            if (subFamilyNodeCollection.Count > 0)
+            AttachNodes(familyNodeCollection, Root);
+        }
+
+        private void AttachNodes(IReadOnlyList<Section> familyNodeCollection, Section root)
+        {
+            ICollection<Section> subFamilyNodeCollection = new List<Section>();
+            foreach (Section familyNode in familyNodeCollection)
             {
-                List<Queue<KeyValuePair<int,Family>>> subCollection = new();
-                foreach (KeyValuePair<AbstractOrderingType[],Queue<KeyValuePair<int,Family>>> familyNodes in familyNodeCollection)
+                if (familyNode.OrderingType.Length == root.OrderingType.Length + 1)
                 {
-                    if (familyNodes.Key.Length == generation)
-                    {
-                        KeyValuePair<int,Family> start;
-                        if (index < subFamilyNodeCollection.Count - 1)
-                        {
-                            start = subFamilyNodeCollection[index].Dequeue();
-                            KeyValuePair<int,Family> end;
-                            if (subFamilyNodeCollection[index].Count > 0)
-                            {
-                                end = subFamilyNodeCollection[index].Peek();
-                            }
-                            else
-                            {
-                                end = subFamilyNodeCollection[index + 1].Peek();
-                            }
-                            Queue<KeyValuePair<int,Family>> familyQueue = new();
-                            while (familyNodes.Value.TryPeek(out KeyValuePair<int,Family> current) && start.Key < current.Key && current.Key < end.Key)
-                            {
-                                KeyValuePair<int,Family> familarPair = familyNodes.Value.Dequeue();
-                                nodes.Add(familarPair.Value);
-                                start.Value.Children.Add(familarPair.Value);
-                                familarPair.Value.Parent = start.Value;
-                                familyQueue.Enqueue(familarPair);
-                            }
-                            if (familyQueue.Count > 0)
-                            {
-                                subCollection.Add(familyQueue);
-                            }
-                            subFamilyNodeCollection[index].Enqueue(start);
-                        }
-                        else if (index == subFamilyNodeCollection.Count - 1)
-                        {
-                            start = subFamilyNodeCollection[index].Dequeue();
-                            Queue<KeyValuePair<int,Family>> familyQueue = new();
-                            while (familyNodes.Value.TryPeek(out KeyValuePair<int,Family> current) && start.Key < current.Key)
-                            {
-                                KeyValuePair<int,Family> familarPair = familyNodes.Value.Dequeue();
-                                nodes.Add(familarPair.Value);
-                                start.Value.Children.Add(familarPair.Value);
-                                familarPair.Value.Parent = start.Value;
-                                familyQueue.Enqueue(familarPair);
-                            }
-                            if (familyQueue.Count > 0)
-                            {
-                                subCollection.Add(familyQueue);
-                            }
-                            subFamilyNodeCollection[index].Enqueue(start);
-                        }
-                        else
-                        {
-                            LoadNodes(subCollection, generation + 1, 0);
-                        }
-                    }
+                    root.Node.Children.Add(familyNode.Node);
+                    familyNode.Node.Parent = root.Node;
+                    nodes.Add(familyNode.Node);
+                    AttachNodes(subFamilyNodeCollection.ToList(), familyNode);
+                    subFamilyNodeCollection.Clear();
                 }
-                LoadNodes(subCollection, generation, index + 1);
+                else
+                {
+                    subFamilyNodeCollection.Add(familyNode);
+                }
             }
+        }
+
+        private Section Root
+        {
+            get;
+        }
+
+        private int LineLimit
+        {
+            get;
         }
     }
 }

@@ -2,15 +2,17 @@ namespace FamilyTreeLibrary.OrderingType
 {
     public abstract class AbstractOrderingType : IComparable<AbstractOrderingType>
     {
-        protected AbstractOrderingType(int key, int generation)
+        protected AbstractOrderingType(int key, int generation, int maxKey)
         {
             Generation = generation;
+            MaxKey = maxKey;
             ConversionPair = new(key, FindValue(key));
         }
 
-        protected AbstractOrderingType(string value, int generation)
+        protected AbstractOrderingType(string value, int generation, int maxKey)
         {
             Generation = generation;
+            MaxKey = maxKey;
             ConversionPair = new(FindKey(value), value);
         }
 
@@ -52,16 +54,16 @@ namespace FamilyTreeLibrary.OrderingType
             return ConversionPair.GetHashCode();
         }
 
-        public static AbstractOrderingType GetOrderingType(int key, int generation)
+        public static AbstractOrderingType GetOrderingType(int key, int generation, int maxKey = int.MaxValue)
         {
             return generation switch
             {
-                1 => new RomanNumeralOrderingType(key, true),
-                2 => new LetterOrderingType(key, true),
-                3 => new DigitOrderingType(key, false),
-                4 => new LetterOrderingType(key, false),
-                5 => new ParenthesizedDigitOrderingType(key),
-                6 => new RomanNumeralOrderingType(key, false),
+                1 => new RomanNumeralOrderingType(key, true, maxKey),
+                2 => new LetterOrderingType(key, true, maxKey),
+                3 => new DigitOrderingType(key, false, maxKey),
+                4 => new LetterOrderingType(key, false, maxKey),
+                5 => new ParenthesizedDigitOrderingType(key, maxKey),
+                6 => new RomanNumeralOrderingType(key, false, maxKey),
                 _ => null
             };
         }
@@ -71,16 +73,16 @@ namespace FamilyTreeLibrary.OrderingType
             return ConversionPair.ToString();
         }
 
-        public static bool TryGetOrderingType(out AbstractOrderingType orderingType, string value, int generation)
+        public static bool TryGetOrderingType(out AbstractOrderingType orderingType, string value, int generation, int maxKey = int.MaxValue)
         {
             switch (generation)
             {
-                case 1: orderingType = new RomanNumeralOrderingType(value, true); break;
-                case 2: orderingType = new LetterOrderingType(value, true); break;
-                case 3: orderingType = new DigitOrderingType(value, false); break;
-                case 4: orderingType = new LetterOrderingType(value, false); break;
-                case 5: orderingType = new ParenthesizedDigitOrderingType(value); break;
-                case 6: orderingType = new RomanNumeralOrderingType(value, false); break;
+                case 1: orderingType = new RomanNumeralOrderingType(value, true, maxKey); break;
+                case 2: orderingType = new LetterOrderingType(value, true, maxKey); break;
+                case 3: orderingType = new DigitOrderingType(value, false, maxKey); break;
+                case 4: orderingType = new LetterOrderingType(value, false, maxKey); break;
+                case 5: orderingType = new ParenthesizedDigitOrderingType(value, maxKey); break;
+                case 6: orderingType = new RomanNumeralOrderingType(value, false, maxKey); break;
                 default: orderingType = null; return false; 
             }
             return orderingType.ConversionPair.Key > 0 && orderingType.ConversionPair.Value != ""; 
@@ -89,6 +91,11 @@ namespace FamilyTreeLibrary.OrderingType
         protected abstract int FindKey(string value);
 
         protected abstract string FindValue(int key);
+
+        protected int MaxKey
+        {
+            get;
+        }
 
         private int Generation
         {
