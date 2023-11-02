@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
 using FamilyTreeLibrary.OrderingType.Comparers;
+using Microsoft.Extensions.Logging;
 
 namespace FamilyTreeLibrary.PDF
 {
@@ -29,7 +30,7 @@ namespace FamilyTreeLibrary.PDF
                     {
                         sectionNumber++;
                     }
-                    Console.WriteLine($"Section #{sectionNumber}: {section}");
+                    FamilyTreeUtils.Logger.Debug($"Section #{sectionNumber}: {section}");
                     break;
                 }
                 AbstractOrderingType[] next = FamilyTreeUtils.NextOrderingType(previous, type);
@@ -41,7 +42,7 @@ namespace FamilyTreeLibrary.PDF
                     {
                         sectionNumber++;
                     }
-                    Console.WriteLine($"Section #{sectionNumber}: {section}");
+                    FamilyTreeUtils.Logger.Debug($"Section #{sectionNumber}: {section}");
                     return next;
                 }
             }

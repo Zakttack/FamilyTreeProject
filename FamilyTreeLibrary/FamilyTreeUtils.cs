@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
+using Serilog;
 namespace FamilyTreeLibrary
 {
     public static class FamilyTreeUtils
@@ -14,6 +15,18 @@ namespace FamilyTreeLibrary
             {
                 string value = default;
                 return new(new Person(value));
+            }
+        }
+
+        public static ILogger Logger
+        {
+            get
+            {
+                string filePath = GetFileNameFromResources(Directory.GetCurrentDirectory(), "log.txt");
+                return new LoggerConfiguration()
+                    .MinimumLevel.Debug()
+                    .WriteTo.File(filePath)
+                    .CreateLogger();
             }
         }
 

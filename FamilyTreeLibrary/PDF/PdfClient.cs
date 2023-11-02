@@ -1,6 +1,7 @@
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
 using FamilyTreeLibrary.PDF.Models;
+using Serilog;
 
 namespace FamilyTreeLibrary.PDF
 {
@@ -31,13 +32,13 @@ namespace FamilyTreeLibrary.PDF
 
         public void LoadNodes()
         {
-            Console.WriteLine($"Reading {FilePath}.");
+            FamilyTreeUtils.Logger.Debug($"Reading {FilePath}.");
             AbstractOrderingType[] currentOrderingType = Array.Empty<AbstractOrderingType>();
             Queue<AbstractOrderingType> previousPossibilities = new();
             string previousLine = "";
             int sectionNumber = 1;
             IReadOnlyCollection<string> pdfLines = PdfUtils.GetLinesFromDocument(FilePath);
-            Console.WriteLine($"{pdfLines.Count} lines were detected.");
+            FamilyTreeUtils.Logger.Debug($"{pdfLines.Count} lines were detected.");
             foreach (string line in pdfLines)
             {
                 try
@@ -57,11 +58,11 @@ namespace FamilyTreeLibrary.PDF
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"{ex.GetType().Name} on Section #{++sectionNumber}: {ex.Message}\n{ex.StackTrace}");
+                    FamilyTreeUtils.Logger.Fatal($"{ex.GetType().Name} on Section #{++sectionNumber}: {ex.Message}\n{ex.StackTrace}");
                 }
             }
             CreateNode(previousLine, previousPossibilities, ref currentOrderingType, ref sectionNumber);
-            Console.WriteLine($"{FamilyNodeCollection.Count} sections were detected.");
+            FamilyTreeUtils.Logger.Debug($"{FamilyNodeCollection.Count} sections were detected.");
         }
 
         public void AttachNodes()
