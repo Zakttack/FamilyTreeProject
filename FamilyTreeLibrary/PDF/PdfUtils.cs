@@ -10,24 +10,13 @@ namespace FamilyTreeLibrary.PDF
 {
     public static class PdfUtils
     {
-        public static bool IsInLaw(Queue<AbstractOrderingType> orderingTypePossibilities, string previousLine, string currentLine)
-        {
-            string inLawPattern = @"^[a-zA-Z0-9’,\-. ]*$";
-            return orderingTypePossibilities.Count == 0 && previousLine != "" && Regex.IsMatch(currentLine, inLawPattern);
-        }
-
-        public static bool IsMember(Queue<AbstractOrderingType> orderingTypePossibilities)
-        {
-            return orderingTypePossibilities.Count > 0; 
-        }
-        
-        public static AbstractOrderingType[] FillSection(ICollection<Section> sections, AbstractOrderingType[] previous, Queue<AbstractOrderingType> possibilities, Family node)
+        public static AbstractOrderingType[] AddSection(ICollection<Section> sections, AbstractOrderingType[] previous, Queue<AbstractOrderingType> possibilities, Family node, ref int sectionNumber)
         {
             Section section;
             while (possibilities.Count > 0)
             {
                 AbstractOrderingType type = possibilities.Dequeue();
-                if (IsDuplicate(sections, previous, type, node))
+                if (HasAddionalPartner(sections, previous, type, node))
                 {
                     AbstractOrderingType[] orderingType = previous;
                     while (!orderingType[^1].Equals(type))
@@ -36,6 +25,11 @@ namespace FamilyTreeLibrary.PDF
                     }
                     section = new(orderingType, node);
                     sections.Add(section);
+                    if (sectionNumber == sections.Count - 1)
+                    {
+                        sectionNumber++;
+                    }
+                    Console.WriteLine($"Section #{sectionNumber}: {section}");
                     break;
                 }
                 AbstractOrderingType[] next = FamilyTreeUtils.NextOrderingType(previous, type);
@@ -43,6 +37,11 @@ namespace FamilyTreeLibrary.PDF
                 {
                     section = new(next, node);
                     sections.Add(section);
+                    if (sectionNumber == sections.Count - 1)
+                    {
+                        sectionNumber++;
+                    }
+                    Console.WriteLine($"Section #{sectionNumber}: {section}");
                     return next;
                 }
             }
@@ -175,6 +174,17 @@ namespace FamilyTreeLibrary.PDF
             return pdfLines;
         }
 
+        public static bool IsInLaw(Queue<AbstractOrderingType> orderingTypePossibilities, string previousLine, string currentLine)
+        {
+            string inLawPattern = @"^[a-zA-Z0-9’,\-. ]*$";
+            return orderingTypePossibilities.Count == 0 && previousLine != "" && Regex.IsMatch(currentLine, inLawPattern);
+        }
+
+        public static bool IsMember(Queue<AbstractOrderingType> orderingTypePossibilities)
+        {
+            return orderingTypePossibilities.Count > 0; 
+        }
+
         public static string[] ReformatLine(string line)
         {
             ICollection<string> adjustedTokens = new List<string>();
@@ -198,7 +208,7 @@ namespace FamilyTreeLibrary.PDF
             return adjustedTokens.ToArray();
         }
 
-        private static bool IsDuplicate(ICollection<Section> sections, AbstractOrderingType[] previous, AbstractOrderingType temp, Family node)
+        private static bool HasAddionalPartner(ICollection<Section> sections, AbstractOrderingType[] previous, AbstractOrderingType temp, Family node)
         {
             ICollection<AbstractOrderingType> current = new SortedSet<AbstractOrderingType>();
             foreach (AbstractOrderingType type in previous)

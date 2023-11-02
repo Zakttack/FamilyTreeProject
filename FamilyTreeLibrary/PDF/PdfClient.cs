@@ -8,15 +8,12 @@ namespace FamilyTreeLibrary.PDF
     {
         private readonly ICollection<Family> nodes;
 
-        private readonly List<Section> familyNodeCollection;
-
-        public PdfClient(string pdfFileName, int lineLimit = int.MaxValue)
+        public PdfClient(string pdfFileName)
         {
             FilePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), pdfFileName);
             nodes = new SortedSet<Family>();
             Root = new Section(Array.Empty<AbstractOrderingType>(), FamilyTreeUtils.Root);
-            familyNodeCollection = new();
-            LineLimit = lineLimit;
+            FamilyNodeCollection = new();
         }
 
         public string FilePath
@@ -53,27 +50,7 @@ namespace FamilyTreeLibrary.PDF
                     }
                     else if (PdfUtils.IsMember(currentPossibilities))
                     {
-                        if (previousLine != "" && previousPossibilities.Count > 0)
-                        {
-                            string[] tokens = PdfUtils.ReformatLine(previousLine);
-                            Queue<Line> lines = PdfUtils.GetLines(tokens);
-                            Family node = PdfUtils.GetFamily(lines);
-                            AbstractOrderingType[] temp = currentOrderingType;
-                            currentOrderingType = PdfUtils.FillSection(familyNodeCollection, temp, previousPossibilities, node);
-                            if (sectionNumber == familyNodeCollection.Count - 1)
-                            {
-                                sectionNumber++;
-                            }
-                            Console.WriteLine($"Section #{sectionNumber}: {node}");
-                            if (familyNodeCollection.Count >= LineLimit)
-                            {
-                                return;
-                            }
-                        }
-                        else if (previousLine != "")
-                        {
-                            throw new InvalidOperationException("The ordering type is undefined.");
-                        }
+                        CreateNode(previousLine, previousPossibilities, ref currentOrderingType, ref sectionNumber);
                         previousLine = currentLine;
                         previousPossibilities = currentPossibilities;
                     }
@@ -83,12 +60,13 @@ namespace FamilyTreeLibrary.PDF
                     Console.WriteLine($"{ex.GetType().Name} on Section #{++sectionNumber}: {ex.Message}\n{ex.StackTrace}");
                 }
             }
-            Console.WriteLine($"{familyNodeCollection.Count} sections were detected.");
+            CreateNode(previousLine, previousPossibilities, ref currentOrderingType, ref sectionNumber);
+            Console.WriteLine($"{FamilyNodeCollection.Count} sections were detected.");
         }
 
         public void AttachNodes()
         {
-            AttachNodes(familyNodeCollection, Root);
+            AttachNodes(FamilyNodeCollection, Root);
         }
 
         private void AttachNodes(IReadOnlyList<Section> familyNodeCollection, Section root)
@@ -111,12 +89,28 @@ namespace FamilyTreeLibrary.PDF
             }
         }
 
-        private Section Root
+        private void CreateNode(string previousLine, Queue<AbstractOrderingType> previousPossibilities, ref AbstractOrderingType[] currentOrderingType, ref int sectionNumber)
+        {
+            if (previousLine != "" && previousPossibilities.Count > 0)
+            {
+                string[] tokens = PdfUtils.ReformatLine(previousLine);
+                Queue<Line> lines = PdfUtils.GetLines(tokens);
+                Family node = PdfUtils.GetFamily(lines);
+                AbstractOrderingType[] temp = currentOrderingType;
+                currentOrderingType = PdfUtils.AddSection(FamilyNodeCollection, temp, previousPossibilities, node, ref sectionNumber);
+            }
+            else if (previousLine != "")
+            {
+                throw new InvalidOperationException("The ordering type is undefined.");
+            }
+        }
+
+        private List<Section> FamilyNodeCollection
         {
             get;
         }
 
-        private int LineLimit
+        private Section Root
         {
             get;
         }

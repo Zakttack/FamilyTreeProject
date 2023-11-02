@@ -23,5 +23,21 @@ namespace FamilyTreeLibrary.PDF.Models
         {
             get;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj != null && ToString() == obj.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            string orderingTypeOutput = "{" + string.Join<AbstractOrderingType>(',', OrderingType) + "}";
+            return $"\nOrderingType: {orderingTypeOutput}\nNode: {Node}";
+        }
     }
 }
