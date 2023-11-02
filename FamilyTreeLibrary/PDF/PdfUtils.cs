@@ -209,13 +209,9 @@ namespace FamilyTreeLibrary.PDF
                     break;
                 }
             }
-            if (current.Count != previous.Length)
-            {
-                IEqualityComparer<AbstractOrderingType[]> duplicateChecker = new OrderingTypeComparer();
-                Section[] sectionMatches = sections.Where((sec) => duplicateChecker.Equals(sec.OrderingType, current.ToArray())).ToArray();
-                return sectionMatches.Length != 0 && FamilyTreeUtils.MemberEquivalent(sectionMatches[0].Node, node);
-            }
-            return false;
+            IEqualityComparer<AbstractOrderingType[]> duplicateChecker = new OrderingTypeComparer();
+            Section[] sectionMatches = sections.Where((sec) => duplicateChecker.Equals(sec.OrderingType, current.ToArray())).ToArray();
+            return sectionMatches.Length != 0 && sectionMatches[0].OrderingType[^1].Equals(temp) && sectionMatches[0].Node.Member.BirthDate.Equals(node.Member.BirthDate);
         }
     }
 }

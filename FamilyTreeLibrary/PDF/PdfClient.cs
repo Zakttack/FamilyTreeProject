@@ -38,7 +38,7 @@ namespace FamilyTreeLibrary.PDF
             AbstractOrderingType[] currentOrderingType = Array.Empty<AbstractOrderingType>();
             Queue<AbstractOrderingType> previousPossibilities = new();
             string previousLine = "";
-            int iterationNumber = 1;
+            int sectionNumber = 1;
             IReadOnlyCollection<string> pdfLines = PdfUtils.GetLinesFromDocument(FilePath);
             Console.WriteLine($"{pdfLines.Count} lines were detected.");
             foreach (string line in pdfLines)
@@ -60,11 +60,11 @@ namespace FamilyTreeLibrary.PDF
                             Family node = PdfUtils.GetFamily(lines);
                             AbstractOrderingType[] temp = currentOrderingType;
                             currentOrderingType = PdfUtils.FillSection(familyNodeCollection, temp, previousPossibilities, node);
-                            if (iterationNumber == familyNodeCollection.Count - 1)
+                            if (sectionNumber == familyNodeCollection.Count - 1)
                             {
-                                iterationNumber++;
+                                sectionNumber++;
                             }
-                            Console.WriteLine($"Section #{iterationNumber}: {node}");
+                            Console.WriteLine($"Section #{sectionNumber}: {node}");
                             if (familyNodeCollection.Count >= LineLimit)
                             {
                                 return;
@@ -80,7 +80,7 @@ namespace FamilyTreeLibrary.PDF
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"{ex.GetType().Name} on Section #{++iterationNumber}: {ex.Message}\n{ex.StackTrace}");
+                    Console.WriteLine($"{ex.GetType().Name} on Section #{++sectionNumber}: {ex.Message}\n{ex.StackTrace}");
                 }
             }
             Console.WriteLine($"{familyNodeCollection.Count} sections were detected.");

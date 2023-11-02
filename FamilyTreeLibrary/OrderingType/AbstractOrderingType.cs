@@ -73,7 +73,7 @@ namespace FamilyTreeLibrary.OrderingType
             return ConversionPair.ToString();
         }
 
-        public static bool TryGetOrderingType(out AbstractOrderingType orderingType, string value, int generation, int maxKey)
+        public static bool TryGetOrderingType(out AbstractOrderingType orderingType, string value, int generation, int maxKey = int.MaxValue)
         {
             switch (generation)
             {

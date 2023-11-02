@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
@@ -29,7 +28,7 @@ namespace FamilyTreeLibrary
             return $@"{currentPath}\Resources\{fileNameWithExtension}";
         }
 
-        public static Queue<AbstractOrderingType> GetOrderingTypeByLine(string line, int maxKey)
+        public static Queue<AbstractOrderingType> GetOrderingTypeByLine(string line, int maxKey = int.MaxValue)
         {
             Queue<AbstractOrderingType> result = new();
             string token = line.Split(' ')[0];
@@ -41,32 +40,6 @@ namespace FamilyTreeLibrary
                 }
             }
             return result;
-        }
-
-        public static bool MemberEquivalent(Family main, Family duplicate)
-        {
-            string[] memberMainNameParts = main.Member.Name.Split(' ');
-            string[] memberDuplicateNameParts = duplicate.Member.Name.Split(' ');
-            int index = -1;
-            for (int i = 0; i < Math.Min(memberMainNameParts.Length, memberDuplicateNameParts.Length) - 1 && index < 0; i++)
-            {
-                if (memberMainNameParts[i] == memberDuplicateNameParts[i])
-                {
-                    index = i;
-                }
-            }
-            if (index < 0 || index > Math.Min(memberMainNameParts.Length, memberDuplicateNameParts.Length) - 2)
-            {
-                return false;
-            }
-            for (int i1 = index + 1; i1 < memberDuplicateNameParts.Length; i1++)
-            {
-                if (memberDuplicateNameParts[i1] == memberMainNameParts[^1])
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         public static AbstractOrderingType[] NextOrderingType(AbstractOrderingType[] temp, AbstractOrderingType orderingType)
