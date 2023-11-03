@@ -1,6 +1,6 @@
 using FamilyTreeLibrary;
-using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
+using Serilog;
 
 namespace FamilyTreeLibraryTest
 {
@@ -77,6 +77,12 @@ namespace FamilyTreeLibraryTest
             string expected = "31 May 2017";
             string actual = FamilyTreeUtils.ReformatToken("31May2017");
             Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void VerifyNonInitialized()
+        {
+            Assert.That(Log.Logger, Is.Not.EqualTo(FamilyTreeUtils.InitialLogger));
         }
     }
 }

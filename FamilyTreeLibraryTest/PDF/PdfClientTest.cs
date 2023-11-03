@@ -1,6 +1,7 @@
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
 using FamilyTreeLibrary.PDF;
+using Serilog;
 namespace FamilyTreeLibraryTest.PDF
 {
     public class PdfClientTest
@@ -18,6 +19,12 @@ namespace FamilyTreeLibraryTest.PDF
                 Assert.Fail($"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             }
             Assert.Pass();
+        }
+
+        [Test]
+        public void VerifyDefaultValue()
+        {
+            
         }
     }
 }

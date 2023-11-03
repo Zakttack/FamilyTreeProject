@@ -9,24 +9,25 @@ namespace FamilyTreeLibrary
     {
         internal const string NUMBER_PATTERN = @"^\d+$";
         internal const string RANGE_PATTERN = @"^\d+-\d+$";
+        private const string LOG_FILE_NAME = @"Logs\log.txt";
+
+        public static ILogger InitialLogger
+        {
+            get
+            {
+                string filePath = GetFileNameFromResources(Directory.GetCurrentDirectory(), LOG_FILE_NAME);
+                return new LoggerConfiguration()
+                    .MinimumLevel.Debug()
+                    .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)
+                    .CreateLogger();;
+            }
+        }
         public static Family Root
         {
             get
             {
                 string value = default;
                 return new(new Person(value));
-            }
-        }
-
-        public static ILogger Logger
-        {
-            get
-            {
-                string filePath = GetFileNameFromResources(Directory.GetCurrentDirectory(), "log.txt");
-                return new LoggerConfiguration()
-                    .MinimumLevel.Debug()
-                    .WriteTo.File(filePath, rollingInterval: RollingInterval.Infinite)
-                    .CreateLogger();
             }
         }
 
@@ -53,6 +54,15 @@ namespace FamilyTreeLibrary
                 }
             }
             return result;
+        }
+
+        public static void InitializeLogger()
+        {
+                string filePath = GetFileNameFromResources(Directory.GetCurrentDirectory(), LOG_FILE_NAME);
+                Log.Logger = new LoggerConfiguration()
+                    .MinimumLevel.Debug()
+                    .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)
+                    .CreateLogger();
         }
 
         public static AbstractOrderingType[] NextOrderingType(AbstractOrderingType[] temp, AbstractOrderingType orderingType)
