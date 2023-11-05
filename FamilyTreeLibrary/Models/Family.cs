@@ -33,7 +33,7 @@ namespace FamilyTreeLibrary.Models
             if (obj[nameof(Children)] != null)
             {
                 JArray array = JArray.Parse(obj[nameof(Children)].ToString());
-                foreach (JToken token in array)
+                foreach (object token in array)
                 {
                     if (token != null)
                     {
