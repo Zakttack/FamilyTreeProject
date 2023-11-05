@@ -102,12 +102,7 @@ namespace FamilyTreeLibrary.Models
                 return yearDiff;
             }
             int monthDiff = Math.Abs(months.Keys.ToList().IndexOf(Month) - months.Keys.ToList().IndexOf(other.Month));
-            if (monthDiff != 0)
-            {
-                return monthDiff;
-            }
-            int dayDiff = Math.Abs(Day - other.Day);
-            return dayDiff != 0 ? dayDiff : 0;
+            return monthDiff != 0 ? monthDiff : Math.Abs(Day - other.Day);
         }
 
         public override readonly bool Equals([NotNullWhen(true)] object obj)
