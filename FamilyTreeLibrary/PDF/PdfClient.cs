@@ -68,26 +68,49 @@ namespace FamilyTreeLibrary.PDF
 
         public void AttachNodes()
         {
-            AttachNodes(FamilyNodeCollection, Root);
+            try
+            {
+                Log.Debug("Nodes are connecting.");
+                AttachNodes(FamilyNodeCollection, Root);
+                Log.Debug("Nodes are connected.");
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+            }
         }
 
         private void AttachNodes(IReadOnlyList<Section> familyNodeCollection, Section root)
         {
             ICollection<Section> subFamilyNodeCollection = new List<Section>();
+            Section previousFamilyNode = root;
             foreach (Section familyNode in familyNodeCollection)
             {
                 if (familyNode.OrderingType.Length == root.OrderingType.Length + 1)
                 {
                     root.Node.Children.Add(familyNode.Node);
+                    Log.Debug($"Parent of current: {root}");
                     familyNode.Node.Parent = root.Node;
+                    Log.Debug($"Current: {familyNode}");
                     nodes.Add(familyNode.Node);
-                    AttachNodes(subFamilyNodeCollection.ToList(), familyNode);
-                    subFamilyNodeCollection.Clear();
+                    Section tempFamilyNode = previousFamilyNode;
+                    AttachSubNodes(ref subFamilyNodeCollection, tempFamilyNode);
+                    previousFamilyNode = familyNode;
                 }
                 else
                 {
                     subFamilyNodeCollection.Add(familyNode);
                 }
+            }
+            AttachSubNodes(ref subFamilyNodeCollection, previousFamilyNode);
+        }
+
+        private void AttachSubNodes(ref ICollection<Section> subFamilyNodeCollection, Section root)
+        {
+            if (subFamilyNodeCollection.Count > 0)
+            {
+                AttachNodes(subFamilyNodeCollection.ToList(), root);
+                subFamilyNodeCollection.Clear();
             }
         }
 

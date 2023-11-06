@@ -13,18 +13,13 @@ namespace FamilyTreeLibraryTest.PDF
             {
                 PdfClient client = new("2023PfingtenBookAlternate.pdf");
                 client.LoadNodes();
+                client.AttachNodes();
             }
             catch (Exception ex)
             {
                 Assert.Fail($"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             }
             Assert.Pass();
-        }
-
-        [Test]
-        public void VerifyDefaultValue()
-        {
-            
         }
     }
 }
