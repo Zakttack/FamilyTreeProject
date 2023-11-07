@@ -59,48 +59,37 @@ namespace FamilyTreeLibrary.PDF
             if (lines.Count % 2 == 0)
             {
                 memberLine = lines.Dequeue();
-                member = new(memberLine.Name);
-                if (memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirthDate))
+                member = new(memberLine.Name)
                 {
-                    member.BirthDate = memberBirthDate;
-                }
+                    BirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirthDate) ? memberBirthDate : new(0)
+                };
                 memberLine.Dates.TryDequeue(out FamilyTreeDate marriage);
-                if (memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceasedDate))
-                {
-                    member.DeceasedDate = memberDeceasedDate;
-                }
+                member.DeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceasedDate) ? memberDeceasedDate : new(0);
                 inLawLine = lines.Dequeue();
-                inLaw = new(inLawLine.Name);
-                if (inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawBirthDate))
+                inLaw = new(inLawLine.Name)
                 {
-                    inLaw.BirthDate = inLawBirthDate;
-                }
-                if (inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawDeceasedDate))
-                {
-                    inLaw.DeceasedDate = inLawDeceasedDate;
-                }
+                    BirthDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawBirthDate) ? inLawBirthDate : new(0),
+                    DeceasedDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawDeceasedDate) ? inLawDeceasedDate : new(0)
+                };
                 fam = new Family(member)
                 {
-                    InLaw = inLaw
+                    InLaw = inLaw,
+                    MarriageDate = !new FamilyTreeDate(0).Equals(marriage) ? marriage : new(0)
                 };
-                if (!new FamilyTreeDate(0).Equals(marriage))
-                {
-                    fam.MarriageDate = marriage;
-                }
             }
             else
             {
                 memberLine = lines.Dequeue();
-                member = new(memberLine.Name);
-                if (memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirth))
+                member = new(memberLine.Name)
                 {
-                    member.BirthDate = memberBirth;
-                }
-                if (memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceased))
+                    BirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirth) ? memberBirth : new(0),
+                    DeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceased) ? memberDeceased : new(0)
+                };
+                fam = new Family(member)
                 {
-                    member.DeceasedDate = memberDeceased;
-                }
-                fam = new Family(member);
+                    InLaw = null,
+                    MarriageDate = new(0)
+                };
             }
             return fam;
         }

@@ -15,8 +15,8 @@ namespace FamilyTreeLibrary.Models
         public Person(JObject obj)
         {
             Name = obj[nameof(Name)] == null ? "" : JsonConvert.DeserializeObject<string>(obj[nameof(Name)].ToString());
-            BirthDate = obj[nameof(BirthDate)] == null ? new() : new(JsonConvert.DeserializeObject<string>(obj[nameof(BirthDate)].ToString()));
-            DeceasedDate = obj[nameof(DeceasedDate)] == null ? new() : new(JsonConvert.DeserializeObject<string>(obj[nameof(DeceasedDate)].ToString()));
+            BirthDate = obj[nameof(BirthDate)] == null ? new(0) : new(JsonConvert.DeserializeObject<string>(obj[nameof(BirthDate)].ToString()));
+            DeceasedDate = obj[nameof(DeceasedDate)] == null ? new(0) : new(JsonConvert.DeserializeObject<string>(obj[nameof(DeceasedDate)].ToString()));
         }
 
         public string Name
@@ -38,7 +38,7 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                if (value.CompareTo(new()) != 0 && value.CompareTo(BirthDate) < 0)
+                if (value.CompareTo(new(0)) != 0 && value.CompareTo(BirthDate) < 0)
                 {
                     throw new DeceasedDateException(this, value);
                 }

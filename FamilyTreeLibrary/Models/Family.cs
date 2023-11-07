@@ -28,7 +28,7 @@ namespace FamilyTreeLibrary.Models
             }
             Member = obj[nameof(Member)] == null ? default : new(JObject.Parse(obj[nameof(Member)].ToString()));
             InLaw = obj[nameof(InLaw)] == null ? default : new(JObject.Parse(obj[nameof(InLaw)].ToString()));
-            MarriageDate = obj[nameof(MarriageDate)] == null ? new() : new(JsonConvert.DeserializeObject<string>(obj[nameof(MarriageDate)].ToString()));
+            MarriageDate = obj[nameof(MarriageDate)] == null ? new(0) : new(JsonConvert.DeserializeObject<string>(obj[nameof(MarriageDate)].ToString()));
             ICollection<Person> people = new List<Person>();
             if (obj[nameof(Children)] != null)
             {
@@ -69,7 +69,7 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                if (value.CompareTo(new()) != 0 && (value.CompareTo(Member.BirthDate) < 0 || value.CompareTo(InLaw.BirthDate) < 0))
+                if (value.CompareTo(new(0)) != 0 && (value.CompareTo(Member.BirthDate) < 0 || value.CompareTo(InLaw.BirthDate) < 0))
                 {
                     throw new MarriageDateException(this, value);
                 }
@@ -86,7 +86,12 @@ namespace FamilyTreeLibrary.Models
         public int CompareTo(Family other)
         {
             int birthDateCompare = Member.BirthDate.CompareTo(other.Member.BirthDate);
-            return birthDateCompare == 0 ? MarriageDate.CompareTo(other.MarriageDate) : birthDateCompare;
+            if (birthDateCompare != 0)
+            {
+                return birthDateCompare;
+            }
+            int marriageDateCompare = MarriageDate.CompareTo(other.MarriageDate);
+            return marriageDateCompare != 0 ? marriageDateCompare : Member.Name.CompareTo(other.Member.Name);
         }
 
         public override bool Equals(object obj)
