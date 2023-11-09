@@ -62,8 +62,7 @@ namespace FamilyTreeLibrary.Models
             {
                 return deceasedDateCompare;
             }
-            int nameCompare = Name.CompareTo(other.Name);
-            return Name.Split(' ').Union(other.Name.Split(' ')).Count() > 1 ? 0 : nameCompare;
+            return Name.Split(' ').Union(other.Name.Split(' ')).Count() > 1 ? 0 : Name.CompareTo(other.Name);
         }
 
         public override bool Equals(object obj)
