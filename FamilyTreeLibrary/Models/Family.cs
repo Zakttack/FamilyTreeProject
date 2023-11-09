@@ -78,13 +78,8 @@ namespace FamilyTreeLibrary.Models
 
         public int CompareTo(Family other)
         {
-            int birthDateCompare = Member.BirthDate.CompareTo(other.Member.BirthDate);
-            if (birthDateCompare != 0)
-            {
-                return birthDateCompare;
-            }
-            int marriageDateCompare = MarriageDate.CompareTo(other.MarriageDate);
-            return marriageDateCompare != 0 ? marriageDateCompare : Member.Name.CompareTo(other.Member.Name);
+            int memberCompare = Member.CompareTo(other.Member);
+            return memberCompare != 0 ? memberCompare : MarriageDate.CompareTo(other.MarriageDate);
         }
 
         public override bool Equals(object obj)
