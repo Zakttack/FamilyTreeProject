@@ -2,6 +2,8 @@
 using System.Text.RegularExpressions;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.OrderingType;
+using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using Serilog;
 namespace FamilyTreeLibrary
 {
@@ -19,7 +21,7 @@ namespace FamilyTreeLibrary
                 return new LoggerConfiguration()
                     .MinimumLevel.Debug()
                     .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)
-                    .CreateLogger();;
+                    .CreateLogger();
             }
         }
         public static Family Root
@@ -29,6 +31,23 @@ namespace FamilyTreeLibrary
                 string value = default;
                 return new(new Person(value));
             }
+        }
+
+        public static IConfiguration GetConfiguration(string appSettingsFilePath)
+        {
+            if (appSettingsFilePath == null || !File.Exists(appSettingsFilePath))
+            {
+                throw new FileNotFoundException("Configuration file isn't found.");
+            }
+            string[] filePathChecker = appSettingsFilePath.Split('.');
+            if (filePathChecker[^1] != "json")
+            {
+                throw new NotSupportedException("App Settings Configuration must be stored as a json file.");
+            }
+            IConfigurationBuilder builder = new ConfigurationBuilder()
+                .SetBasePath(Path.GetDirectoryName(appSettingsFilePath))
+                .AddJsonFile(Path.GetFileName(appSettingsFilePath), false, true);
+            return builder.Build();
         }
 
         public static string GetFileNameFromResources(string currentPath, string fileNameWithExtension)

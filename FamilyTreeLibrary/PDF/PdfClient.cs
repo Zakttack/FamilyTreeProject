@@ -11,9 +11,21 @@ namespace FamilyTreeLibrary.PDF
 
         public PdfClient(string pdfFileName)
         {
+            Family root = new(new Person("")
+            {
+                BirthDate = new(0),
+                DeceasedDate = new(0)
+            })
+            {
+                InLaw = null,
+                MarriageDate = new(0)
+            };
             FilePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), pdfFileName);
-            nodes = new SortedSet<Family>();
-            Root = new Section(Array.Empty<AbstractOrderingType>(), FamilyTreeUtils.Root);
+            nodes = new SortedSet<Family>()
+            {
+                root
+            };
+            Root = new Section(Array.Empty<AbstractOrderingType>(), root);
             FamilyNodeCollection = new();
             FamilyTreeUtils.InitializeLogger();
         }

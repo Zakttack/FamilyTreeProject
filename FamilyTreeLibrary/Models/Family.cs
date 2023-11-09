@@ -1,66 +1,59 @@
+using FamilyTreeLibrary.Data.JsonConverters;
 using FamilyTreeLibrary.Exceptions;
+using MongoDB.Bson;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace FamilyTreeLibrary.Models
 {
-    public class Family : IComparable<Family>
+    public class Family : IComparable<Family>, IEquatable<Family>
     {
         private FamilyTreeDate marriageDate;
         public Family(Person member)
         {
+            Id = ObjectId.GenerateNewId();
+            Parent = null;
             Member = member;
-            LoadChildren();
+            Children = new SortedSet<Family>();
         }
 
         public Family(JObject obj)
         {
-            object parent = obj[nameof(Parent)];
-            if (parent == default)
-            {
-                Parent = default;
-            }
-            else
-            {
-                JObject parentMember = JObject.Parse(parent.ToString());
-                Person member = new(parentMember);
-                Parent = new(member);
-            }
-            Member = obj[nameof(Member)] == null ? default : new(JObject.Parse(obj[nameof(Member)].ToString()));
-            InLaw = obj[nameof(InLaw)] == null ? default : new(JObject.Parse(obj[nameof(InLaw)].ToString()));
-            MarriageDate = obj[nameof(MarriageDate)] == null ? new(0) : new(JsonConvert.DeserializeObject<string>(obj[nameof(MarriageDate)].ToString()));
-            ICollection<Person> people = new List<Person>();
-            if (obj[nameof(Children)] != null)
-            {
-                JArray array = JArray.Parse(obj[nameof(Children)].ToString());
-                foreach (object token in array)
-                {
-                    if (token != null)
-                    {
-                        people.Add(new(JObject.Parse(token.ToString())));
-                    }
-                }
-            }
-            LoadChildren(people);
+            Id = obj[nameof(Id)] == null ? ObjectId.Empty : JsonConvert.DeserializeObject<ObjectId>(obj[nameof(Id)].ToString(), new ObjectIdConverter());
+            Parent = obj[nameof(Parent)] == null ? null : JsonConvert.DeserializeObject<Family>(obj[nameof(Parent)].ToString(), new ParnetConverter());
+            Member = obj[nameof(Member)] == null ? null : new(JObject.Parse(obj[nameof(Member)].ToString()));
+            InLaw = obj[nameof(InLaw)] == null ? null : new(JObject.Parse(obj[nameof(InLaw)].ToString()));
+            MarriageDate = obj[nameof(MarriageDate)] == null ? new(0) : JsonConvert.DeserializeObject<FamilyTreeDate>(obj[nameof(MarriageDate)].ToString(), new DateConverter());
+            Children = obj[nameof(Children)] == null ? new SortedSet<Family>() : JsonConvert.DeserializeObject<ICollection<Family>>(obj[nameof(Children)].ToString(), new ChildrenConverter());
         }
-
+        [JsonProperty(nameof(Id))]
+        [JsonConverter(typeof(ObjectIdConverter))]
+        public ObjectId Id
+        {
+            get;
+            set;
+        }
+        [JsonProperty(nameof(Parent))]
+        [JsonConverter(typeof(ParnetConverter))]
         public Family Parent
         {
             get;
             set;
         }
-
+        [JsonProperty(nameof(Member))]
         public Person Member
         {
             get;
+            set;
         }
-
+        [JsonProperty(nameof(InLaw))]
         public Person InLaw
         {
             get;
             set;
         }
-
+        [JsonProperty(nameof(MarriageDate))]
+        [JsonConverter(typeof(DateConverter))]
         public FamilyTreeDate MarriageDate
         {
             get
@@ -76,10 +69,10 @@ namespace FamilyTreeLibrary.Models
                 marriageDate = value;
             }
         }
-
+        [JsonProperty(nameof(Children))]
+        [JsonConverter(typeof(ChildrenConverter))]
         public ICollection<Family> Children
         {
-            private set;
             get;
         }
 
@@ -96,7 +89,12 @@ namespace FamilyTreeLibrary.Models
 
         public override bool Equals(object obj)
         {
-            return obj != null && ToString() == obj.ToString();
+            return obj is Family other && Equals(other);
+        }
+
+        public bool Equals(Family other)
+        {
+            return CompareTo(other) == 0;
         }
 
         public override int GetHashCode()
@@ -106,32 +104,21 @@ namespace FamilyTreeLibrary.Models
 
         public override string ToString()
         {
-            JObject obj = new()
-            {
-                {nameof(Parent), Parent == default ? JValue.CreateNull() : JObject.Parse(Parent.Member.ToString())},
-                {nameof(Member), Member == default ? JValue.CreateNull() : JObject.Parse(Member.ToString()) },
-                {nameof(InLaw), InLaw == default ? JValue.CreateNull() : JObject.Parse(InLaw.ToString()) },
-                {nameof(MarriageDate), MarriageDate == default | MarriageDate.ToString() == "" ? JValue.CreateNull() : MarriageDate.ToString()}
-            };
-            JArray array = new();
-            foreach (Family child in Children)
-            {
-                array.Add(JObject.Parse(child.Member.ToString()));
-            }
-            obj.Add(nameof(Children), array);
-            return obj.ToString();
+            return JsonConvert.SerializeObject(this);
         }
 
-        private void LoadChildren(IEnumerable<Person> people = null)
+        public static bool operator== (Family a, Family b)
         {
-            Children = new SortedSet<Family>();
-            if (people != null)
-            {
-                foreach (Person child in people)
-                {
-                    Children.Add(new(child));
-                }
-            }
+            bool aIsNull = a is null;
+            bool bIsNull = b is null;
+            return (aIsNull && bIsNull) || (!aIsNull && a.Equals(b));
+        }
+
+        public static bool operator!= (Family a, Family b)
+        {
+            bool aIsNull = a is null;
+            bool bIsNull = b is null;
+            return (!aIsNull || !bIsNull) && (aIsNull || !a.Equals(b));
         }
     }
 }

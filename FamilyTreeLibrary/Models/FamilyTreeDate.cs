@@ -4,7 +4,7 @@ using FamilyTreeLibrary.Exceptions;
 
 namespace FamilyTreeLibrary.Models
 {
-    public struct FamilyTreeDate : IComparable<FamilyTreeDate>
+    public struct FamilyTreeDate : IComparable<FamilyTreeDate>, IEquatable<FamilyTreeDate>
     {
         private int day;
         private string month;
@@ -107,7 +107,12 @@ namespace FamilyTreeLibrary.Models
 
         public override readonly bool Equals([NotNullWhen(true)] object obj)
         {
-            return ToString() == obj.ToString();
+            return obj is FamilyTreeDate other && Equals(other);
+        }
+
+        public readonly bool Equals(FamilyTreeDate other)
+        {
+            return CompareTo(other) == 0;
         }
 
         public override readonly int GetHashCode()
