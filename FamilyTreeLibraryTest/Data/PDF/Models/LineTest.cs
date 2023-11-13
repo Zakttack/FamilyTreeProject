@@ -1,7 +1,7 @@
 using FamilyTreeLibrary.Models;
-using FamilyTreeLibrary.PDF.Models;
+using FamilyTreeLibrary.Data.PDF.Models;
 
-namespace FamilyTreeLibraryTest.PDF.Models
+namespace FamilyTreeLibraryTest.Data.PDF.Models
 {
     public class LineTest
     {

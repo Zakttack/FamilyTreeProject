@@ -1,4 +1,4 @@
-namespace FamilyTreeLibrary.OrderingType
+namespace FamilyTreeLibrary.Data.PDF.OrderingType
 {
     public abstract class AbstractOrderingType : IComparable<AbstractOrderingType>
     {
@@ -21,6 +21,11 @@ namespace FamilyTreeLibrary.OrderingType
             get;
         }
 
+        protected int MaxKey
+        {
+            get;
+        }
+
         protected OrderingTypeTypes Type
         {
             get
@@ -36,6 +41,11 @@ namespace FamilyTreeLibrary.OrderingType
                     _ => throw new NotSupportedException($"{Generation} isn't supported.")
                 };
             }
+        }
+
+        private int Generation
+        {
+            get;
         }
 
         public int CompareTo(AbstractOrderingType other)
@@ -68,6 +78,59 @@ namespace FamilyTreeLibrary.OrderingType
             };
         }
 
+        public static Queue<AbstractOrderingType> GetOrderingTypeByLine(string line, int maxKey = int.MaxValue)
+        {
+            Queue<AbstractOrderingType> result = new();
+            string token = line.Split(' ')[0];
+            for (int generation = 1; generation <= 6; generation++)
+            {
+                if (TryGetOrderingType(out AbstractOrderingType orderingType, token, generation, maxKey))
+                {
+                    result.Enqueue(orderingType);
+                }
+            }
+            return result;
+        }
+
+        public static AbstractOrderingType[] NextOrderingType(AbstractOrderingType[] temp, AbstractOrderingType orderingType)
+        {
+            if (temp.Length == 0)
+            {
+                return IncrementGeneration(Array.Empty<AbstractOrderingType>());
+            }
+            ICollection<AbstractOrderingType[]> possibleNexts = new List<AbstractOrderingType[]>();
+            if (temp.Length < 6)
+            {
+                possibleNexts.Add(IncrementGeneration(temp));
+            }
+            possibleNexts.Add(ReplaceWithIncrementByKey(temp));
+            AbstractOrderingType[] previous = temp;
+            while (true)
+            {
+                previous = PreviousOrderingType(previous);
+                if (previous.Length == 0)
+                {
+                    break;
+                }
+                possibleNexts.Add(ReplaceWithIncrementByKey(previous));
+            }
+            foreach (AbstractOrderingType[] value in possibleNexts)
+            {
+                if (value[^1].Equals(orderingType))
+                {
+                    return value;
+                }
+            }
+            return null;
+        }
+
+        public static AbstractOrderingType[] PreviousOrderingType(AbstractOrderingType[] current)
+        {
+            AbstractOrderingType[] previous = new AbstractOrderingType[current.Length - 1];
+            Array.Copy(current, previous, current.Length - 1);
+            return previous;
+        }
+
         public override string ToString()
         {
             return ConversionPair.ToString();
@@ -92,14 +155,27 @@ namespace FamilyTreeLibrary.OrderingType
 
         protected abstract string FindValue(int key);
 
-        protected int MaxKey
+
+        private static AbstractOrderingType[] IncrementGeneration(AbstractOrderingType[] temp)
         {
-            get;
+            IList<AbstractOrderingType> collection = temp.ToList();
+            collection.Add(GetOrderingType(1, temp.Length + 1));
+            return collection.ToArray();
         }
 
-        private int Generation
+        private static AbstractOrderingType[] ReplaceWithIncrementByKey(AbstractOrderingType[] temp)
         {
-            get;
+            AbstractOrderingType[] collection = new AbstractOrderingType[temp.Length];
+            if (temp.Length == 1)
+            {
+                collection[0] = GetOrderingType(temp[0].ConversionPair.Key + 1, temp.Length);
+            }
+            else
+            {
+                Array.Copy(temp, collection, temp.Length - 1);
+                collection[^1] = GetOrderingType(temp[^1].ConversionPair.Key + 1, temp.Length);
+            }
+            return collection;
         }
     }
 }

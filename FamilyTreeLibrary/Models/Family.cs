@@ -1,59 +1,54 @@
-using FamilyTreeLibrary.Data.JsonConverters;
+using FamilyTreeLibrary.Data;
 using FamilyTreeLibrary.Exceptions;
 using MongoDB.Bson;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace FamilyTreeLibrary.Models
 {
     public class Family : IComparable<Family>, IEquatable<Family>
     {
         private FamilyTreeDate marriageDate;
-        public Family(Person member)
+        public Family(Person member, ObjectId id = default)
         {
-            Id = ObjectId.GenerateNewId();
-            Parent = null;
+            Id = id == default ? ObjectId.GenerateNewId() : id;
             Member = member;
-            Children = new SortedSet<Family>();
+            Children = new SortedSet<Person>();
         }
 
-        public Family(JObject obj)
-        {
-            Id = obj[nameof(Id)] == null ? ObjectId.Empty : JsonConvert.DeserializeObject<ObjectId>(obj[nameof(Id)].ToString(), new ObjectIdConverter());
-            Parent = obj[nameof(Parent)] == null ? null : JsonConvert.DeserializeObject<Family>(obj[nameof(Parent)].ToString(), new ParnetConverter());
-            Member = obj[nameof(Member)] == null ? null : new(JObject.Parse(obj[nameof(Member)].ToString()));
-            InLaw = obj[nameof(InLaw)] == null ? null : new(JObject.Parse(obj[nameof(InLaw)].ToString()));
-            MarriageDate = obj[nameof(MarriageDate)] == null ? new(0) : JsonConvert.DeserializeObject<FamilyTreeDate>(obj[nameof(MarriageDate)].ToString(), new DateConverter());
-            Children = obj[nameof(Children)] == null ? new SortedSet<Family>() : JsonConvert.DeserializeObject<ICollection<Family>>(obj[nameof(Children)].ToString(), new ChildrenConverter());
-        }
-        [JsonProperty(nameof(Id))]
-        [JsonConverter(typeof(ObjectIdConverter))]
+        [BsonId]
         public ObjectId Id
         {
             get;
-            set;
         }
-        [JsonProperty(nameof(Parent))]
-        [JsonConverter(typeof(ParnetConverter))]
-        public Family Parent
+        [BsonElement(nameof(Parent))]
+        [BsonDefaultValue(null)]
+        [BsonIgnoreIfDefault(false)]
+        public Person Parent
         {
             get;
             set;
         }
-        [JsonProperty(nameof(Member))]
+        [BsonElement(nameof(Member))]
+        [BsonDefaultValue(null)]
+        [BsonIgnoreIfDefault(false)]
         public Person Member
         {
             get;
             set;
         }
-        [JsonProperty(nameof(InLaw))]
+        [BsonElement(nameof(InLaw))]
+        [BsonDefaultValue(null)]
+        [BsonIgnoreIfDefault(false)]
         public Person InLaw
         {
             get;
             set;
         }
-        [JsonProperty(nameof(MarriageDate))]
-        [JsonConverter(typeof(DateConverter))]
+        [BsonElement(nameof(MarriageDate))]
+        [BsonSerializer(typeof(DateSerializer))]
+        [BsonDefaultValue(null)]
+        [BsonIgnoreIfDefault(false)]
         public FamilyTreeDate MarriageDate
         {
             get
@@ -69,9 +64,8 @@ namespace FamilyTreeLibrary.Models
                 marriageDate = value;
             }
         }
-        [JsonProperty(nameof(Children))]
-        [JsonConverter(typeof(ChildrenConverter))]
-        public ICollection<Family> Children
+        [BsonElement(nameof(Children))]
+        public ICollection<Person> Children
         {
             get;
         }
@@ -99,7 +93,7 @@ namespace FamilyTreeLibrary.Models
 
         public override string ToString()
         {
-            return JsonConvert.SerializeObject(this);
+            return this.ToJson();
         }
 
         public static bool operator== (Family a, Family b)

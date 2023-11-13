@@ -1,6 +1,6 @@
-using FamilyTreeLibrary.OrderingType;
+using FamilyTreeLibrary.Data.PDF.OrderingType;
 
-namespace FamilyTreeLibraryTest.OrderingType
+namespace FamilyTreeLibraryTest.Data.PDF.OrderingType
 {
     public class AbstractOrderingTypeTest
     {
@@ -147,7 +147,7 @@ namespace FamilyTreeLibraryTest.OrderingType
         {
             string value = "August";
             int generation = 2;
-            Assert.False(AbstractOrderingType.TryGetOrderingType(out AbstractOrderingType orderingType, value, generation));
+            Assert.That(AbstractOrderingType.TryGetOrderingType(out AbstractOrderingType orderingType, value, generation), Is.False);
         }
 
         [Test]
@@ -155,8 +155,63 @@ namespace FamilyTreeLibraryTest.OrderingType
         {
             string value = "A";
             int generation = 2;
-            Assert.False(AbstractOrderingType.TryGetOrderingType(out AbstractOrderingType orderingType, value, generation));
+            Assert.That(AbstractOrderingType.TryGetOrderingType(out AbstractOrderingType orderingType, value, generation), Is.False);
         }
 
+        [Test]
+        public void TestGetOrderingTypeByLine1()
+        {
+            Queue<AbstractOrderingType> expectedOrderingTypePossibilities = new();
+            expectedOrderingTypePossibilities.Enqueue(AbstractOrderingType.GetOrderingType(100, 1));
+            expectedOrderingTypePossibilities.Enqueue(AbstractOrderingType.GetOrderingType(3,2));
+            string line = "C. Evelyn Pfingsten 14 Mar 1926 07 Aug 1947";
+            Queue<AbstractOrderingType> actualOrderingTypePossibilities = AbstractOrderingType.GetOrderingTypeByLine(line);
+            Assert.That(actualOrderingTypePossibilities, Is.EqualTo(expectedOrderingTypePossibilities));
+        }
+
+        [Test]
+        public void TestNextOrderingType1()
+        {
+            AbstractOrderingType[] expected = new AbstractOrderingType[]{AbstractOrderingType.GetOrderingType(1,1)};
+            AbstractOrderingType[] actual = AbstractOrderingType.NextOrderingType(Array.Empty<AbstractOrderingType>(), AbstractOrderingType.GetOrderingType(1,1));
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void TestNextOrderingType2()
+        {
+            AbstractOrderingType[] expected = new AbstractOrderingType[]{AbstractOrderingType.GetOrderingType(1,1), AbstractOrderingType.GetOrderingType(1,2)};
+            AbstractOrderingType[] current = new AbstractOrderingType[]{AbstractOrderingType.GetOrderingType(1,1)};
+            AbstractOrderingType orderingType = AbstractOrderingType.GetOrderingType(1,2);
+            Assert.That(AbstractOrderingType.NextOrderingType(current, orderingType), Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void TestNextOrderingType3()
+        {
+            AbstractOrderingType[] expected = new AbstractOrderingType[]
+            {
+                AbstractOrderingType.GetOrderingType(1,1),
+                AbstractOrderingType.GetOrderingType(3,2)
+            };
+            AbstractOrderingType[] current = new AbstractOrderingType[]
+            {
+                AbstractOrderingType.GetOrderingType(1,1),
+                AbstractOrderingType.GetOrderingType(2,2),
+                AbstractOrderingType.GetOrderingType(2,3),
+                AbstractOrderingType.GetOrderingType(1,4)
+            };
+            AbstractOrderingType orderingType = AbstractOrderingType.GetOrderingType(3,2);
+            Assert.That(AbstractOrderingType.NextOrderingType(current, orderingType), Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void TestPreviousOrderingType1()
+        {
+            AbstractOrderingType[] expected = Array.Empty<AbstractOrderingType>();
+            AbstractOrderingType[] current = new AbstractOrderingType[]{AbstractOrderingType.GetOrderingType(1,1)};
+            AbstractOrderingType[] actual = AbstractOrderingType.PreviousOrderingType(current);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
     }
 }

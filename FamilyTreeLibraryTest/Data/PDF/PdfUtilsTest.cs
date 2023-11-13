@@ -1,9 +1,8 @@
+using FamilyTreeLibrary.Data.PDF;
+using FamilyTreeLibrary.Data.PDF.Models;
 using FamilyTreeLibrary.Models;
-using FamilyTreeLibrary.OrderingType;
-using FamilyTreeLibrary.PDF;
-using FamilyTreeLibrary.PDF.Models;
 
-namespace FamilyTreeLibraryTest.PDF
+namespace FamilyTreeLibraryTest.Data.PDF
 {
     public class PdfUtilsTest
     {
@@ -30,14 +29,6 @@ namespace FamilyTreeLibraryTest.PDF
             expected.Enqueue(expectedInLaw);
             Queue<Line> actual = PdfUtils.GetLines(tokens);
             Assert.That(actual, Is.EqualTo(expected));
-        }
-
-        [Test]
-        public void TestOrderingTypeArrayEquals1()
-        {
-            AbstractOrderingType[] orderingType1 = {AbstractOrderingType.GetOrderingType(1,1), AbstractOrderingType.GetOrderingType(5,2), AbstractOrderingType.GetOrderingType(3,3)};
-            AbstractOrderingType[] orderingType2 = {AbstractOrderingType.GetOrderingType(1,1), AbstractOrderingType.GetOrderingType(5,2), AbstractOrderingType.GetOrderingType(3,3)};
-            Assert.That(orderingType1, Is.EqualTo(orderingType2));
         }
     }
 }

@@ -1,11 +1,6 @@
-using System.Runtime.CompilerServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FamilyTreeLibrary.Models;
 
-namespace FamilyTreeLibrary.PDF.Models
+namespace FamilyTreeLibrary.Data.PDF.Models
 {
     public class Line
     {

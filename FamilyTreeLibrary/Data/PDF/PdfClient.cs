@@ -1,17 +1,17 @@
+using FamilyTreeLibrary.Data.PDF.OrderingType;
+using FamilyTreeLibrary.Data.PDF.Models;
 using FamilyTreeLibrary.Models;
-using FamilyTreeLibrary.OrderingType;
-using FamilyTreeLibrary.PDF.Models;
 using Serilog;
 
-namespace FamilyTreeLibrary.PDF
+namespace FamilyTreeLibrary.Data.PDF
 {
     public class PdfClient
     {
         private readonly ICollection<Family> nodes;
 
-        public PdfClient(string pdfFileName)
+        public PdfClient(string filePath)
         {
-            Family root = new(new Person("")
+            Family root = new(new(null)
             {
                 BirthDate = new(0),
                 DeceasedDate = new(0)
@@ -20,14 +20,13 @@ namespace FamilyTreeLibrary.PDF
                 InLaw = null,
                 MarriageDate = new(0)
             };
-            FilePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), pdfFileName);
+            FilePath = filePath;
             nodes = new SortedSet<Family>()
             {
                 root
             };
             Root = new Section(Array.Empty<AbstractOrderingType>(), root);
             FamilyNodeCollection = new();
-            FamilyTreeUtils.InitializeLogger();
         }
 
         public string FilePath
@@ -41,6 +40,16 @@ namespace FamilyTreeLibrary.PDF
             {
                 return nodes;
             }
+        }
+
+        private List<Section> FamilyNodeCollection
+        {
+            get;
+        }
+
+        private Section Root
+        {
+            get;
         }
 
         public void LoadNodes()
@@ -57,7 +66,7 @@ namespace FamilyTreeLibrary.PDF
                 try
                 {
                     string currentLine = line.Trim();
-                    Queue<AbstractOrderingType> currentPossibilities = FamilyTreeUtils.GetOrderingTypeByLine(currentLine, pdfLines.Count);
+                    Queue<AbstractOrderingType> currentPossibilities = AbstractOrderingType.GetOrderingTypeByLine(currentLine, pdfLines.Count);
                     if (PdfUtils.IsInLaw(currentPossibilities, previousLine, currentLine))
                     {
                         previousLine += $"  {currentLine}";
@@ -100,9 +109,9 @@ namespace FamilyTreeLibrary.PDF
             {
                 if (familyNode.OrderingType.Length == root.OrderingType.Length + 1)
                 {
-                    root.Node.Children.Add(familyNode.Node);
+                    root.Node.Children.Add(familyNode.Node.Member);
                     Log.Debug($"Parent of current: {root}");
-                    familyNode.Node.Parent = root.Node;
+                    familyNode.Node.Parent = root.Node.Member;
                     Log.Debug($"Current: {familyNode}");
                     nodes.Add(familyNode.Node);
                     Section tempFamilyNode = previousFamilyNode;
@@ -140,16 +149,6 @@ namespace FamilyTreeLibrary.PDF
             {
                 throw new InvalidOperationException("The ordering type is undefined.");
             }
-        }
-
-        private List<Section> FamilyNodeCollection
-        {
-            get;
-        }
-
-        private Section Root
-        {
-            get;
         }
     }
 }

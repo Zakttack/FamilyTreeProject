@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using FamilyTreeLibrary.Models;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using MongoDB.Driver.Linq;
 
 namespace FamilyTreeLibrary.Data
 {
@@ -16,7 +10,7 @@ namespace FamilyTreeLibrary.Data
     {
         private const string APP_SETTINGS_FILE_NAME = "appsettings.json";
 
-        public static IMongoCollection<BsonDocument> GetCollection(string familyName)
+        public static IMongoCollection<Family> GetCollection(string familyName)
         {
             string appSettingsFilePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), APP_SETTINGS_FILE_NAME);
             IConfiguration configuration = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
@@ -32,14 +26,38 @@ namespace FamilyTreeLibrary.Data
             {
                 database.CreateCollection(familyName);
             }
-            return database.GetCollection<BsonDocument>(familyName);
+            return database.GetCollection<Family>(familyName);
         }
 
-        public static Family ParseRecord(BsonDocument record)
+        public static IEnumerable<Family> GetChildrenOf(Family node, IMongoCollection<Family> collection)
         {
-            string jsonString = record.ToJson();
-            JObject familyObj = JObject.Parse(jsonString);
-            return new(familyObj);
+            IMongoQueryable<Family> families = collection.AsQueryable();
+            if (node is null)
+            {
+                ICollection<Family> root = new List<Family>();
+                if (families.Any())
+                {
+                    root.Add(families.First());
+                }
+                return root;
+            }
+            else if (!families.Where((record) => record == node).Any())
+            {
+                return null;
+            }
+            IEnumerable<Family> potentialChildren = families.Where((record) => node.Children.Contains(record.Member)).AsEnumerable();
+            return potentialChildren.Where((potentialChild) => potentialChild.Parent == node.Member);
+        }
+
+        public static Family GetParentOf(Family node, IMongoCollection<Family> collection)
+        {
+            IMongoQueryable<Family> families = collection.AsQueryable();
+            if (node is null || node.Parent is null || !families.Where((record) => record == node).Any())
+            {
+                return null;
+            }
+            IEnumerable<Family> potentialParents = families.Where((record) => record.Member == node.Parent).AsEnumerable();
+            return families.Where((parent) => parent.Children.Contains(node.Member)).FirstOrDefault();
         }
     }
 }

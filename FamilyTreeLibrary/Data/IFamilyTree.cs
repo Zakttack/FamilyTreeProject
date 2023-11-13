@@ -19,6 +19,11 @@ namespace FamilyTreeLibrary.Data
             get;
         }
 
+        public string Name
+        {
+            get;
+        }
+
         public void Add(Family node);
 
         public bool Contains(Family node);
@@ -26,5 +31,7 @@ namespace FamilyTreeLibrary.Data
         public int Depth(Family node);
 
         public IFamilyTree Subtree(Family root);
+
+        public void Update(Family initialNode, Family finalNode);
     }
 }

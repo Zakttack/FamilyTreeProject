@@ -1,13 +1,13 @@
+using FamilyTreeLibrary.Data.PDF.Models;
+using FamilyTreeLibrary.Data.PDF.OrderingType;
+using FamilyTreeLibrary.Data.PDF.OrderingType.Comparers;
 using FamilyTreeLibrary.Models;
-using FamilyTreeLibrary.OrderingType;
-using FamilyTreeLibrary.PDF.Models;
+using Serilog;
 using System.Text.RegularExpressions;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
-using FamilyTreeLibrary.OrderingType.Comparers;
-using Serilog;
 
-namespace FamilyTreeLibrary.PDF
+namespace FamilyTreeLibrary.Data.PDF
 {
     public static class PdfUtils
     {
@@ -22,7 +22,7 @@ namespace FamilyTreeLibrary.PDF
                     AbstractOrderingType[] orderingType = previous;
                     while (!orderingType[^1].Equals(type))
                     {
-                        orderingType = FamilyTreeUtils.PreviousOrderingType(orderingType);
+                        orderingType = AbstractOrderingType.PreviousOrderingType(orderingType);
                     }
                     section = new(orderingType, node);
                     sections.Add(section);
@@ -33,7 +33,7 @@ namespace FamilyTreeLibrary.PDF
                     Log.Debug($"Section #{sectionNumber}: {section}");
                     break;
                 }
-                AbstractOrderingType[] next = FamilyTreeUtils.NextOrderingType(previous, type);
+                AbstractOrderingType[] next = AbstractOrderingType.NextOrderingType(previous, type);
                 if (next != null)
                 {
                     section = new(next, node);
@@ -63,7 +63,7 @@ namespace FamilyTreeLibrary.PDF
                 {
                     BirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirthDate) ? memberBirthDate : new(0)
                 };
-                memberLine.Dates.TryDequeue(out FamilyTreeDate marriage);
+                FamilyTreeDate marriageDate = memberLine.Dates.TryDequeue(out FamilyTreeDate marriage) ? marriage : new(0);
                 member.DeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceasedDate) ? memberDeceasedDate : new(0);
                 inLawLine = lines.Dequeue();
                 inLaw = new(inLawLine.Name)
@@ -74,7 +74,7 @@ namespace FamilyTreeLibrary.PDF
                 fam = new Family(member)
                 {
                     InLaw = inLaw,
-                    MarriageDate = !new FamilyTreeDate(0).Equals(marriage) ? marriage : new(0)
+                    MarriageDate = marriageDate
                 };
             }
             else
@@ -146,9 +146,9 @@ namespace FamilyTreeLibrary.PDF
             return lines;
         }
 
-        public static IReadOnlyCollection<string> GetLinesFromDocument(string fileName)
+        public static IReadOnlyCollection<string> GetLinesFromDocument(string filePath)
         {
-            PdfReader reader = new(fileName);
+            PdfReader reader = new(filePath);
             PdfDocument document = new(reader);
             IReadOnlyCollection<string> pdfLines = new List<string>();
             string spacePattern = "^ +$";

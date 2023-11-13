@@ -1,4 +1,4 @@
-namespace FamilyTreeLibrary.OrderingType.Comparers
+namespace FamilyTreeLibrary.Data.PDF.OrderingType.Comparers
 {
     public class OrderingTypeComparer : IComparer<AbstractOrderingType[]>, IEqualityComparer<AbstractOrderingType[]>
     {

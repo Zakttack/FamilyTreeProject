@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using FamilyTreeLibrary.Exceptions;
 
-namespace FamilyTreeLibrary.OrderingType
+namespace FamilyTreeLibrary.Data.PDF.OrderingType
 {
     public class RomanNumeralOrderingType : AbstractOrderingType
     {

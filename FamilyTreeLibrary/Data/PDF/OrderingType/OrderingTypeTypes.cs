@@ -1,4 +1,4 @@
-namespace FamilyTreeLibrary.OrderingType
+namespace FamilyTreeLibrary.Data.PDF.OrderingType
 {
     public enum OrderingTypeTypes
     {

@@ -1,7 +1,6 @@
-using FamilyTreeLibrary.Exceptions;
 using System.Text.RegularExpressions;
 
-namespace FamilyTreeLibrary.OrderingType
+namespace FamilyTreeLibrary.Data.PDF.OrderingType
 {
     public class DigitOrderingType : AbstractOrderingType
     {

@@ -1,6 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
 using FamilyTreeLibrary.Exceptions;
+using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary.Models
 {
@@ -46,7 +45,7 @@ namespace FamilyTreeLibrary.Models
 
         public int Day
         {
-            readonly get
+            get
             {
                 return day;
             }
@@ -62,7 +61,7 @@ namespace FamilyTreeLibrary.Models
 
         public string Month
         {
-            readonly get
+            get
             {
                 return month;
             }
@@ -78,7 +77,7 @@ namespace FamilyTreeLibrary.Models
 
         public string Year
         {
-            readonly get
+            get
             {
                 return year;
             }
@@ -94,7 +93,7 @@ namespace FamilyTreeLibrary.Models
             }
         }
 
-        public readonly int CompareTo(FamilyTreeDate other)
+        public int CompareTo(FamilyTreeDate other)
         {
             int yearDiff = Year.CompareTo(other.Year);
             if (yearDiff != 0)
@@ -105,22 +104,22 @@ namespace FamilyTreeLibrary.Models
             return monthDiff != 0 ? monthDiff : Math.Abs(Day - other.Day);
         }
 
-        public override readonly bool Equals([NotNullWhen(true)] object obj)
+        public override bool Equals(object obj)
         {
             return obj is FamilyTreeDate other && Equals(other);
         }
 
-        public readonly bool Equals(FamilyTreeDate other)
+        public bool Equals(FamilyTreeDate other)
         {
             return CompareTo(other) == 0;
         }
 
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             return ToString().GetHashCode();
         }
 
-        public override readonly string ToString()
+        public override string ToString()
         {
             string output = "";
             if (Day > 0)
@@ -140,35 +139,47 @@ namespace FamilyTreeLibrary.Models
 
         public static bool operator==(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
-            return dateA.Equals(dateB);
+            bool dateAIsDefault = dateA == default;
+            bool dateBIsDefault = dateB == default;
+            return (dateAIsDefault && dateBIsDefault) || (!dateAIsDefault && dateA.Equals(dateB));
         }
 
         public static bool operator!=(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
-            return !dateA.Equals(dateB);
+            bool dateAIsDefault = dateA == default;
+            bool dateBIsDefault = dateB == default;
+            return (!dateAIsDefault || !dateBIsDefault) && (dateAIsDefault || !dateA.Equals(dateB));
         }
 
         public static bool operator<(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
-            return dateA.CompareTo(dateB) < 0;
+            bool dateAIsDefault = dateA == default;
+            bool dateBIsDefault = dateB == default;
+            return (dateAIsDefault && !dateBIsDefault) || (!dateBIsDefault && dateA.CompareTo(dateB) < 0);
         }
 
         public static bool operator<=(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
-            return dateA.CompareTo(dateB) <= 0;
+            bool dateAIsDefault = dateA == default;
+            bool dateBIsDefault = dateB == default;
+            return dateAIsDefault || (!dateBIsDefault && dateA.CompareTo(dateB) <= 0);
         }
 
         public static bool operator>(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
-            return dateA.CompareTo(dateB) > 0;
+            bool dateAIsDefault = dateA == default;
+            bool dateBIsDefault = dateB == default;
+            return (!dateAIsDefault && dateBIsDefault) || (!dateAIsDefault && dateA.CompareTo(dateB) > 0);
         }
 
         public static bool operator>=(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
-            return dateA.CompareTo(dateB) <= 0;
+            bool dateAIsDefault = dateA == default;
+            bool dateBIsDefault = dateB == default;
+            return dateBIsDefault || (!dateAIsDefault && dateA.CompareTo(dateB) <= 0);
         }
 
-        internal readonly IReadOnlyDictionary<string,int> Months
+        internal IReadOnlyDictionary<string,int> Months
         {
             get
             {

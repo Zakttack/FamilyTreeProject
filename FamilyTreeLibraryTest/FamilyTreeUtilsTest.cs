@@ -1,6 +1,4 @@
 using FamilyTreeLibrary;
-using FamilyTreeLibrary.OrderingType;
-using Serilog;
 
 namespace FamilyTreeLibraryTest
 {
@@ -9,6 +7,23 @@ namespace FamilyTreeLibraryTest
         internal const string PDF_FILE = @"C:\Users\zakme\Documents\FamilyTreeProject\Resources\PfingstenBook2023.pdf";
 
         [Test]
+        public void TestGetConfiguration()
+        {
+            object result;
+            try
+            {
+                string appSettingsFilePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), "appsettings.json");
+                result = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
+            }
+            catch (Exception ex)
+            {
+                result = null;
+                Assert.Fail($"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+            }
+            Assert.Pass(result.ToString());
+        }
+        
+        [Test]
         public void TestGetFileNameFromResources()
         {
             string actaul = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), "PfingstenBook2023.pdf");
@@ -16,73 +31,17 @@ namespace FamilyTreeLibraryTest
         }
 
         [Test]
-        public void TestGetOrderingTypeByLine1()
+        public void TestInitializeLogger()
         {
-            Queue<AbstractOrderingType> expectedOrderingTypePossibilities = new();
-            expectedOrderingTypePossibilities.Enqueue(AbstractOrderingType.GetOrderingType(100, 1));
-            expectedOrderingTypePossibilities.Enqueue(AbstractOrderingType.GetOrderingType(3,2));
-            string line = "C. Evelyn Pfingsten 14 Mar 1926 07 Aug 1947";
-            Queue<AbstractOrderingType> actualOrderingTypePossibilities = FamilyTreeUtils.GetOrderingTypeByLine(line);
-            Assert.That(actualOrderingTypePossibilities, Is.EqualTo(expectedOrderingTypePossibilities));
-        }
-
-        [Test]
-        public void TestNextOrderingType1()
-        {
-            AbstractOrderingType[] expected = new AbstractOrderingType[]{AbstractOrderingType.GetOrderingType(1,1)};
-            AbstractOrderingType[] actual = FamilyTreeUtils.NextOrderingType(new AbstractOrderingType[0], AbstractOrderingType.GetOrderingType(1,1));
-            Assert.That(actual, Is.EqualTo(expected));
-        }
-
-        [Test]
-        public void TestNextOrderingType2()
-        {
-            AbstractOrderingType[] expected = new AbstractOrderingType[]{AbstractOrderingType.GetOrderingType(1,1), AbstractOrderingType.GetOrderingType(1,2)};
-            AbstractOrderingType[] current = new AbstractOrderingType[]{AbstractOrderingType.GetOrderingType(1,1)};
-            AbstractOrderingType orderingType = AbstractOrderingType.GetOrderingType(1,2);
-            Assert.That(FamilyTreeUtils.NextOrderingType(current, orderingType), Is.EqualTo(expected));
-        }
-
-        [Test]
-        public void TestNextOrderingType3()
-        {
-            AbstractOrderingType[] expected = new AbstractOrderingType[]
+            try
             {
-                AbstractOrderingType.GetOrderingType(1,1),
-                AbstractOrderingType.GetOrderingType(3,2)
-            };
-            AbstractOrderingType[] current = new AbstractOrderingType[]
+                FamilyTreeUtils.InitializeLogger();
+            }
+            catch (Exception)
             {
-                AbstractOrderingType.GetOrderingType(1,1),
-                AbstractOrderingType.GetOrderingType(2,2),
-                AbstractOrderingType.GetOrderingType(2,3),
-                AbstractOrderingType.GetOrderingType(1,4)
-            };
-            AbstractOrderingType orderingType = AbstractOrderingType.GetOrderingType(3,2);
-            Assert.That(FamilyTreeUtils.NextOrderingType(current, orderingType), Is.EqualTo(expected));
-        }
-
-        [Test]
-        public void TestPreviousOrderingType1()
-        {
-            AbstractOrderingType[] expected = new AbstractOrderingType[0];
-            AbstractOrderingType[] current = new AbstractOrderingType[]{AbstractOrderingType.GetOrderingType(1,1)};
-            AbstractOrderingType[] actual = FamilyTreeUtils.PreviousOrderingType(current);
-            Assert.That(actual, Is.EqualTo(expected));
-        }
-
-        [Test]
-        public void TestReformatToken1()
-        {
-            string expected = "31 May 2017";
-            string actual = FamilyTreeUtils.ReformatToken("31May2017");
-            Assert.That(actual, Is.EqualTo(expected));
-        }
-
-        [Test]
-        public void VerifyNonInitialized()
-        {
-            Assert.That(Log.Logger, Is.Not.EqualTo(FamilyTreeUtils.InitialLogger));
+                Assert.Fail("Unable to initialize logger.");
+            }
+            Assert.Pass("Logger detected.");
         }
     }
 }

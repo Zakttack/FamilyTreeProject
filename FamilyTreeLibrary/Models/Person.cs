@@ -1,7 +1,7 @@
-using FamilyTreeLibrary.Data.JsonConverters;
+using FamilyTreeLibrary.Data;
 using FamilyTreeLibrary.Exceptions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace FamilyTreeLibrary.Models
 {
@@ -13,27 +13,26 @@ namespace FamilyTreeLibrary.Models
             Name = name;
         }
 
-        public Person(JObject obj)
-        {
-            Name = obj[nameof(Name)] == null ? "" : JsonConvert.DeserializeObject<string>(obj[nameof(Name)].ToString());
-            BirthDate = obj[nameof(BirthDate)] == null ? new(0) : JsonConvert.DeserializeObject<FamilyTreeDate>(obj[nameof(BirthDate)].ToString(), new DateConverter());
-            DeceasedDate = obj[nameof(DeceasedDate)] == null ? new(0) : JsonConvert.DeserializeObject<FamilyTreeDate>(obj[nameof(DeceasedDate)].ToString(), new DateConverter());
-        }
-
-        [JsonProperty(nameof(Name))]
+        [BsonElement(nameof(Name))]
+        [BsonDefaultValue(null)]
+        [BsonIgnoreIfDefault(false)]
         public string Name
         {
             get;
         }
-        [JsonProperty(nameof(BirthDate))]
-        [JsonConverter(typeof(DateConverter))]
+        [BsonElement(nameof(BirthDate))]
+        [BsonSerializer(typeof(DateSerializer))]
+        [BsonDefaultValue(null)]
+        [BsonIgnoreIfDefault(false)]
         public FamilyTreeDate BirthDate
         {
             get;
             set;
         }
-        [JsonProperty(nameof(DeceasedDate))]
-        [JsonConverter(typeof(DateConverter))]
+        [BsonElement(nameof(DeceasedDate))]
+        [BsonSerializer(typeof(DateSerializer))]
+        [BsonDefaultValue(null)]
+        [BsonIgnoreIfDefault(false)]
         public FamilyTreeDate DeceasedDate
         {
             get
@@ -82,7 +81,7 @@ namespace FamilyTreeLibrary.Models
 
         public override string ToString()
         {
-            return JsonConvert.SerializeObject(this);
+            return this.ToJson();
         }
 
         public static bool operator== (Person a, Person b)
@@ -97,6 +96,20 @@ namespace FamilyTreeLibrary.Models
             bool aIsNull = a is null;
             bool bIsNull = b is null;
             return (!aIsNull || !bIsNull) && (aIsNull || !a.Equals(b));
+        }
+
+        public static bool operator< (Person a, Person b)
+        {
+            bool aIsNull = a is null;
+            bool bIsNull = b is null;
+            return (aIsNull && !bIsNull) || (!aIsNull && a.CompareTo(b) < 0);
+        }
+
+        public static bool operator> (Person a, Person b)
+        {
+            bool aIsNull = a is null;
+            bool bIsNull = b is null;
+            return (!aIsNull && bIsNull) || (!aIsNull && a.CompareTo(b) > 0);
         }
     }
 }

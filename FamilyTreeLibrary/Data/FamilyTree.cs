@@ -1,32 +1,37 @@
-using System.Collections;
-using System.Reflection;
+using System.Data;
 using FamilyTreeLibrary.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
+using System.Collections;
 
 
 namespace FamilyTreeLibrary.Data
 {
     public class FamilyTree : IFamilyTree
     {
-        private readonly FamilyEnumerator familyTraversal;
-        public FamilyTree(string name, Family initialRoot = null)
+        private readonly IMongoCollection<Family> mongoCollection;
+        private readonly Family initialRoot;
+
+        public FamilyTree(string name)
         {
             Name = name;
-            familyTraversal = new FamilyEnumerator(DataUtils.GetCollection(Name), initialRoot);
+            mongoCollection = DataUtils.GetCollection(Name);
+            initialRoot = null;
+        }
+
+        private FamilyTree(string name, Family initialRoot)
+        {
+            Name = name;
+            mongoCollection = DataUtils.GetCollection(Name);
+            this.initialRoot = initialRoot;
         }
         public long Count
         {
             get
             {
-                long count = 0;
-                familyTraversal.Reset();
-                while (familyTraversal.MoveNext())
-                {
-                    count++;
-                    familyTraversal.Dispose();
-                }
-                return count;
+                IEnumerable<Family> families = this;
+                return families.LongCount();
             }
         }
 
@@ -34,17 +39,7 @@ namespace FamilyTreeLibrary.Data
         {
             get
             {
-                ICollection<Family> results = new List<Family>();
-                familyTraversal.Reset();
-                while (familyTraversal.MoveNext())
-                {
-                    if (familyTraversal.Current.Member == member)
-                    {
-                        results.Add(familyTraversal.Current);
-                    }
-                    familyTraversal.Dispose();
-                }
-                return results;
+                return this.Where((node) => node.Member == member);
             }
         }
 
@@ -52,69 +47,55 @@ namespace FamilyTreeLibrary.Data
         {
             get
             {
-                familyTraversal.Reset();
-                return familyTraversal.MoveNext() ? GetHeight(familyTraversal.Current) : 0;
+                return this.Any() ? GetHeight(this.First()) : 0;
             }
+        }
+
+        public string Name
+        {
+            get;
         }
 
         public void Add(Family node)
         {
-            Person parent = node.Parent.Member;
-            familyTraversal.Reset();
-            while (familyTraversal.MoveNext() && familyTraversal.Current.Member != parent)
-            {
-                familyTraversal.Dispose();
-            }
-            if (familyTraversal.MoveNext())
-            {
-                Family temp = familyTraversal.Current;
-                FilterDefinition<BsonDocument> filter = new BsonDocumentFilterDefinition<BsonDocument>(BsonDocument.Parse(temp.ToString()));
-                familyTraversal.Current.Children.Add(node);
-                UpdateDefinition<BsonDocument> update = new BsonDocumentUpdateDefinition<BsonDocument>(BsonDocument.Parse(familyTraversal.Current.ToString()));
-                familyTraversal.Collection.UpdateOne(filter, update);
-            }
-            familyTraversal.Collection.InsertOne(BsonDocument.Parse(node.ToString()));
+            mongoCollection.InsertOne(node);
+            Family parentInitial = DataUtils.GetParentOf(node, mongoCollection);
+            Family parentFinal = parentInitial;
+            parentFinal.Children.Add(node.Member);
+            mongoCollection.UpdateOne(parentInitial.ToBsonDocument(), parentFinal.ToBsonDocument());
         }
 
         public bool Contains(Family node)
         {
-            familyTraversal.Reset();
-            while (familyTraversal.MoveNext())
-            {
-                if (familyTraversal.Current == node)
-                {
-                    return true;
-                }
-                familyTraversal.Dispose();
-            }
-            return false;
+            IEnumerable<Family> families = this;
+            return families.Contains(node);
         }
 
         public int Depth(Family node)
         {
-            familyTraversal.Reset();
-            if (!familyTraversal.MoveNext())
+            if (node is null)
             {
                 return 0;
             }
             int depth = 0;
             Family currentNode = node;
-            while (currentNode != familyTraversal.Current)
+            while (currentNode.Parent is not null)
             {
                 depth++;
-                currentNode = currentNode.Parent;
+                Family parentNode = currentNode;
+                currentNode = DataUtils.GetParentOf(parentNode, mongoCollection);
             }
             return depth;
         }
 
         public IEnumerator<Family> GetEnumerator()
         {
-            return familyTraversal;
+            return new FamilyEnumerator(mongoCollection, initialRoot);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return familyTraversal;
+            return new FamilyEnumerator(mongoCollection, initialRoot);
         }
 
         public IFamilyTree Subtree(Family root)
@@ -122,9 +103,9 @@ namespace FamilyTreeLibrary.Data
             return new FamilyTree(Name, root);
         }
 
-        private string Name
+        public void Update(Family initialNode, Family finalNode)
         {
-            get;
+            mongoCollection.UpdateOne(initialNode.ToBsonDocument(), finalNode.ToBsonDocument());
         }
 
         private int GetHeight(Family current)
@@ -134,7 +115,8 @@ namespace FamilyTreeLibrary.Data
                 return 0;
             }
             int maxChildHeight = 0;
-            foreach (Family child in current.Children)
+            IEnumerable<Family> children = DataUtils.GetChildrenOf(current, mongoCollection);
+            foreach (Family child in children)
             {
                 maxChildHeight = Math.Max(maxChildHeight, GetHeight(child));
             }
@@ -146,9 +128,11 @@ namespace FamilyTreeLibrary.Data
             private readonly ICollection<IList<Family>> vistedNodes;
             private readonly Family initialRoot;
 
-            public FamilyEnumerator(IMongoCollection<BsonDocument> collection, Family initialRoot)
+            private readonly IMongoCollection<Family> mongoCollection;
+
+            public FamilyEnumerator(IMongoCollection<Family> collection, Family initialRoot)
             {
-                Collection = collection;
+                mongoCollection = collection;
                 vistedNodes = new List<IList<Family>>();
                 this.initialRoot = initialRoot;
                 Reset();
@@ -170,11 +154,6 @@ namespace FamilyTreeLibrary.Data
                 }
             }
 
-            public IMongoCollection<BsonDocument> Collection
-            {
-                get;
-            }
-
             public void Dispose()
             {
                 Family previous = Current;
@@ -190,25 +169,29 @@ namespace FamilyTreeLibrary.Data
             {
                 vistedNodes.Clear();
                 IList<Family> firstPart = new List<Family>();
-                List<BsonDocument> results;
+                IEnumerable<Family> results;
+                Func<Family,bool> rootInitializeQuery;
                 if (initialRoot is null)
                 {
-                    results = Collection.Find((record) => IsFirst(record)).ToList();
+                    rootInitializeQuery = (record) => {
+                        return record.Parent is null;
+                    };
+                    results = mongoCollection.AsQueryable().Where(record => rootInitializeQuery(record)).AsEnumerable();
                 }
                 else
                 {
-                    Func<BsonDocument,bool> rootInitializeQuery = (record) => {
-                        Family currentNode = DataUtils.ParseRecord(record);
-                        return currentNode == initialRoot;
+                    rootInitializeQuery = (record) => {
+                        return record == initialRoot;
                     };
-                    results = Collection.Find((record) => rootInitializeQuery(record)).ToList();
+                    results = mongoCollection.AsQueryable().Where((record) => rootInitializeQuery(record)).AsEnumerable();
                 }
-                if (results.Count > 0)
+                if (results.Any())
                 {
-                    Family rootValue = DataUtils.ParseRecord(results.First());
+                    Family rootValue = results.First();
                     if (rootValue.Parent is not null)
                     {
-                        rootValue.Parent.Children.Remove(rootValue);
+                        Family parent = DataUtils.GetParentOf(rootValue, mongoCollection);
+                        parent.Children.Remove(rootValue.Member);
                         rootValue.Parent = null;
                     }
                     firstPart.Add(rootValue);
@@ -232,31 +215,18 @@ namespace FamilyTreeLibrary.Data
             {
                 if (tempNext is not null)
                 {
-                    Func<BsonDocument,bool> firstChildQuery = (record) => {
-                        Family currentNode = DataUtils.ParseRecord(record);
-                        return currentNode.Parent == tempNext && tempNext.Children.Count > 0 && currentNode == tempNext.Children.First() && !vistedNodes.Where((part) => part.Contains(currentNode)).Any();
-                    };
-                    List<BsonDocument> firstChildResults = Collection.Find((record) => firstChildQuery(record)).ToList();
-                    if (firstChildResults.Count > 0)
+                    IEnumerable<Family> children = DataUtils.GetChildrenOf(tempNext, mongoCollection);
+                    Family firstChild = children.FirstOrDefault();
+                    if (firstChild is not null && !vistedNodes.Where((part) => part.Contains(firstChild)).Any())
                     {
-                        return DataUtils.ParseRecord(firstChildResults.First());
+                        return firstChild;
                     }
                     else if (tempNext != Root)
                     {
-                        int sibilingIndex = tempNext.Parent.Children.ToList().IndexOf(tempNext);
-                        if (sibilingIndex > -1 && sibilingIndex < tempNext.Parent.Children.Count)
-                        {
-                            Func<BsonDocument,bool> sibilingQuery = (record) => {
-                                Family currentNode = DataUtils.ParseRecord(record);
-                                return tempNext.Parent.Children.ToList().IndexOf(currentNode) == sibilingIndex + 1;
-                            };
-                            List<BsonDocument> sibilingResults = Collection.Find((record) => sibilingQuery(record)).ToList();
-                            if (sibilingResults.Count > 0)
-                            {
-                                return DataUtils.ParseRecord(sibilingResults.First());
-                            }
-                        }
-                        return FindNext(tempNext.Parent);
+                        Family parent = DataUtils.GetParentOf(tempNext, mongoCollection);
+                        IList<Family> sibilings = DataUtils.GetChildrenOf(parent, mongoCollection).ToList();
+                        int sibilingIndex = sibilings.IndexOf(tempNext);
+                        return sibilingIndex > -1 && sibilingIndex < parent.Children.Count - 1 ? sibilings[sibilingIndex + 1] : FindNext(parent);
                     }
                 }
                 return null;
@@ -269,11 +239,6 @@ namespace FamilyTreeLibrary.Data
                     vistedNodes.Add(new List<Family>());
                 }
                 vistedNodes.Last().Add(node);
-            }
-
-            private static bool IsFirst(BsonDocument record)
-            {
-                return DataUtils.ParseRecord(record).Parent is null;
             }
         }
     }
