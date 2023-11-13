@@ -27,6 +27,7 @@ namespace FamilyTreeLibrary.Service
                         Log.Debug($"Adding {node}");
                         Tree.Add(node);
                     }
+                    Log.Debug($"{node} has been added.");
                 }
             }
             catch (IOException ex)
