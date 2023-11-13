@@ -61,15 +61,15 @@ namespace FamilyTreeLibrary.Data.PDF
                 memberLine = lines.Dequeue();
                 member = new(memberLine.Name)
                 {
-                    BirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirthDate) ? memberBirthDate : new(0)
+                    BirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirthDate) ? memberBirthDate : FamilyTreeUtils.DefaultDate
                 };
-                FamilyTreeDate marriageDate = memberLine.Dates.TryDequeue(out FamilyTreeDate marriage) ? marriage : new(0);
-                member.DeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceasedDate) ? memberDeceasedDate : new(0);
+                FamilyTreeDate marriageDate = memberLine.Dates.TryDequeue(out FamilyTreeDate marriage) ? marriage : FamilyTreeUtils.DefaultDate;
+                member.DeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceasedDate) ? memberDeceasedDate : FamilyTreeUtils.DefaultDate;
                 inLawLine = lines.Dequeue();
                 inLaw = new(inLawLine.Name)
                 {
-                    BirthDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawBirthDate) ? inLawBirthDate : new(0),
-                    DeceasedDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawDeceasedDate) ? inLawDeceasedDate : new(0)
+                    BirthDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawBirthDate) ? inLawBirthDate : FamilyTreeUtils.DefaultDate,
+                    DeceasedDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawDeceasedDate) ? inLawDeceasedDate : FamilyTreeUtils.DefaultDate
                 };
                 fam = new Family(member)
                 {
@@ -82,13 +82,13 @@ namespace FamilyTreeLibrary.Data.PDF
                 memberLine = lines.Dequeue();
                 member = new(memberLine.Name)
                 {
-                    BirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirth) ? memberBirth : new(0),
-                    DeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceased) ? memberDeceased : new(0)
+                    BirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirth) ? memberBirth : FamilyTreeUtils.DefaultDate,
+                    DeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceased) ? memberDeceased : FamilyTreeUtils.DefaultDate
                 };
                 fam = new Family(member)
                 {
                     InLaw = null,
-                    MarriageDate = new(0)
+                    MarriageDate = FamilyTreeUtils.DefaultDate
                 };
             }
             return fam;
@@ -127,7 +127,7 @@ namespace FamilyTreeLibrary.Data.PDF
                 {
                     tempDate += $"{tokens[i]} ";
                 }
-                readAsName = !Regex.IsMatch(tokens[i + 1], FamilyTreeUtils.NUMBER_PATTERN) && !Regex.IsMatch(tokens[i+1], FamilyTreeUtils.RANGE_PATTERN) && !new FamilyTreeDate(0).Months.ContainsKey(tokens[i+1]);
+                readAsName = !Regex.IsMatch(tokens[i + 1], FamilyTreeUtils.NUMBER_PATTERN) && !Regex.IsMatch(tokens[i+1], FamilyTreeUtils.RANGE_PATTERN) && !FamilyTreeUtils.DefaultDate.Months.ContainsKey(tokens[i+1]);
             }
             if (Regex.IsMatch(tokens[^1], FamilyTreeUtils.NUMBER_PATTERN) | Regex.IsMatch(tokens[^1], FamilyTreeUtils.RANGE_PATTERN))
             {

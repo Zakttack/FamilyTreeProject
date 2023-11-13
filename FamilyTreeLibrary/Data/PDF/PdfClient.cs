@@ -13,12 +13,12 @@ namespace FamilyTreeLibrary.Data.PDF
         {
             Family root = new(new(null)
             {
-                BirthDate = new(0),
-                DeceasedDate = new(0)
+                BirthDate = FamilyTreeUtils.DefaultDate,
+                DeceasedDate = FamilyTreeUtils.DefaultDate
             })
             {
                 InLaw = null,
-                MarriageDate = new(0)
+                MarriageDate = FamilyTreeUtils.DefaultDate
             };
             FilePath = filePath;
             nodes = new SortedSet<Family>()
@@ -110,9 +110,9 @@ namespace FamilyTreeLibrary.Data.PDF
                 if (familyNode.OrderingType.Length == root.OrderingType.Length + 1)
                 {
                     root.Node.Children.Add(familyNode.Node.Member);
-                    Log.Debug($"Parent of current: {root}");
+                    Log.Debug($"Parent of {familyNode.Node.Member.Name}: {root}");
                     familyNode.Node.Parent = root.Node.Member;
-                    Log.Debug($"Current: {familyNode}");
+                    Log.Debug($"{familyNode.Node.Member.Name}: {familyNode}");
                     nodes.Add(familyNode.Node);
                     Section tempFamilyNode = previousFamilyNode;
                     AttachSubNodes(ref subFamilyNodeCollection, tempFamilyNode);

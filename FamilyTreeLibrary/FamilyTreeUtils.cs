@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using FamilyTreeLibrary.Models;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 
 namespace FamilyTreeLibrary
@@ -8,6 +9,19 @@ namespace FamilyTreeLibrary
         internal const string NUMBER_PATTERN = @"^\d+$";
         internal const string RANGE_PATTERN = @"^\d+-\d+$";
         private const string LOG_FILE_NAME = @"Logs\log.txt";
+
+        public static FamilyTreeDate DefaultDate
+        {
+            get
+            {
+                return new()
+                {
+                    Year = "",
+                    Month = "",
+                    Day = 0
+                };
+            }
+        }
 
         public static IConfiguration GetConfiguration(string appSettingsFilePath)
         {

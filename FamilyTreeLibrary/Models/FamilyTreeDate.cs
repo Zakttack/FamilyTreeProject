@@ -8,34 +8,30 @@ namespace FamilyTreeLibrary.Models
         private int day;
         private string month;
         private string year;
-
         private IReadOnlyDictionary<string,int> months;
-        public FamilyTreeDate(int day = 0, string month = "", string year = "")
-        {
-            Year = year;
-            Month = month;
-            Day = day;
-        }
-
+        public FamilyTreeDate(){}
         public FamilyTreeDate(string input)
         {
-            string[] values = input.Split(' ');
-            month = "";
-            day = 0;
-            year = "";
-            foreach (string value in values)
+            month = FamilyTreeUtils.DefaultDate.Month;
+            day = FamilyTreeUtils.DefaultDate.Day;
+            year = FamilyTreeUtils.DefaultDate.Year;
+            if (input is not null & input != string.Empty & input.Length < 4)
             {
-                if (value.Length < 3)
+                string[] values = input.Split(' ');
+                foreach (string value in values)
                 {
-                    day = value == "" ? 0 : Convert.ToInt32(value);
-                }
-                else if (value.Length == 3)
-                {
-                    month = value;
-                }
-                else
-                {
-                    year = value;
+                    if (value.Length < 3)
+                    {
+                        day = value == "" ? 0 : Convert.ToInt32(value);
+                    }
+                    else if (value.Length == 3)
+                    {
+                        month = value;
+                    }
+                    else
+                    {
+                        year = value;
+                    }
                 }
             }
             Year = year;
@@ -45,7 +41,7 @@ namespace FamilyTreeLibrary.Models
 
         public int Day
         {
-            get
+            readonly get
             {
                 return day;
             }
@@ -61,7 +57,7 @@ namespace FamilyTreeLibrary.Models
 
         public string Month
         {
-            get
+            readonly get
             {
                 return month;
             }
@@ -77,7 +73,7 @@ namespace FamilyTreeLibrary.Models
 
         public string Year
         {
-            get
+            readonly get
             {
                 return year;
             }
@@ -93,7 +89,7 @@ namespace FamilyTreeLibrary.Models
             }
         }
 
-        public int CompareTo(FamilyTreeDate other)
+        public readonly int CompareTo(FamilyTreeDate other)
         {
             int yearDiff = Year.CompareTo(other.Year);
             if (yearDiff != 0)
@@ -104,22 +100,22 @@ namespace FamilyTreeLibrary.Models
             return monthDiff != 0 ? monthDiff : Math.Abs(Day - other.Day);
         }
 
-        public override bool Equals(object obj)
+        public override readonly bool Equals(object obj)
         {
             return obj is FamilyTreeDate other && Equals(other);
         }
 
-        public bool Equals(FamilyTreeDate other)
+        public readonly bool Equals(FamilyTreeDate other)
         {
             return CompareTo(other) == 0;
         }
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return ToString().GetHashCode();
         }
 
-        public override string ToString()
+        public override readonly string ToString()
         {
             string output = "";
             if (Day > 0)
@@ -134,7 +130,7 @@ namespace FamilyTreeLibrary.Models
             {
                 output += Year;
             }
-            return output.Trim();
+            return this == FamilyTreeUtils.DefaultDate ? null : output.Trim();
         }
 
         public static bool operator==(FamilyTreeDate dateA, FamilyTreeDate dateB)
@@ -179,7 +175,7 @@ namespace FamilyTreeLibrary.Models
             return dateBIsDefault || (!dateAIsDefault && dateA.CompareTo(dateB) <= 0);
         }
 
-        internal IReadOnlyDictionary<string,int> Months
+        internal readonly IReadOnlyDictionary<string,int> Months
         {
             get
             {
