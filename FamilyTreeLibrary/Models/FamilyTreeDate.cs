@@ -1,5 +1,4 @@
 using FamilyTreeLibrary.Exceptions;
-using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary.Models
 {

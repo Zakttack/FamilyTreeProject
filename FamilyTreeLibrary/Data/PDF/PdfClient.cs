@@ -130,7 +130,9 @@ namespace FamilyTreeLibrary.Data.PDF
         {
             if (subFamilyNodeCollection.Count > 0)
             {
+                Log.Debug($"Finding sub-sections of {root.Node.Member.Name}.");
                 AttachNodes(subFamilyNodeCollection.ToList(), root);
+                Log.Debug($"Sub-section search complete.");
                 subFamilyNodeCollection.Clear();
             }
         }

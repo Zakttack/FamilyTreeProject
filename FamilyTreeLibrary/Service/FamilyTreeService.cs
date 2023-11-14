@@ -55,7 +55,7 @@ namespace FamilyTreeLibrary.Service
             {
                 Parent = parent.Member,
                 InLaw = null,
-                MarriageDate = FamilyTreeUtils.DefaultDate
+                MarriageDate = FamilyTreeDate.DefaultDate
             };
             Tree.Add(childNode);
         }
