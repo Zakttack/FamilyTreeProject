@@ -1,8 +1,6 @@
-using System.Text.RegularExpressions;
-
 namespace FamilyTreeLibrary.Data.PDF.OrderingType
 {
-    public class DigitOrderingType : AbstractOrderingType
+    public partial class DigitOrderingType : AbstractOrderingType
     {
         internal DigitOrderingType(int key, bool isParenthesized, int maxKey = int.MaxValue)
         :base(key, !isParenthesized ? 3 : 5, maxKey)
@@ -21,7 +19,7 @@ namespace FamilyTreeLibrary.Data.PDF.OrderingType
                 return 0;
             }
             string v = value.Length > 0 ? value[..(value.Length - 1)] : value;
-            if (Regex.IsMatch(v, FamilyTreeUtils.NUMBER_PATTERN))
+            if (FamilyTreeUtils.NumberPattern().IsMatch(v))
             {
                 int key = Convert.ToInt32(v);
                 return key <= MaxKey ? key : 0;

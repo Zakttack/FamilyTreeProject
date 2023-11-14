@@ -9,7 +9,7 @@ using iText.Kernel.Pdf.Canvas.Parser;
 
 namespace FamilyTreeLibrary.Data.PDF
 {
-    public static class PdfUtils
+    public static partial class PdfUtils
     {
         public static AbstractOrderingType[] AddSection(ICollection<Section> sections, AbstractOrderingType[] previous, Queue<AbstractOrderingType> possibilities, Family node, ref int sectionNumber)
         {
@@ -61,15 +61,15 @@ namespace FamilyTreeLibrary.Data.PDF
                 memberLine = lines.Dequeue();
                 member = new(memberLine.Name)
                 {
-                    BirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirthDate) ? memberBirthDate : FamilyTreeUtils.DefaultDate
+                    BirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirthDate) ? memberBirthDate : FamilyTreeDate.DefaultDate
                 };
-                FamilyTreeDate marriageDate = memberLine.Dates.TryDequeue(out FamilyTreeDate marriage) ? marriage : FamilyTreeUtils.DefaultDate;
-                member.DeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceasedDate) ? memberDeceasedDate : FamilyTreeUtils.DefaultDate;
+                FamilyTreeDate marriageDate = memberLine.Dates.TryDequeue(out FamilyTreeDate marriage) ? marriage : FamilyTreeDate.DefaultDate;
+                member.DeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceasedDate) ? memberDeceasedDate : FamilyTreeDate.DefaultDate;
                 inLawLine = lines.Dequeue();
                 inLaw = new(inLawLine.Name)
                 {
-                    BirthDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawBirthDate) ? inLawBirthDate : FamilyTreeUtils.DefaultDate,
-                    DeceasedDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawDeceasedDate) ? inLawDeceasedDate : FamilyTreeUtils.DefaultDate
+                    BirthDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawBirthDate) ? inLawBirthDate : FamilyTreeDate.DefaultDate,
+                    DeceasedDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawDeceasedDate) ? inLawDeceasedDate : FamilyTreeDate.DefaultDate
                 };
                 fam = new Family(member)
                 {
@@ -82,13 +82,13 @@ namespace FamilyTreeLibrary.Data.PDF
                 memberLine = lines.Dequeue();
                 member = new(memberLine.Name)
                 {
-                    BirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirth) ? memberBirth : FamilyTreeUtils.DefaultDate,
-                    DeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceased) ? memberDeceased : FamilyTreeUtils.DefaultDate
+                    BirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirth) ? memberBirth : FamilyTreeDate.DefaultDate,
+                    DeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceased) ? memberDeceased : FamilyTreeDate.DefaultDate
                 };
                 fam = new Family(member)
                 {
                     InLaw = null,
-                    MarriageDate = FamilyTreeUtils.DefaultDate
+                    MarriageDate = FamilyTreeDate.DefaultDate
                 };
             }
             return fam;
@@ -127,9 +127,9 @@ namespace FamilyTreeLibrary.Data.PDF
                 {
                     tempDate += $"{tokens[i]} ";
                 }
-                readAsName = !Regex.IsMatch(tokens[i + 1], FamilyTreeUtils.NUMBER_PATTERN) && !Regex.IsMatch(tokens[i+1], FamilyTreeUtils.RANGE_PATTERN) && !FamilyTreeUtils.DefaultDate.Months.ContainsKey(tokens[i+1]);
+                readAsName = !FamilyTreeUtils.NumberPattern().IsMatch(tokens[i + 1]) && !FamilyTreeUtils.RangePattern().IsMatch(tokens[i+1]) && !FamilyTreeDate.DefaultDate.Months.ContainsKey(tokens[i+1]);
             }
-            if (Regex.IsMatch(tokens[^1], FamilyTreeUtils.NUMBER_PATTERN) | Regex.IsMatch(tokens[^1], FamilyTreeUtils.RANGE_PATTERN))
+            if (FamilyTreeUtils.NumberPattern().IsMatch(tokens[^1]) || FamilyTreeUtils.RangePattern().IsMatch(tokens[^1]))
             {
                 FamilyTreeDate dateItem3 = new(tempDate + tokens[^1]);
                 tempLine.Dates.Enqueue(dateItem3);
@@ -166,7 +166,7 @@ namespace FamilyTreeLibrary.Data.PDF
 
         public static bool IsInLaw(Queue<AbstractOrderingType> orderingTypePossibilities, string previousLine, string currentLine)
         {
-            string inLawPattern = @"^[a-zA-Z0-9’,\-. ]*$";
+            string inLawPattern = @"^[a-zA-Z0-9',\-. ]*$";
             return orderingTypePossibilities.Count == 0 && previousLine != "" && Regex.IsMatch(currentLine, inLawPattern);
         }
 

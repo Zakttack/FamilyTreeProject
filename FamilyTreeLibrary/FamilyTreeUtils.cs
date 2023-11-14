@@ -1,28 +1,12 @@
 ﻿using FamilyTreeLibrary.Models;
 using Microsoft.Extensions.Configuration;
 using Serilog;
+using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary
 {
-    public static class FamilyTreeUtils
+    public static partial class FamilyTreeUtils
     {
-        internal const string NUMBER_PATTERN = @"^\d+$";
-        internal const string RANGE_PATTERN = @"^\d+-\d+$";
-        private const string LOG_FILE_NAME = @"Logs\log.txt";
-
-        public static FamilyTreeDate DefaultDate
-        {
-            get
-            {
-                return new()
-                {
-                    Year = "",
-                    Month = "",
-                    Day = 0
-                };
-            }
-        }
-
         public static IConfiguration GetConfiguration(string appSettingsFilePath)
         {
             if (appSettingsFilePath == null || !File.Exists(appSettingsFilePath))
@@ -53,11 +37,17 @@ namespace FamilyTreeLibrary
 
         public static void InitializeLogger()
         {
-                string filePath = GetFileNameFromResources(Directory.GetCurrentDirectory(), LOG_FILE_NAME);
+                string filePath = GetFileNameFromResources(Directory.GetCurrentDirectory(), @"Logs\log.txt");
                 Log.Logger = new LoggerConfiguration()
                     .MinimumLevel.Debug()
                     .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)
                     .CreateLogger();
         }
+
+        [GeneratedRegex(@"^\d+$")]
+        internal static partial Regex NumberPattern();
+
+        [GeneratedRegex(@"^\d+-\d+$")]
+        internal static partial Regex RangePattern();
     }
 }

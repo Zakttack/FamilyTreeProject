@@ -13,12 +13,12 @@ namespace FamilyTreeLibrary.Data.PDF
         {
             Family root = new(new(null)
             {
-                BirthDate = FamilyTreeUtils.DefaultDate,
-                DeceasedDate = FamilyTreeUtils.DefaultDate
+                BirthDate = FamilyTreeDate.DefaultDate,
+                DeceasedDate = FamilyTreeDate.DefaultDate
             })
             {
                 InLaw = null,
-                MarriageDate = FamilyTreeUtils.DefaultDate
+                MarriageDate = FamilyTreeDate.DefaultDate
             };
             FilePath = filePath;
             nodes = new SortedSet<Family>()

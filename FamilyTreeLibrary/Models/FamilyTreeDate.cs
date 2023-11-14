@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary.Models
 {
-    public struct FamilyTreeDate : IComparable<FamilyTreeDate>, IEquatable<FamilyTreeDate>
+    public partial struct FamilyTreeDate : IComparable<FamilyTreeDate>, IEquatable<FamilyTreeDate>
     {
         private int day;
         private string month;
@@ -12,31 +12,47 @@ namespace FamilyTreeLibrary.Models
         public FamilyTreeDate(){}
         public FamilyTreeDate(string input)
         {
-            month = FamilyTreeUtils.DefaultDate.Month;
-            day = FamilyTreeUtils.DefaultDate.Day;
-            year = FamilyTreeUtils.DefaultDate.Year;
-            if (input is not null & input != string.Empty & input.Length < 4)
+            month = DefaultDate.Month;
+            day = DefaultDate.Day;
+            year = DefaultDate.Year;
+            if (input is not null)
             {
                 string[] values = input.Split(' ');
-                foreach (string value in values)
+                if (values.Length < 4)
                 {
-                    if (value.Length < 3)
+                    foreach (string value in values)
                     {
-                        day = value == "" ? 0 : Convert.ToInt32(value);
-                    }
-                    else if (value.Length == 3)
-                    {
-                        month = value;
-                    }
-                    else
-                    {
-                        year = value;
+                        if (value.Length < 3)
+                        {
+                            day = value == "" ? 0 : Convert.ToInt32(value);
+                        }
+                        else if (value.Length == 3 || value == "Jan.")
+                        {
+                            month = value;
+                        }
+                        else
+                        {
+                            year = value;
+                        }
                     }
                 }
             }
             Year = year;
             Month = month;
             Day = day;
+        }
+
+        public static FamilyTreeDate DefaultDate
+        {
+            get
+            {
+                return new()
+                {
+                    Year = "",
+                    Month = "",
+                    Day = 0
+                };
+            }
         }
 
         public int Day
@@ -79,8 +95,8 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                bool isNumber = Regex.IsMatch(value, FamilyTreeUtils.NUMBER_PATTERN);
-                if (value != "" && !isNumber && !Regex.IsMatch(value, FamilyTreeUtils.RANGE_PATTERN))
+                bool isNumber = FamilyTreeUtils.NumberPattern().IsMatch(value);
+                if (value != "" && !isNumber && !FamilyTreeUtils.RangePattern().IsMatch(value))
                 {
                     throw new InvalidDateException(value, DateAttributes.Year);
                 }
@@ -130,14 +146,14 @@ namespace FamilyTreeLibrary.Models
             {
                 output += Year;
             }
-            return this == FamilyTreeUtils.DefaultDate ? null : output.Trim();
+            return Equals(DefaultDate) ? null : output.Trim();
         }
 
         public static bool operator==(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
             bool dateAIsDefault = dateA == default;
             bool dateBIsDefault = dateB == default;
-            return (dateAIsDefault && dateBIsDefault) || (!dateAIsDefault && dateA.Equals(dateB));
+            return dateAIsDefault && dateBIsDefault || !dateAIsDefault && dateA.Equals(dateB);
         }
 
         public static bool operator!=(FamilyTreeDate dateA, FamilyTreeDate dateB)
@@ -151,28 +167,28 @@ namespace FamilyTreeLibrary.Models
         {
             bool dateAIsDefault = dateA == default;
             bool dateBIsDefault = dateB == default;
-            return (dateAIsDefault && !dateBIsDefault) || (!dateBIsDefault && dateA.CompareTo(dateB) < 0);
+            return dateAIsDefault && !dateBIsDefault || !dateBIsDefault && dateA.CompareTo(dateB) < 0;
         }
 
         public static bool operator<=(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
             bool dateAIsDefault = dateA == default;
             bool dateBIsDefault = dateB == default;
-            return dateAIsDefault || (!dateBIsDefault && dateA.CompareTo(dateB) <= 0);
+            return dateAIsDefault || !dateBIsDefault && dateA.CompareTo(dateB) <= 0;
         }
 
         public static bool operator>(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
             bool dateAIsDefault = dateA == default;
             bool dateBIsDefault = dateB == default;
-            return (!dateAIsDefault && dateBIsDefault) || (!dateAIsDefault && dateA.CompareTo(dateB) > 0);
+            return !dateAIsDefault && dateBIsDefault || !dateAIsDefault && dateA.CompareTo(dateB) > 0;
         }
 
         public static bool operator>=(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
             bool dateAIsDefault = dateA == default;
             bool dateBIsDefault = dateB == default;
-            return dateBIsDefault || (!dateAIsDefault && dateA.CompareTo(dateB) <= 0);
+            return dateBIsDefault || !dateAIsDefault && dateA.CompareTo(dateB) <= 0;
         }
 
         internal readonly IReadOnlyDictionary<string,int> Months
@@ -188,7 +204,7 @@ namespace FamilyTreeLibrary.Models
             months = new Dictionary<string,int>
                 {
                     {"", 0},
-                    {"Jan", 31},
+                    {"Jan.", 31},
                     {"Feb",isLeapYear ? 29 : 28},
                     {"Mar",31},
                     {"Apr",30},

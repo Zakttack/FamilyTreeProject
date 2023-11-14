@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary.Data.PDF.OrderingType
 {
-    public class ParenthesizedDigitOrderingType : DigitOrderingType
+    public partial class ParenthesizedDigitOrderingType : DigitOrderingType
     {
         internal ParenthesizedDigitOrderingType(int key, int maxKey = int.MaxValue)
         :base(key, true, maxKey)
@@ -16,8 +16,8 @@ namespace FamilyTreeLibrary.Data.PDF.OrderingType
 
         protected override int FindKey(string value)
         {
-            string v = Regex.IsMatch(value, "^\\(\\d+\\)$") ? value[1..^1] : "";
-            if (Type == OrderingTypeTypes.ParenthesizedNumbering && Regex.IsMatch(v, FamilyTreeUtils.NUMBER_PATTERN))
+            string v = MyRegex1().IsMatch(value) ? value[1..^1] : "";
+            if (Type == OrderingTypeTypes.ParenthesizedNumbering && FamilyTreeUtils.NumberPattern().IsMatch(v))
             {
                 int key = Convert.ToInt32(v);
                 return key <= MaxKey ? key : 0;
@@ -29,5 +29,8 @@ namespace FamilyTreeLibrary.Data.PDF.OrderingType
         {
             return Type == OrderingTypeTypes.ParenthesizedNumbering && key > 0 && key <= MaxKey ? $"({key})" : "";
         }
+
+        [GeneratedRegex("^\\(\\d+\\)$")]
+        private static partial Regex MyRegex1();
     }
 }

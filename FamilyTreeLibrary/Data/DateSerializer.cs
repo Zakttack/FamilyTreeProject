@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FamilyTreeLibrary.Models;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
@@ -21,7 +17,15 @@ namespace FamilyTreeLibrary.Data
 
         public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, FamilyTreeDate value)
         {
-            context.Writer.WriteString(value.ToString());
+            string output = value.ToString();
+            if (output is null || output == string.Empty)
+            {
+                context.Writer.WriteNull();
+            }
+            else
+            {
+                context.Writer.WriteString(output);
+            }
         }
     }
 }

@@ -57,7 +57,7 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                if (value.CompareTo(FamilyTreeUtils.DefaultDate) != 0 && (value.CompareTo(Member.BirthDate) < 0 || value.CompareTo(InLaw.BirthDate) < 0))
+                if (value.CompareTo(FamilyTreeDate.DefaultDate) != 0 && (value.CompareTo(Member.BirthDate) < 0 || value.CompareTo(InLaw.BirthDate) < 0))
                 {
                     throw new MarriageDateException(this, value);
                 }
