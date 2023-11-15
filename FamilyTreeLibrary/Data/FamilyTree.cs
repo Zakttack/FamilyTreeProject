@@ -170,20 +170,13 @@ namespace FamilyTreeLibrary.Data
                 vistedNodes.Clear();
                 IList<Family> firstPart = new List<Family>();
                 IEnumerable<Family> results;
-                Func<Family,bool> rootInitializeQuery;
                 if (initialRoot is null)
                 {
-                    rootInitializeQuery = (record) => {
-                        return record.Parent is null;
-                    };
-                    results = mongoCollection.AsQueryable().Where(record => rootInitializeQuery(record)).AsEnumerable();
+                    results = mongoCollection.AsQueryable().Where(record => record.Parent == null).AsEnumerable();
                 }
                 else
                 {
-                    rootInitializeQuery = (record) => {
-                        return record == initialRoot;
-                    };
-                    results = mongoCollection.AsQueryable().Where((record) => rootInitializeQuery(record)).AsEnumerable();
+                    results = mongoCollection.AsQueryable().Where(record => record == initialRoot).AsEnumerable();
                 }
                 if (results.Any())
                 {

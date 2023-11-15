@@ -29,6 +29,16 @@ namespace FamilyTreeLibrary.Service
                     }
                     Log.Debug($"{node} has been added.");
                 }
+                long pdfNodesCount = client.Nodes.LongCount();
+                long treeNodesCount = Tree.Count;
+                if (pdfNodesCount != treeNodesCount)
+                {
+                    Log.Fatal($"Only {treeNodesCount} of {pdfNodesCount} were analyzed.");
+                }
+                else
+                {
+                    Log.Information("All nodes have been analyzed.");
+                }
             }
             catch (IOException ex)
             {

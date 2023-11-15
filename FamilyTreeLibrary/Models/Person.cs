@@ -51,6 +51,10 @@ namespace FamilyTreeLibrary.Models
 
         public int CompareTo(Person other)
         {
+            if (other is null)
+            {
+                return 1;
+            }
             int birthDateCompare = BirthDate.CompareTo(other.BirthDate);
             if (birthDateCompare != 0)
             {
@@ -61,7 +65,21 @@ namespace FamilyTreeLibrary.Models
             {
                 return deceasedDateCompare;
             }
-            return Name.Split(' ').Union(other.Name.Split(' ')).Count() > 1 ? 0 : Name.CompareTo(other.Name);
+            bool thisNameIsNull = Name is null;
+            bool otherNameIsNull = other.Name is null;
+            if (thisNameIsNull && !otherNameIsNull)
+            {
+                return -1;
+            }
+            else if (thisNameIsNull && otherNameIsNull)
+            {
+                return 0;
+            }
+            else if (!thisNameIsNull && otherNameIsNull)
+            {
+                return 1;
+            }
+            return Name.Split(' ').Intersect(other.Name.Split(' ')).Count() > 1 ? 0 : Name.CompareTo(other.Name);
         }
 
         public override bool Equals(object obj)

@@ -21,12 +21,12 @@ namespace FamilyTreeLibrary.Data.PDF
                 MarriageDate = FamilyTreeDate.DefaultDate
             };
             FilePath = filePath;
-            nodes = new SortedSet<Family>()
+            nodes = new List<Family>()
             {
                 root
             };
             Root = new Section(Array.Empty<AbstractOrderingType>(), root);
-            FamilyNodeCollection = new();
+            FamilyNodeCollection = new List<Section>();
         }
 
         public string FilePath
@@ -38,11 +38,11 @@ namespace FamilyTreeLibrary.Data.PDF
         {
             get
             {
-                return nodes;
+                return nodes.Order();
             }
         }
 
-        private List<Section> FamilyNodeCollection
+        private ICollection<Section> FamilyNodeCollection
         {
             get;
         }
@@ -101,21 +101,25 @@ namespace FamilyTreeLibrary.Data.PDF
             }
         }
 
-        private void AttachNodes(IReadOnlyList<Section> familyNodeCollection, Section root)
+        private void AttachNodes(IEnumerable<Section> familyNodeCollection, Section parent)
         {
             ICollection<Section> subFamilyNodeCollection = new List<Section>();
-            Section previousFamilyNode = root;
+            Section previousFamilyNode = parent;
+            Log.Debug($"Attaching children of {PdfUtils.GetPersonLogName(parent)}.");
             foreach (Section familyNode in familyNodeCollection)
             {
-                if (familyNode.OrderingType.Length == root.OrderingType.Length + 1)
+                if (familyNode.OrderingType.Length == parent.OrderingType.Length + 1)
                 {
-                    root.Node.Children.Add(familyNode.Node.Member);
-                    Log.Debug($"Parent of {familyNode.Node.Member.Name}: {root}");
-                    familyNode.Node.Parent = root.Node.Member;
-                    Log.Debug($"{familyNode.Node.Member.Name}: {familyNode}");
+                    parent.Node.Children.Add(familyNode.Node.Member);
+                    Log.Debug($"{PdfUtils.GetPersonLogName(parent)} has a child named {PdfUtils.GetPersonLogName(familyNode)}:\n{parent}");
+                    familyNode.Node.Parent = parent.Node.Member;
+                    Log.Debug($"{PdfUtils.GetPersonLogName(familyNode)} has a parent named {PdfUtils.GetPersonLogName(parent)}:\n{familyNode}");
                     nodes.Add(familyNode.Node);
-                    Section tempFamilyNode = previousFamilyNode;
-                    AttachSubNodes(ref subFamilyNodeCollection, tempFamilyNode);
+                    if (previousFamilyNode != parent)
+                    {
+                        Section tempFamilyNode = previousFamilyNode;
+                        AttachSubNodes(ref subFamilyNodeCollection, tempFamilyNode);
+                    }
                     previousFamilyNode = familyNode;
                 }
                 else
@@ -124,17 +128,18 @@ namespace FamilyTreeLibrary.Data.PDF
                 }
             }
             AttachSubNodes(ref subFamilyNodeCollection, previousFamilyNode);
+            Log.Debug($"The children of {PdfUtils.GetPersonLogName(parent)} have been attached.");
         }
 
-        private void AttachSubNodes(ref ICollection<Section> subFamilyNodeCollection, Section root)
+        private void AttachSubNodes(ref ICollection<Section> subFamilyNodeCollection, Section parent)
         {
-            if (subFamilyNodeCollection.Count > 0)
+            Log.Debug($"Analyzing sub-sections of {PdfUtils.GetPersonLogName(parent)}.");
+            if (subFamilyNodeCollection.Any())
             {
-                Log.Debug($"Finding sub-sections of {root.Node.Member.Name}.");
-                AttachNodes(subFamilyNodeCollection.ToList(), root);
-                Log.Debug($"Sub-section search complete.");
+                AttachNodes(subFamilyNodeCollection.AsEnumerable(), parent);
                 subFamilyNodeCollection.Clear();
             }
+            Log.Debug($"Sub-section analysis of {PdfUtils.GetPersonLogName(parent)} complete.");
         }
 
         private void CreateNode(string previousLine, Queue<AbstractOrderingType> previousPossibilities, ref AbstractOrderingType[] currentOrderingType, ref int sectionNumber)

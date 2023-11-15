@@ -164,6 +164,11 @@ namespace FamilyTreeLibrary.Data.PDF
             return pdfLines;
         }
 
+        public static string GetPersonLogName(Section section)
+        {
+            return section.Node.Member.Name is null ? "Root" : section.Node.Member.Name;
+        }
+
         public static bool IsInLaw(Queue<AbstractOrderingType> orderingTypePossibilities, string previousLine, string currentLine)
         {
             string inLawPattern = @"^[a-zA-Z0-9',\-. ]*$";

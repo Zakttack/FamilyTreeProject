@@ -1,3 +1,4 @@
+using FamilyTreeLibrary.Comparers;
 using FamilyTreeLibrary.Data;
 using FamilyTreeLibrary.Exceptions;
 using MongoDB.Bson;
@@ -72,8 +73,30 @@ namespace FamilyTreeLibrary.Models
 
         public int CompareTo(Family other)
         {
+            if (other is null)
+            {
+                return 1;
+            }
+            else if (Parent < other.Parent)
+            {
+                return -1;
+            }
+            else if (Parent > other.Parent)
+            {
+                return 1;
+            }
             int memberCompare = Member.CompareTo(other.Member);
-            return memberCompare != 0 ? memberCompare : MarriageDate.CompareTo(other.MarriageDate);
+            if (memberCompare != 0)
+            {
+                return memberCompare;
+            }
+            int marriageCompare = MarriageDate.CompareTo(other.MarriageDate);
+            if (marriageCompare != 0)
+            {
+                return marriageCompare;
+            }
+            IComparer<IEnumerable<Person>> childrenCompare = new ChildrenComparer();
+            return childrenCompare.Compare(Children, other.Children);
         }
 
         public override bool Equals(object obj)
@@ -94,20 +117,6 @@ namespace FamilyTreeLibrary.Models
         public override string ToString()
         {
             return this.ToJson();
-        }
-
-        public static bool operator== (Family a, Family b)
-        {
-            bool aIsNull = a is null;
-            bool bIsNull = b is null;
-            return (aIsNull && bIsNull) || (!aIsNull && a.Equals(b));
-        }
-
-        public static bool operator!= (Family a, Family b)
-        {
-            bool aIsNull = a is null;
-            bool bIsNull = b is null;
-            return (!aIsNull || !bIsNull) && (aIsNull || !a.Equals(b));
         }
     }
 }
