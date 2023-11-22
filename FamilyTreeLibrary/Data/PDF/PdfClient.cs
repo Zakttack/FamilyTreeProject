@@ -11,7 +11,8 @@ namespace FamilyTreeLibrary.Data.PDF
 
         public PdfClient(string filePath)
         {
-            Family root = new(new(null)
+            string name = null;
+            Family root = new(new Person(name)
             {
                 BirthDate = FamilyTreeDate.DefaultDate,
                 DeceasedDate = FamilyTreeDate.DefaultDate
@@ -21,7 +22,7 @@ namespace FamilyTreeLibrary.Data.PDF
                 MarriageDate = FamilyTreeDate.DefaultDate
             };
             FilePath = filePath;
-            nodes = new List<Family>()
+            nodes = new SortedSet<Family>()
             {
                 root
             };
@@ -38,7 +39,7 @@ namespace FamilyTreeLibrary.Data.PDF
         {
             get
             {
-                return nodes.Order();
+                return nodes;
             }
         }
 
@@ -80,7 +81,7 @@ namespace FamilyTreeLibrary.Data.PDF
                 }
                 catch (Exception ex)
                 {
-                    Log.Fatal($"{ex.GetType().Name} on Section #{++sectionNumber}: {ex.Message}\n{ex.StackTrace}");
+                    throw new SystemException($"{ex.GetType().Name} on Section #{++sectionNumber}: {ex.Message}\n{ex.StackTrace}", ex);
                 }
             }
             CreateNode(previousLine, previousPossibilities, ref currentOrderingType, ref sectionNumber);
@@ -89,16 +90,9 @@ namespace FamilyTreeLibrary.Data.PDF
 
         public void AttachNodes()
         {
-            try
-            {
-                Log.Debug("Nodes are connecting.");
-                AttachNodes(FamilyNodeCollection, Root);
-                Log.Debug("Nodes are connected.");
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
-            }
+            Log.Debug("Nodes are connecting.");
+            AttachNodes(FamilyNodeCollection, Root);
+            Log.Debug("Nodes are connected.");
         }
 
         private void AttachNodes(IEnumerable<Section> familyNodeCollection, Section parent)

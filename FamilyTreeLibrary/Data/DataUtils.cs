@@ -10,7 +10,7 @@ namespace FamilyTreeLibrary.Data
     {
         private const string APP_SETTINGS_FILE_NAME = "appsettings.json";
 
-        public static IMongoCollection<Family> GetCollection(string familyName)
+        public static IMongoCollection<BsonDocument> GetCollection(string familyName)
         {
             string appSettingsFilePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), APP_SETTINGS_FILE_NAME);
             IConfiguration configuration = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
@@ -26,38 +26,52 @@ namespace FamilyTreeLibrary.Data
             {
                 database.CreateCollection(familyName);
             }
-            return database.GetCollection<Family>(familyName);
+            return database.GetCollection<BsonDocument>(familyName);
         }
 
-        public static IEnumerable<Family> GetChildrenOf(Family node, IMongoCollection<Family> collection)
+        public static IEnumerable<Family> GetChildrenOf(Family node, IMongoCollection<BsonDocument> collection)
         {
-            IMongoQueryable<Family> families = collection.AsQueryable();
-            if (node is null)
+            ICollection<Family> children = new SortedSet<Family>();
+            if (node is not null)
             {
-                ICollection<Family> root = new List<Family>();
-                if (families.Any())
+                BsonDocument document = node.Document;
+                IEnumerable<BsonDocument> childrenDocs = document["Children"].AsBsonArray
+                    .Select(child => child.AsBsonDocument);
+                FilterDefinition<BsonDocument> personToChildFilter = Builders<BsonDocument>.Filter.In("Member", childrenDocs);
+                IFindFluent<BsonDocument,BsonDocument> personToChildResult = collection.Find(personToChildFilter);
+                IEnumerable<BsonDocument> matches = personToChildResult.ToEnumerable().Where((doc) => {
+                    return !doc["Parent"].IsBsonNull && doc["Parent"] == document["Member"];
+                });
+                foreach (BsonDocument doc in matches)
                 {
-                    root.Add(families.First());
+                    children.Add(new(doc));
                 }
-                return root;
             }
-            else if (!families.Where((record) => record == node).Any())
-            {
-                return null;
-            }
-            IEnumerable<Family> potentialChildren = families.Where((record) => node.Children.Contains(record.Member)).AsEnumerable();
-            return potentialChildren.Where((potentialChild) => potentialChild.Parent == node.Member);
+            return children;
         }
 
-        public static Family GetParentOf(Family node, IMongoCollection<Family> collection)
+        public static Family GetParentOf(Family node, IMongoCollection<BsonDocument> collection)
         {
-            IMongoQueryable<Family> families = collection.AsQueryable();
-            if (node is null || node.Parent is null || !families.Where((record) => record == node).Any())
+            if (node is not null)
             {
-                return null;
+                BsonDocument document = node.Document;
+                if (!document["Parent"].IsBsonNull)
+                {
+                    BsonDocument parentDoc = document["Parent"].AsBsonDocument;
+                    FilterDefinition<BsonDocument> personToParentFilter = Builders<BsonDocument>.Filter.Eq("Member", parentDoc);
+                    IFindFluent<BsonDocument,BsonDocument> personToParentResult = collection.Find(personToParentFilter);
+                    IEnumerable<BsonDocument> parentPossibilities = personToParentResult.ToEnumerable();
+                    foreach (BsonDocument possibility in parentPossibilities)
+                    {
+                        Family fam = new(possibility);
+                        if (fam.Children.Contains(node.Member))
+                        {
+                            return fam;
+                        }
+                    }
+                }
             }
-            IEnumerable<Family> potentialParents = families.Where((record) => record.Member == node.Parent).AsEnumerable();
-            return families.Where((parent) => parent.Children.Contains(node.Member)).FirstOrDefault();
+            return null;
         }
     }
 }

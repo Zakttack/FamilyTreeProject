@@ -1,4 +1,3 @@
-using System.Data;
 using FamilyTreeLibrary.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -10,7 +9,7 @@ namespace FamilyTreeLibrary.Data
 {
     public class FamilyTree : IFamilyTree
     {
-        private readonly IMongoCollection<Family> mongoCollection;
+        private readonly IMongoCollection<BsonDocument> mongoCollection;
         private readonly Family initialRoot;
 
         public FamilyTree(string name)
@@ -35,11 +34,11 @@ namespace FamilyTreeLibrary.Data
             }
         }
 
-        public IEnumerable<Family> this[Person member]
+        public Family this[Person member]
         {
             get
             {
-                return this.Where((node) => node.Member == member);
+                return this.Where((node) => node.Member == member).FirstOrDefault();
             }
         }
 
@@ -56,13 +55,29 @@ namespace FamilyTreeLibrary.Data
             get;
         }
 
-        public void Add(Family node)
+        public void Add(Family parentNode, Family childNode)
         {
-            mongoCollection.InsertOne(node);
-            Family parentInitial = DataUtils.GetParentOf(node, mongoCollection);
-            Family parentFinal = parentInitial;
-            parentFinal.Children.Add(node.Member);
-            mongoCollection.UpdateOne(parentInitial.ToBsonDocument(), parentFinal.ToBsonDocument());
+            mongoCollection.InsertOne(childNode.Document);
+            if (parentNode is not null)
+            {
+                IEnumerable<Person> commonChildren = parentNode.Children.Intersect(childNode.Children);
+                foreach (Person commonChild in commonChildren)
+                {
+                    Family finalParent = parentNode;
+                    finalParent.Children.Remove(commonChild);
+                    Family initialChild = this[commonChild];
+                    Family finalChild = initialChild;
+                    finalChild.Parent = finalParent.Member;
+                    Update(parentNode, finalParent);
+                    Update(initialChild, finalChild);
+                }
+                BsonDocument parentDoc = parentNode.Document;
+                BsonArray children = parentDoc["Children"].AsBsonArray;
+                children.Add(childNode.Member.Document);
+                FilterDefinition<BsonDocument> findParentFilter = Builders<BsonDocument>.Filter.Eq("Id", parentDoc["Id"]);
+                UpdateDefinition<BsonDocument> update = Builders<BsonDocument>.Update.Set("Children", children);
+                mongoCollection.UpdateOne(findParentFilter, update);
+            }
         }
 
         public bool Contains(Family node)
@@ -105,7 +120,9 @@ namespace FamilyTreeLibrary.Data
 
         public void Update(Family initialNode, Family finalNode)
         {
-            mongoCollection.UpdateOne(initialNode.ToBsonDocument(), finalNode.ToBsonDocument());
+            ObjectId id = initialNode.Id;
+            FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter.Eq("Id", id);
+            mongoCollection.FindOneAndReplace(filter, finalNode.Document);
         }
 
         private int GetHeight(Family current)
@@ -128,9 +145,9 @@ namespace FamilyTreeLibrary.Data
             private readonly ICollection<IList<Family>> vistedNodes;
             private readonly Family initialRoot;
 
-            private readonly IMongoCollection<Family> mongoCollection;
+            private readonly IMongoCollection<BsonDocument> mongoCollection;
 
-            public FamilyEnumerator(IMongoCollection<Family> collection, Family initialRoot)
+            public FamilyEnumerator(IMongoCollection<BsonDocument> collection, Family initialRoot)
             {
                 mongoCollection = collection;
                 vistedNodes = new List<IList<Family>>();
@@ -142,7 +159,9 @@ namespace FamilyTreeLibrary.Data
             {
                 get
                 {
-                    return vistedNodes.Last().Last();
+                    Family currentNode = vistedNodes.Last().Last();
+                    InsertNode(FindNext(currentNode));
+                    return currentNode;
                 }
             }
 
@@ -156,8 +175,7 @@ namespace FamilyTreeLibrary.Data
 
             public void Dispose()
             {
-                Family previous = Current;
-                InsertNode(FindNext(previous));
+                Reset();
             }
 
             public bool MoveNext()
@@ -169,25 +187,20 @@ namespace FamilyTreeLibrary.Data
             {
                 vistedNodes.Clear();
                 IList<Family> firstPart = new List<Family>();
-                IEnumerable<Family> results;
+                FilterDefinition<BsonDocument> rootFilter;
                 if (initialRoot is null)
                 {
-                    results = mongoCollection.AsQueryable().Where(record => record.Parent == null).AsEnumerable();
+                    rootFilter = Builders<BsonDocument>.Filter.Eq("Parent", BsonNull.Value);
                 }
                 else
                 {
-                    results = mongoCollection.AsQueryable().Where(record => record == initialRoot).AsEnumerable();
+                    ObjectId id = initialRoot.Id;
+                    rootFilter = Builders<BsonDocument>.Filter.Eq("Id", id);
                 }
-                if (results.Any())
+                IFindFluent<BsonDocument,BsonDocument> queryResult = mongoCollection.Find(rootFilter);
+                if (queryResult.Any())
                 {
-                    Family rootValue = results.First();
-                    if (rootValue.Parent is not null)
-                    {
-                        Family parent = DataUtils.GetParentOf(rootValue, mongoCollection);
-                        parent.Children.Remove(rootValue.Member);
-                        rootValue.Parent = null;
-                    }
-                    firstPart.Add(rootValue);
+                    firstPart.Add(new(queryResult.First()));
                 }
                 else
                 {

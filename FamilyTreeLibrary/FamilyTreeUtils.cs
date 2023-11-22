@@ -1,5 +1,4 @@
-﻿using FamilyTreeLibrary.Models;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Serilog;
 using System.Text.RegularExpressions;
 
@@ -42,6 +41,11 @@ namespace FamilyTreeLibrary
                     .MinimumLevel.Debug()
                     .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)
                     .CreateLogger();
+        }
+
+        public static void WriteError(Exception ex)
+        {
+            Log.Fatal($"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
         }
 
         [GeneratedRegex(@"^\d+$")]

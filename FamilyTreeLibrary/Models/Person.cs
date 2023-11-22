@@ -1,38 +1,32 @@
-using FamilyTreeLibrary.Data;
 using FamilyTreeLibrary.Exceptions;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace FamilyTreeLibrary.Models
 {
     public class Person : IComparable<Person>, IEquatable<Person>
     {
         private FamilyTreeDate deceasedDate;
+
         public Person(string name)
         {
             Name = name;
         }
 
-        [BsonElement(nameof(Name))]
-        [BsonDefaultValue(null)]
-        [BsonIgnoreIfDefault(false)]
+        public Person(BsonDocument document)
+        {
+            Name = document.GetValue("Name").AsString;
+            BirthDate = new(document.GetValue("BirthDate").AsString);
+            DeceasedDate = new(document.GetValue("DeceasedDate").AsString);
+        }
         public string Name
         {
             get;
         }
-        [BsonElement(nameof(BirthDate))]
-        [BsonSerializer(typeof(DateSerializer))]
-        [BsonDefaultValue(null)]
-        [BsonIgnoreIfDefault(false)]
         public FamilyTreeDate BirthDate
         {
             get;
             set;
         }
-        [BsonElement(nameof(DeceasedDate))]
-        [BsonSerializer(typeof(DateSerializer))]
-        [BsonDefaultValue(null)]
-        [BsonIgnoreIfDefault(false)]
         public FamilyTreeDate DeceasedDate
         {
             get
@@ -46,6 +40,20 @@ namespace FamilyTreeLibrary.Models
                     throw new DeceasedDateException(this, value);
                 }
                 deceasedDate = value;
+            }
+        }
+
+        public BsonDocument Document
+        {
+            get
+            {
+                Dictionary<string,object> doc = new()
+                {
+                    {"Name", Name},
+                    {"BirthDate", BirthDate.ToString()},
+                    {"DeceasedDate", DeceasedDate.ToString()}
+                };
+                return new(doc);
             }
         }
 
@@ -79,7 +87,7 @@ namespace FamilyTreeLibrary.Models
             {
                 return 1;
             }
-            return Name.Split(' ').Intersect(other.Name.Split(' ')).Count() > 1 ? 0 : Name.CompareTo(other.Name);
+            return Name.CompareTo(other.Name);
         }
 
         public override bool Equals(object obj)
@@ -99,7 +107,7 @@ namespace FamilyTreeLibrary.Models
 
         public override string ToString()
         {
-            return this.ToJson();
+            return Document.ToJson();
         }
 
         public static bool operator== (Person a, Person b)

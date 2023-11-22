@@ -25,15 +25,17 @@ namespace FamilyTreeLibrary.Service
                     if (!Tree.Contains(node))
                     {
                         Log.Debug($"Adding {node}");
-                        Tree.Add(node);
+                        Family parent = Tree[node.Parent];
+                        Tree.Add(parent, node);
+                        Log.Debug($"{node} has been added.");
                     }
-                    Log.Debug($"{node} has been added.");
+                    Log.Information($"{node} exists in the tree.");
                 }
                 long pdfNodesCount = client.Nodes.LongCount();
                 long treeNodesCount = Tree.Count;
                 if (pdfNodesCount != treeNodesCount)
                 {
-                    Log.Fatal($"Only {treeNodesCount} of {pdfNodesCount} were analyzed.");
+                    Log.Warning($"Only {treeNodesCount} of {pdfNodesCount} were analyzed.");
                 }
                 else
                 {
@@ -67,7 +69,7 @@ namespace FamilyTreeLibrary.Service
                 InLaw = null,
                 MarriageDate = FamilyTreeDate.DefaultDate
             };
-            Tree.Add(childNode);
+            Tree.Add(parent, childNode);
         }
 
         public void ReportDeceased(Person p, FamilyTreeDate deceasedDate)
@@ -100,7 +102,7 @@ namespace FamilyTreeLibrary.Service
             }
         }
 
-        public void ReportMarried(Person member, Person inLaw, FamilyTreeDate marriageDate)
+        public void ReportMarried(Person parent, Person member, Person inLaw, FamilyTreeDate marriageDate)
         {
             if (member is null)
             {
@@ -110,28 +112,27 @@ namespace FamilyTreeLibrary.Service
             {
                 throw new ArgumentNullException(nameof(inLaw), $"{member.Name} can't married to someone who doesn't exist.");
             }
-            IEnumerable<Family> families = Tree[member];
-            if (!families.Any())
+            else if (parent is null)
             {
-                throw new ArgumentException($"{member.Name} isn't biologically part of the {Tree.Name} family.");
+                throw new ArgumentNullException(nameof(parent), "The parent doesn't exist.");
             }
-            IEnumerable<Family> matches = families.Where((node) => node.InLaw == inLaw);
+            Family parentNode = Tree[parent] ?? throw new ArgumentException($"{parent.Name} isn't found in the tree.");
+            IEnumerable<Family> families = Tree.Where((fam) => fam.Parent == parent && fam.Member == member && fam.InLaw == inLaw);
             Family family;
-            if (matches.Any())
+            if (families.Any())
             {
-                family = matches.First();
+                family = Tree[member];
                 family.MarriageDate = marriageDate;
-                Tree.Update(matches.First(), family);
             }
             else
             {
                 family = new(member)
                 {
-                    Parent = families.First().Parent,
+                    Parent = parent,
                     InLaw = inLaw,
                     MarriageDate = marriageDate
                 };
-                Tree.Add(family);
+                Tree.Add(parentNode, family);
             }
         }
 

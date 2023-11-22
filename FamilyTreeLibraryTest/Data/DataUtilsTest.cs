@@ -1,4 +1,5 @@
 using FamilyTreeLibrary.Data;
+using Serilog;
 namespace FamilyTreeLibraryTest.Data
 {
     public class DataUtilsTest
@@ -6,18 +7,20 @@ namespace FamilyTreeLibraryTest.Data
         [Test]
         public void TestPfingstenCollectionConnection()
         {
-            object result;
+            Exception problem;
             try
             {
                 string familyName = "Pfingsten";
-                result = DataUtils.GetCollection(familyName);
+                DataUtils.GetCollection(familyName);
+                Log.Information("Connection Successful.");
+                problem = null;
             }
             catch (Exception ex)
             {
-                result = null;
-                Assert.Fail($"{ex.GetType().Name}: {ex.Message}\n {ex.StackTrace}");
+                Log.Fatal($"Unable to Connect.\n{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+                problem = ex;
             }
-            Assert.Pass(result.ToString());
+            Assert.That(problem, Is.Null);
         }
 
     }

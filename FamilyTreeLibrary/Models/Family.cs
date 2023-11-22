@@ -1,9 +1,6 @@
 using FamilyTreeLibrary.Comparers;
-using FamilyTreeLibrary.Data;
 using FamilyTreeLibrary.Exceptions;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace FamilyTreeLibrary.Models
 {
@@ -17,39 +14,41 @@ namespace FamilyTreeLibrary.Models
             Children = new SortedSet<Person>();
         }
 
-        [BsonId]
+        public Family(BsonDocument document)
+        {
+            Id = document.GetValue("Id").AsObjectId;
+            BsonValue parentValue = document["Parent"];
+            Parent = parentValue.IsBsonNull ? null : new(document["Parent"].AsBsonDocument);
+            Member = new(document["Member"].AsBsonDocument);
+            BsonValue inLawValue = document["InLaw"];
+            InLaw = inLawValue.IsBsonNull ? null : new(document["InLaw"].AsBsonDocument);
+            BsonValue marriageDateValue = document["MarriageDate"];
+            MarriageDate = marriageDateValue.IsBsonNull ? FamilyTreeDate.DefaultDate : new(document.GetValue("MarriageDate").AsString);
+            BsonArray array = document["Children"].AsBsonArray;
+            Children = new SortedSet<Person>();
+            foreach (BsonValue child in array.Values)
+            {
+                Children.Add(new(child.AsBsonDocument));
+            }
+        }
         public ObjectId Id
         {
             get;
         }
-        [BsonElement(nameof(Parent))]
-        [BsonDefaultValue(null)]
-        [BsonIgnoreIfDefault(false)]
         public Person Parent
         {
             get;
             set;
         }
-        [BsonElement(nameof(Member))]
-        [BsonDefaultValue(null)]
-        [BsonIgnoreIfDefault(false)]
         public Person Member
         {
             get;
-            set;
         }
-        [BsonElement(nameof(InLaw))]
-        [BsonDefaultValue(null)]
-        [BsonIgnoreIfDefault(false)]
         public Person InLaw
         {
             get;
             set;
         }
-        [BsonElement(nameof(MarriageDate))]
-        [BsonSerializer(typeof(DateSerializer))]
-        [BsonDefaultValue(null)]
-        [BsonIgnoreIfDefault(false)]
         public FamilyTreeDate MarriageDate
         {
             get
@@ -65,10 +64,32 @@ namespace FamilyTreeLibrary.Models
                 marriageDate = value;
             }
         }
-        [BsonElement(nameof(Children))]
         public ICollection<Person> Children
         {
             get;
+        }
+
+        public BsonDocument Document
+        {
+            get
+            {
+                Dictionary<string,object> doc = new()
+                {
+                    {"Id", Id},
+                    {"Parent", Parent is null ? BsonNull.Value : Parent.Document},
+                    {"Member", Member.Document},
+                    {"InLaw", InLaw is null ? BsonNull.Value : InLaw.Document},
+                    {"MarriageDate", MarriageDate == FamilyTreeDate.DefaultDate ? BsonNull.Value : MarriageDate.ToString()}
+                };
+                BsonArray array = new();
+                foreach (Person child in Children)
+                {
+                    BsonArray temp = array;
+                    array = temp.Add(child.Document);
+                }
+                doc.Add("Children", array);
+                return new(doc);
+            }
         }
 
         public int CompareTo(Family other)
@@ -116,7 +137,7 @@ namespace FamilyTreeLibrary.Models
 
         public override string ToString()
         {
-            return this.ToJson();
+            return Document.ToJson();
         }
     }
 }

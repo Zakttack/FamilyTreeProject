@@ -9,7 +9,7 @@ namespace FamilyTreeLibrary.Data
             get;
         }
 
-        public IEnumerable<Family> this[Person member]
+        public Family this[Person member]
         {
             get;
         }
@@ -24,7 +24,7 @@ namespace FamilyTreeLibrary.Data
             get;
         }
 
-        public void Add(Family node);
+        public void Add(Family parentNode, Family childNode);
 
         public bool Contains(Family node);
 
