@@ -7,26 +7,18 @@ namespace FamilyTreeLibrary.Data.PDF
 {
     public class PdfClient
     {
-        private readonly ICollection<Family> nodes;
+        private readonly ICollection<FamilyNode> nodes;
 
         public PdfClient(string filePath)
         {
-            string name = null;
-            Family root = new(new Person(name)
-            {
-                BirthDate = FamilyTreeDate.DefaultDate,
-                DeceasedDate = FamilyTreeDate.DefaultDate
-            })
-            {
-                InLaw = null,
-                MarriageDate = FamilyTreeDate.DefaultDate
-            };
+            Family root = new(new(null, FamilyTreeDate.DefaultDate, FamilyTreeDate.DefaultDate), null, FamilyTreeDate.DefaultDate);
+            FamilyNode rootNode = new(null, root);
             FilePath = filePath;
-            nodes = new SortedSet<Family>()
+            nodes = new SortedSet<FamilyNode>()
             {
-                root
+                rootNode
             };
-            Root = new Section(Array.Empty<AbstractOrderingType>(), root);
+            Root = new Section(Array.Empty<AbstractOrderingType>(), rootNode);
             FamilyNodeCollection = new List<Section>();
         }
 
@@ -35,7 +27,7 @@ namespace FamilyTreeLibrary.Data.PDF
             get;
         }
 
-        public IEnumerable<Family> Nodes
+        public IEnumerable<FamilyNode> Nodes
         {
             get
             {
@@ -104,9 +96,9 @@ namespace FamilyTreeLibrary.Data.PDF
             {
                 if (familyNode.OrderingType.Length == parent.OrderingType.Length + 1)
                 {
-                    parent.Node.Children.Add(familyNode.Node.Member);
+                    parent.Node.Children.Add(familyNode.Node.Element);
                     Log.Debug($"{PdfUtils.GetPersonLogName(parent)} has a child named {PdfUtils.GetPersonLogName(familyNode)}:\n{parent}");
-                    familyNode.Node.Parent = parent.Node.Member;
+                    familyNode.Node.Parent = parent.Node.Element;
                     Log.Debug($"{PdfUtils.GetPersonLogName(familyNode)} has a parent named {PdfUtils.GetPersonLogName(parent)}:\n{familyNode}");
                     nodes.Add(familyNode.Node);
                     if (previousFamilyNode != parent)

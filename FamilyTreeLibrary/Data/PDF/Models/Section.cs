@@ -5,7 +5,7 @@ namespace FamilyTreeLibrary.Data.PDF.Models
 {
     public class Section
     {
-        public Section(AbstractOrderingType[] orderingType, Family node)
+        public Section(AbstractOrderingType[] orderingType, FamilyNode node)
         {
             OrderingType = orderingType;
             Node = node;
@@ -15,7 +15,7 @@ namespace FamilyTreeLibrary.Data.PDF.Models
             get;
         }
 
-        public Family Node
+        public FamilyNode Node
         {
             get;
         }

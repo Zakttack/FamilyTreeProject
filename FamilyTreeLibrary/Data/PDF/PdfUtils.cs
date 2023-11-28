@@ -24,7 +24,7 @@ namespace FamilyTreeLibrary.Data.PDF
                     {
                         orderingType = AbstractOrderingType.PreviousOrderingType(orderingType);
                     }
-                    section = new(orderingType, node);
+                    section = new(orderingType, new(null, node));
                     sections.Add(section);
                     if (sectionNumber == sections.Count - 1)
                     {
@@ -36,7 +36,7 @@ namespace FamilyTreeLibrary.Data.PDF
                 AbstractOrderingType[] next = AbstractOrderingType.NextOrderingType(previous, type);
                 if (next != null)
                 {
-                    section = new(next, node);
+                    section = new(next, new(null, node));
                     sections.Add(section);
                     if (sectionNumber == sections.Count - 1)
                     {
@@ -52,46 +52,30 @@ namespace FamilyTreeLibrary.Data.PDF
         public static Family GetFamily(Queue<Line> lines)
         {
             Line memberLine;
+            bool memberHasBirthDate;
+            bool memberHasDeceasedDate;
             Person member;
-            Line inLawLine;
-            Person inLaw;
-            Family fam;
             if (lines.Count % 2 == 0)
             {
                 memberLine = lines.Dequeue();
-                member = new(memberLine.Name)
-                {
-                    BirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirthDate) ? memberBirthDate : FamilyTreeDate.DefaultDate
-                };
-                FamilyTreeDate marriageDate = memberLine.Dates.TryDequeue(out FamilyTreeDate marriage) ? marriage : FamilyTreeDate.DefaultDate;
-                member.DeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceasedDate) ? memberDeceasedDate : FamilyTreeDate.DefaultDate;
-                inLawLine = lines.Dequeue();
-                inLaw = new(inLawLine.Name)
-                {
-                    BirthDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawBirthDate) ? inLawBirthDate : FamilyTreeDate.DefaultDate,
-                    DeceasedDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawDeceasedDate) ? inLawDeceasedDate : FamilyTreeDate.DefaultDate
-                };
-                fam = new Family(member)
-                {
-                    InLaw = inLaw,
-                    MarriageDate = marriageDate
-                };
+                memberHasBirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirthDate);
+                bool hasMarriageDate = memberLine.Dates.TryDequeue(out FamilyTreeDate marriage);
+                memberHasDeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceasedDate);
+                member = new(memberLine.Name, memberHasBirthDate ? memberBirthDate : FamilyTreeDate.DefaultDate,
+                    memberHasDeceasedDate ? memberDeceasedDate : FamilyTreeDate.DefaultDate);
+                Line inLawLine = lines.Dequeue();
+                bool inLawHasBirthDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawBirthDate);
+                bool inLawHasDeceasedDate = inLawLine.Dates.TryDequeue(out FamilyTreeDate inLawDeceasedDate);
+                Person inLaw = new(inLawLine.Name, inLawHasBirthDate ? inLawBirthDate : FamilyTreeDate.DefaultDate,
+                    inLawHasDeceasedDate ? inLawDeceasedDate : FamilyTreeDate.DefaultDate);
+                return new(member, inLaw, hasMarriageDate ? marriage : FamilyTreeDate.DefaultDate);
             }
-            else
-            {
-                memberLine = lines.Dequeue();
-                member = new(memberLine.Name)
-                {
-                    BirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberBirth) ? memberBirth : FamilyTreeDate.DefaultDate,
-                    DeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate memberDeceased) ? memberDeceased : FamilyTreeDate.DefaultDate
-                };
-                fam = new Family(member)
-                {
-                    InLaw = null,
-                    MarriageDate = FamilyTreeDate.DefaultDate
-                };
-            }
-            return fam;
+            memberLine = lines.Dequeue();
+            memberHasBirthDate = memberLine.Dates.TryDequeue(out FamilyTreeDate birthDate);
+            memberHasDeceasedDate = memberLine.Dates.TryDequeue(out FamilyTreeDate deceasedDate);
+            member = new(memberLine.Name, memberHasBirthDate ? birthDate : FamilyTreeDate.DefaultDate,
+                memberHasDeceasedDate ? deceasedDate : FamilyTreeDate.DefaultDate);
+            return new(member, null, FamilyTreeDate.DefaultDate);
         }
 
         public static Queue<Line> GetLines(string[] tokens)
@@ -166,7 +150,7 @@ namespace FamilyTreeLibrary.Data.PDF
 
         public static string GetPersonLogName(Section section)
         {
-            return section.Node.Member.Name is null ? "Root" : section.Node.Member.Name;
+            return section.Node.Element.Member.Name is null ? "Root" : section.Node.Element.Member.Name;
         }
 
         public static bool IsInLaw(Queue<AbstractOrderingType> orderingTypePossibilities, string previousLine, string currentLine)
@@ -216,7 +200,7 @@ namespace FamilyTreeLibrary.Data.PDF
             }
             IEqualityComparer<AbstractOrderingType[]> duplicateChecker = new OrderingTypeComparer();
             Section[] sectionMatches = sections.Where((sec) => duplicateChecker.Equals(sec.OrderingType, current.ToArray())).ToArray();
-            return sectionMatches.Length != 0 && sectionMatches[0].OrderingType[^1].Equals(temp) && sectionMatches[0].Node.Member.BirthDate.Equals(node.Member.BirthDate);
+            return sectionMatches.Length != 0 && sectionMatches[0].OrderingType[^1].Equals(temp) && sectionMatches[0].Node.Element.Member.BirthDate.Equals(node.Member.BirthDate);
         }
     }
 }

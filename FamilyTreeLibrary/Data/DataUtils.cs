@@ -1,8 +1,8 @@
-using FamilyTreeLibrary.Models;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using System.Linq;
 
 namespace FamilyTreeLibrary.Data
 {
@@ -29,44 +29,43 @@ namespace FamilyTreeLibrary.Data
             return database.GetCollection<BsonDocument>(familyName);
         }
 
-        public static IEnumerable<Family> GetChildrenOf(Family node, IMongoCollection<BsonDocument> collection)
+        public static IEnumerable<FamilyNode> GetChildrenOf(FamilyNode node, IMongoCollection<BsonDocument> collection)
         {
-            ICollection<Family> children = new SortedSet<Family>();
+            ICollection<FamilyNode> children = new SortedSet<FamilyNode>();
             if (node is not null)
             {
-                BsonDocument document = node.Document;
-                IEnumerable<BsonDocument> childrenDocs = document["Children"].AsBsonArray
-                    .Select(child => child.AsBsonDocument);
-                FilterDefinition<BsonDocument> personToChildFilter = Builders<BsonDocument>.Filter.In("Member", childrenDocs);
-                IFindFluent<BsonDocument,BsonDocument> personToChildResult = collection.Find(personToChildFilter);
-                IEnumerable<BsonDocument> matches = personToChildResult.ToEnumerable().Where((doc) => {
-                    return !doc["Parent"].IsBsonNull && doc["Parent"] == document["Member"];
+                BsonDocument parent = node.Document;
+                IEnumerable<BsonDocument> childrenOfParent = parent[nameof(node.Children)].AsBsonArray.Select(doc => doc.AsBsonDocument);
+                FilterDefinition<BsonDocument> childrenFilter = Builders<BsonDocument>.Filter.In(nameof(node.Element), childrenOfParent);
+                IFindFluent<BsonDocument,BsonDocument> childrenResults = collection.Find(childrenFilter);
+                IEnumerable<BsonDocument> records = childrenResults.ToEnumerable().Where(doc => {
+                    return doc[nameof(node.Parent)] == parent[nameof(node.Element)];
                 });
-                foreach (BsonDocument doc in matches)
+                foreach (BsonDocument record in records)
                 {
-                    children.Add(new(doc));
+                    children.Add(new(record));
                 }
             }
             return children;
         }
 
-        public static Family GetParentOf(Family node, IMongoCollection<BsonDocument> collection)
+        public static FamilyNode GetParentOf(FamilyNode node, IMongoCollection<BsonDocument> collection)
         {
             if (node is not null)
             {
-                BsonDocument document = node.Document;
-                if (!document["Parent"].IsBsonNull)
+                BsonDocument child = node.Document;
+                if (child[nameof(node.Parent)] is not null && child[nameof(node.Parent)] != BsonNull.Value)
                 {
-                    BsonDocument parentDoc = document["Parent"].AsBsonDocument;
-                    FilterDefinition<BsonDocument> personToParentFilter = Builders<BsonDocument>.Filter.Eq("Member", parentDoc);
-                    IFindFluent<BsonDocument,BsonDocument> personToParentResult = collection.Find(personToParentFilter);
-                    IEnumerable<BsonDocument> parentPossibilities = personToParentResult.ToEnumerable();
-                    foreach (BsonDocument possibility in parentPossibilities)
+                    BsonDocument parent = child[nameof(node.Parent)].AsBsonDocument;
+                    FilterDefinition<BsonDocument> parentFilter = Builders<BsonDocument>.Filter.Eq(nameof(node.Element), parent);
+                    IFindFluent<BsonDocument,BsonDocument> parentResults = collection.Find(parentFilter);
+                    IEnumerable<BsonDocument> records = parentResults.ToEnumerable();
+                    foreach (BsonDocument record in records)
                     {
-                        Family fam = new(possibility);
-                        if (fam.Children.Contains(node.Member))
+                        FamilyNode parentNode = new(record);
+                        if (parentNode.Children.Contains(node.Element))
                         {
-                            return fam;
+                            return parentNode;
                         }
                     }
                 }

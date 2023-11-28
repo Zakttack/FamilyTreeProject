@@ -1,4 +1,3 @@
-using FamilyTreeLibrary.Comparers;
 using FamilyTreeLibrary.Exceptions;
 using MongoDB.Bson;
 
@@ -7,38 +6,18 @@ namespace FamilyTreeLibrary.Models
     public class Family : IComparable<Family>, IEquatable<Family>
     {
         private FamilyTreeDate marriageDate;
-        public Family(Person member, ObjectId id = default)
+        public Family(Person member, Person inLaw, FamilyTreeDate marriageDate)
         {
-            Id = id == default ? ObjectId.GenerateNewId() : id;
             Member = member;
-            Children = new SortedSet<Person>();
+            InLaw = inLaw;
+            MarriageDate = marriageDate;
         }
 
         public Family(BsonDocument document)
         {
-            Id = document.GetValue("Id").AsObjectId;
-            BsonValue parentValue = document["Parent"];
-            Parent = parentValue.IsBsonNull ? null : new(document["Parent"].AsBsonDocument);
-            Member = new(document["Member"].AsBsonDocument);
-            BsonValue inLawValue = document["InLaw"];
-            InLaw = inLawValue.IsBsonNull ? null : new(document["InLaw"].AsBsonDocument);
-            BsonValue marriageDateValue = document["MarriageDate"];
-            MarriageDate = marriageDateValue.IsBsonNull ? FamilyTreeDate.DefaultDate : new(document.GetValue("MarriageDate").AsString);
-            BsonArray array = document["Children"].AsBsonArray;
-            Children = new SortedSet<Person>();
-            foreach (BsonValue child in array.Values)
-            {
-                Children.Add(new(child.AsBsonDocument));
-            }
-        }
-        public ObjectId Id
-        {
-            get;
-        }
-        public Person Parent
-        {
-            get;
-            set;
+            Member = document[nameof(Member)].IsBsonNull ? null : new(document[nameof(Member)].AsBsonDocument);
+            InLaw = document[nameof(InLaw)].IsBsonNull ? null : new(document[nameof(InLaw)].AsBsonDocument);
+            MarriageDate = document[nameof(MarriageDate)].IsBsonNull ? FamilyTreeDate.DefaultDate : new(document[nameof(MarriageDate)].AsString);
         }
         public Person Member
         {
@@ -64,10 +43,6 @@ namespace FamilyTreeLibrary.Models
                 marriageDate = value;
             }
         }
-        public ICollection<Person> Children
-        {
-            get;
-        }
 
         public BsonDocument Document
         {
@@ -75,20 +50,12 @@ namespace FamilyTreeLibrary.Models
             {
                 Dictionary<string,object> doc = new()
                 {
-                    {"Id", Id},
-                    {"Parent", Parent is null ? BsonNull.Value : Parent.Document},
-                    {"Member", Member.Document},
-                    {"InLaw", InLaw is null ? BsonNull.Value : InLaw.Document},
-                    {"MarriageDate", MarriageDate == FamilyTreeDate.DefaultDate ? BsonNull.Value : MarriageDate.ToString()}
+                    {nameof(Member), Member is null ? BsonNull.Value : Member.Document},
+                    {nameof(InLaw), InLaw is null ? BsonNull.Value : InLaw.Document},
+                    {nameof(MarriageDate), MarriageDate == default || MarriageDate == FamilyTreeDate.DefaultDate ?
+                        BsonNull.Value : MarriageDate.ToString()}
                 };
-                BsonArray array = new();
-                foreach (Person child in Children)
-                {
-                    BsonArray temp = array;
-                    array = temp.Add(child.Document);
-                }
-                doc.Add("Children", array);
-                return new(doc);
+                return new(doc); 
             }
         }
 
@@ -98,26 +65,27 @@ namespace FamilyTreeLibrary.Models
             {
                 return 1;
             }
-            else if (Parent < other.Parent)
+            else if (Member < other.Member)
             {
                 return -1;
             }
-            else if (Parent > other.Parent)
+            else if (Member > other.Member)
             {
                 return 1;
             }
-            int memberCompare = Member.CompareTo(other.Member);
-            if (memberCompare != 0)
+            else if (MarriageDate < other.MarriageDate)
             {
-                return memberCompare;
+                return -1;
             }
-            int marriageCompare = MarriageDate.CompareTo(other.MarriageDate);
-            if (marriageCompare != 0)
+            else if (MarriageDate > other.MarriageDate)
             {
-                return marriageCompare;
+                return 1;
             }
-            IComparer<IEnumerable<Person>> childrenCompare = new ChildrenComparer();
-            return childrenCompare.Compare(Children, other.Children);
+            else if (InLaw < other.InLaw)
+            {
+                return -1;
+            }
+            return InLaw > other.InLaw ? 1 : 0;
         }
 
         public override bool Equals(object obj)
@@ -138,6 +106,34 @@ namespace FamilyTreeLibrary.Models
         public override string ToString()
         {
             return Document.ToJson();
+        }
+
+        public static bool operator== (Family a, Family b)
+        {
+            bool aIsNull = a is null;
+            bool bIsNull = b is null;
+            return (aIsNull && bIsNull) || (!aIsNull && a.Equals(b));
+        }
+
+        public static bool operator!= (Family a, Family b)
+        {
+            bool aIsNull = a is null;
+            bool bIsNull = b is null;
+            return (aIsNull && !bIsNull) || (!aIsNull && !a.Equals(b));
+        }
+
+        public static bool operator< (Family a, Family b)
+        {
+            bool aIsNull = a is null;
+            bool bIsNull = b is null;
+            return (aIsNull && !bIsNull) || (!aIsNull && a.CompareTo(b) < 0);
+        }
+
+        public static bool operator> (Family a, Family b)
+        {
+            bool aIsNull = a is null;
+            bool bIsNull = b is null;
+            return (!aIsNull && bIsNull) || (!aIsNull && a.CompareTo(b) > 0);
         }
     }
 }

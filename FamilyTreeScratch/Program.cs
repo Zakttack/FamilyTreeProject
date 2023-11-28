@@ -4,7 +4,7 @@ using FamilyTreeLibrary.Service;
 using Serilog;
 
 const string FAMILY_NAME = "Pfingsten";
-const string PDF_FILE = "2023PfingtenBookAlternate.pdf";
+const string PDF_FILE = "2023PfingstenBookAlternate.pdf";
 try
 {
     string filePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), PDF_FILE);

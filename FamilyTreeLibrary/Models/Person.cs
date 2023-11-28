@@ -7,16 +7,18 @@ namespace FamilyTreeLibrary.Models
     {
         private FamilyTreeDate deceasedDate;
 
-        public Person(string name)
+        public Person(string name, FamilyTreeDate birthDate, FamilyTreeDate deceasedDate)
         {
             Name = name;
+            BirthDate = birthDate;
+            DeceasedDate = deceasedDate;
         }
 
         public Person(BsonDocument document)
         {
-            Name = document.GetValue("Name").AsString;
-            BirthDate = new(document.GetValue("BirthDate").AsString);
-            DeceasedDate = new(document.GetValue("DeceasedDate").AsString);
+            Name = document[nameof(Name)].IsBsonNull ? null : document[nameof(Name)].AsString;
+            BirthDate = document[nameof(BirthDate)].IsBsonNull ? FamilyTreeDate.DefaultDate : new(document[nameof(BirthDate)].AsString);
+            DeceasedDate = document[nameof(DeceasedDate)].IsBsonNull ? FamilyTreeDate.DefaultDate : new(document[nameof(DeceasedDate)].AsString);
         }
         public string Name
         {
@@ -49,9 +51,11 @@ namespace FamilyTreeLibrary.Models
             {
                 Dictionary<string,object> doc = new()
                 {
-                    {"Name", Name},
-                    {"BirthDate", BirthDate.ToString()},
-                    {"DeceasedDate", DeceasedDate.ToString()}
+                    {nameof(Name), Name is null ? BsonNull.Value : Name},
+                    {nameof(BirthDate), BirthDate == default || BirthDate == FamilyTreeDate.DefaultDate ? 
+                        BsonNull.Value : BirthDate.ToString()},
+                    {nameof(DeceasedDate), DeceasedDate == default || DeceasedDate == FamilyTreeDate.DefaultDate ? 
+                        BsonNull.Value : DeceasedDate.ToString()}
                 };
                 return new(doc);
             }
