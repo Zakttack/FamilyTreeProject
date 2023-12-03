@@ -152,7 +152,7 @@ namespace FamilyTreeLibrary.Models
         {
             bool dateAIsDefault = EqualityComparer<FamilyTreeDate>.Default.Equals(dateA, default);
             bool dateBIsDefault = EqualityComparer<FamilyTreeDate>.Default.Equals(dateB, default);
-            return dateAIsDefault && dateBIsDefault || !dateAIsDefault && dateA.Equals(dateB);
+            return (dateAIsDefault && dateBIsDefault) || (!dateAIsDefault && dateA.Equals(dateB));
         }
 
         public static bool operator!=(FamilyTreeDate dateA, FamilyTreeDate dateB)
@@ -166,14 +166,14 @@ namespace FamilyTreeLibrary.Models
         {
             bool dateAIsDefault = EqualityComparer<FamilyTreeDate>.Default.Equals(dateA, default);
             bool dateBIsDefault = EqualityComparer<FamilyTreeDate>.Default.Equals(dateB, default);
-            return dateAIsDefault && !dateBIsDefault || !dateBIsDefault && dateA.CompareTo(dateB) < 0;
+            return (dateAIsDefault && !dateBIsDefault) || (!dateBIsDefault && dateA.CompareTo(dateB) < 0);
         }
 
         public static bool operator>(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
             bool dateAIsDefault = EqualityComparer<FamilyTreeDate>.Default.Equals(dateA, default);
             bool dateBIsDefault = EqualityComparer<FamilyTreeDate>.Default.Equals(dateB, default);
-            return !dateAIsDefault && dateBIsDefault || !dateAIsDefault && dateA.CompareTo(dateB) > 0;
+            return (!dateAIsDefault && dateBIsDefault) || (!dateAIsDefault && dateA.CompareTo(dateB) > 0);
         }
 
         internal readonly IReadOnlyDictionary<string,int> Months
