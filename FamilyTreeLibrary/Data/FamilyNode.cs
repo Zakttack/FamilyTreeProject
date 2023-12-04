@@ -16,7 +16,7 @@ namespace FamilyTreeLibrary.Data
 
         public FamilyNode(BsonDocument document)
         {
-            Id = document[nameof(Id)].AsObjectId;
+            Id = document["_id"].AsObjectId;
             Parent = document[nameof(Parent)].IsBsonNull ? null : new(document[nameof(Parent)].AsBsonDocument);
             Element = document[nameof(Element)].IsBsonNull ? null : new(document[nameof(Element)].AsBsonDocument);
             Children = new SortedSet<Family>();
@@ -55,7 +55,7 @@ namespace FamilyTreeLibrary.Data
             {
                 Dictionary<string,object> doc = new()
                 {
-                    {nameof(Id), Id},
+                    {"_id", Id},
                     {nameof(Parent), Parent is null ? BsonNull.Value : Parent.Document},
                     {nameof(Element), Element is null ? BsonNull.Value : Element.Document}
                 };
@@ -107,7 +107,11 @@ namespace FamilyTreeLibrary.Data
 
         public override int GetHashCode()
         {
-            return ToString().GetHashCode();
+            int idHash = Id == default ? 0 : Id.GetHashCode();
+            int parentHash = Parent is null ? 0 : Parent.GetHashCode();
+            int elementHash = Element is null ? 0 : Element.GetHashCode();
+            int childrenHash = Children is null ? 0 : Children.GetHashCode();
+            return idHash + parentHash + elementHash + childrenHash;
         }
 
         public override string ToString()

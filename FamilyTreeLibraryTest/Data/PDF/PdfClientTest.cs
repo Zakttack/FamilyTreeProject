@@ -45,5 +45,29 @@ namespace FamilyTreeLibraryTest.Data.PDF
                 Assert.That(problem, Is.Null);
             }
         }
+
+        [Test]
+        public void TestAttachNodes()
+        {
+            try
+            {
+                if (problem is not null)
+                {
+                    throw problem;
+                }
+                client.LoadNodes();
+                client.AttachNodes();
+                problem = null;
+            }
+            catch (Exception ex)
+            {
+                problem = ex;
+                FamilyTreeUtils.WriteError(problem);
+            }
+            finally
+            {
+                Assert.That(problem, Is.Null);
+            }
+        }
     }
 }

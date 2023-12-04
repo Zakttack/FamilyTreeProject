@@ -100,7 +100,10 @@ namespace FamilyTreeLibrary.Models
 
         public override int GetHashCode()
         {
-            return ToString().GetHashCode();
+            int memberHash = Member is null ? 0 : Member.GetHashCode();
+            int inLawHash = InLaw is null ? 0 : InLaw.GetHashCode();
+            int marriageDateHash = MarriageDate == default ? 0 : MarriageDate.GetHashCode();
+            return memberHash + inLawHash + marriageDateHash;
         }
 
         public override string ToString()

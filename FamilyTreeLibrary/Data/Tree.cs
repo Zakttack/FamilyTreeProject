@@ -70,7 +70,7 @@ namespace FamilyTreeLibrary.Data
         public void Add(FamilyNode node)
         {
             BsonDocument record = node.Document;
-            if (Root == null)
+            if (Root is null)
             {
                 mongoCollection.InsertOne(record);
             }
@@ -114,8 +114,7 @@ namespace FamilyTreeLibrary.Data
 
         public bool Contains(FamilyNode node)
         {
-            IEnumerable<FamilyNode> families = this;
-            return families.Contains(node);
+            return this.Any(n => n is not null && n.Element == node.Element);
         }
 
         public int Depth(FamilyNode node)
@@ -190,11 +189,12 @@ namespace FamilyTreeLibrary.Data
         private void Update(FamilyNode initialNode, FamilyNode finalNode, bool updateParent, bool updateChildren)
         {
             ObjectId id = initialNode.Id;
-            FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter.Eq("Id", id);
+            FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter.Eq("_id", id);
             mongoCollection.FindOneAndReplace(filter, finalNode.Document);
+            FamilyNode initialParentNode = DataUtils.GetParentOf(initialNode, mongoCollection);
+            IEnumerable<FamilyNode> children = DataUtils.GetChildrenOf(initialNode, mongoCollection);
             if (updateParent)
             {
-                FamilyNode initialParentNode = DataUtils.GetParentOf(initialNode, mongoCollection);
                 FamilyNode finalParentNode = initialParentNode;
                 finalParentNode.Children.Remove(initialNode.Element);
                 finalParentNode.Children.Add(finalNode.Element);
@@ -202,7 +202,6 @@ namespace FamilyTreeLibrary.Data
             }
             if (updateChildren)
             {
-                IEnumerable<FamilyNode> children = DataUtils.GetChildrenOf(initialNode, mongoCollection);
                 foreach (FamilyNode initialChild in children)
                 {
                     FamilyNode finalChild = initialChild;
@@ -269,7 +268,7 @@ namespace FamilyTreeLibrary.Data
                 else
                 {
                     ObjectId id = initialRoot.Id;
-                    rootFilter = Builders<BsonDocument>.Filter.Eq("Id", id);
+                    rootFilter = Builders<BsonDocument>.Filter.Eq("_id", id);
                 }
                 IFindFluent<BsonDocument,BsonDocument> queryResult = mongoCollection.Find(rootFilter);
                 if (queryResult.Any())

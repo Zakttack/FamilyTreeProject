@@ -67,15 +67,21 @@ namespace FamilyTreeLibrary.Models
             {
                 return 1;
             }
-            int birthDateCompare = BirthDate.CompareTo(other.BirthDate);
-            if (birthDateCompare != 0)
+            else if (BirthDate < other.BirthDate)
             {
-                return birthDateCompare;
+                return -1;
             }
-            int deceasedDateCompare = DeceasedDate.CompareTo(deceasedDate);
-            if (deceasedDateCompare != 0)
+            else if (BirthDate > other.BirthDate)
             {
-                return deceasedDateCompare;
+                return 1;
+            }
+            else if (DeceasedDate < other.DeceasedDate)
+            {
+                return -1;
+            }
+            else if (DeceasedDate > other.DeceasedDate)
+            {
+                return 1;
             }
             bool thisNameIsNull = Name is null;
             bool otherNameIsNull = other.Name is null;
@@ -91,7 +97,9 @@ namespace FamilyTreeLibrary.Models
             {
                 return 1;
             }
-            return Name.CompareTo(other.Name);
+            string[] nameParts = Name.Split(' ');
+            string[] otherNameParts = other.Name.Split(' ');
+            return nameParts.Intersect(otherNameParts).Count() >= 2 ? 0 : Name.CompareTo(other.Name);
         }
 
         public override bool Equals(object obj)
@@ -106,7 +114,7 @@ namespace FamilyTreeLibrary.Models
 
         public override int GetHashCode()
         {
-            return ToString().GetHashCode();
+            return BirthDate.GetHashCode() + DeceasedDate.GetHashCode() + Name.GetHashCode();
         }
 
         public override string ToString()
