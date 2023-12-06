@@ -114,7 +114,7 @@ namespace FamilyTreeLibrary.Models
 
         public override int GetHashCode()
         {
-            return BirthDate.GetHashCode() + DeceasedDate.GetHashCode() + Name.GetHashCode();
+            return HashCodeGenerator<Person>.GenerateHashCode(this);
         }
 
         public override string ToString()

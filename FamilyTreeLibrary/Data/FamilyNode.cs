@@ -16,11 +16,11 @@ namespace FamilyTreeLibrary.Data
 
         public FamilyNode(BsonDocument document)
         {
-            Id = document["_id"].AsObjectId;
-            Parent = document[nameof(Parent)].IsBsonNull ? null : new(document[nameof(Parent)].AsBsonDocument);
-            Element = document[nameof(Element)].IsBsonNull ? null : new(document[nameof(Element)].AsBsonDocument);
+            Id = document[0].AsObjectId;
+            Parent = document[1].IsBsonNull ? null : new(document[1].AsBsonDocument);
+            Element = document[2].IsBsonNull ? null : new(document[2].AsBsonDocument);
             Children = new SortedSet<Family>();
-            BsonArray array = document[nameof(Children)].AsBsonArray;
+            BsonArray array = document[3].AsBsonArray;
             foreach (BsonValue value in array)
             {
                 Family child = value.IsBsonNull ? null : new(value.AsBsonDocument);
@@ -107,11 +107,7 @@ namespace FamilyTreeLibrary.Data
 
         public override int GetHashCode()
         {
-            int idHash = Id == default ? 0 : Id.GetHashCode();
-            int parentHash = Parent is null ? 0 : Parent.GetHashCode();
-            int elementHash = Element is null ? 0 : Element.GetHashCode();
-            int childrenHash = Children is null ? 0 : Children.GetHashCode();
-            return idHash + parentHash + elementHash + childrenHash;
+            return HashCodeGenerator<FamilyNode>.GenerateHashCode(this);
         }
 
         public override string ToString()

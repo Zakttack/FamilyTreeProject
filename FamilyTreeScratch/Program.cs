@@ -1,20 +1,21 @@
 ﻿using FamilyTreeLibrary;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.Service;
+using iText.Signatures;
 using Serilog;
 
-const string FAMILY_NAME = "Pfingsten";
-const string PDF_FILE = "2023PfingstenBookAlternate.pdf";
-try
-{
-    string filePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), PDF_FILE);
-    FamilyTreeService treeService = new(FAMILY_NAME);
-    treeService.AppendTree(filePath);
-}
-catch (Exception ex)
-{
-    Log.Fatal($"Something went wrong. Check below for further info:\n {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}", ex);
-}
+// const string FAMILY_NAME = "Pfingsten";
+// const string PDF_FILE = "2023PfingstenBookAlternate.pdf";
+// try
+// {
+//     string filePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), PDF_FILE);
+//     FamilyTreeService treeService = new(FAMILY_NAME);
+//     treeService.AppendTree(filePath);
+// }
+// catch (Exception ex)
+// {
+//     Log.Fatal($"Something went wrong. Check below for further info:\n {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}", ex);
+// }
 
 // static void PrintDuplicates(IEnumerable<Family> collection)
 // {

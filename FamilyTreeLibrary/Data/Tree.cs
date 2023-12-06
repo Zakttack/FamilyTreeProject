@@ -62,7 +62,7 @@ namespace FamilyTreeLibrary.Data
             get;
         }
 
-        public FamilyNode Root
+        private FamilyNode Root
         {
             get;
         }
@@ -78,10 +78,10 @@ namespace FamilyTreeLibrary.Data
             {
                 FamilyNode initialParent = null;
                 FamilyNode initialChild = null;
-                BsonValue parentValue = record[nameof(node.Parent)];
+                BsonValue parentValue = record[1];
                 if (parentValue is not null && parentValue.IsBsonDocument)
                 {
-                    FamilyNode tempInitialParent = Find(record[nameof(node.Parent)].AsBsonDocument);
+                    FamilyNode tempInitialParent = Find(record[1].AsBsonDocument);
                     if (tempInitialParent is not null && !tempInitialParent.Children.Contains(node.Element))
                     {
                         FamilyNode finalParent = tempInitialParent;
@@ -134,14 +134,14 @@ namespace FamilyTreeLibrary.Data
             return depth;
         }
 
-        public IEnumerable<FamilyNode> GetChildren(FamilyNode node)
+        public IEnumerable<Family> GetChildren(FamilyNode node)
         {
-            return DataUtils.GetChildrenOf(node, mongoCollection);
+            return Contains(node) ? node.Children : null;
         }
 
-        public FamilyNode GetParent(FamilyNode node)
+        public Family GetParent(FamilyNode node)
         {
-            return DataUtils.GetParentOf(node, mongoCollection);
+            return Contains(node) ? node.Parent : null;
         }
 
         public IEnumerator<FamilyNode> GetEnumerator()
@@ -217,6 +217,7 @@ namespace FamilyTreeLibrary.Data
             private readonly ICollection<IList<FamilyNode>> vistedNodes;
             private readonly FamilyNode initialRoot;
 
+            private FamilyNode currentNode;
             private readonly IMongoCollection<BsonDocument> mongoCollection;
 
             public FamilyEnumerator(IMongoCollection<BsonDocument> collection, FamilyNode initialRoot)
@@ -231,10 +232,10 @@ namespace FamilyTreeLibrary.Data
             {
                 get
                 {
-                    FamilyNode currentNode = vistedNodes.Last().Last();
-                    FamilyNode node = currentNode;
-                    InsertNode(FindNext(node));
-                    return currentNode;
+                    FamilyNode result = currentNode;
+                    currentNode = FindNext(result);
+                    ApplyNode(currentNode);
+                    return result;
                 }
             }
 
@@ -242,7 +243,10 @@ namespace FamilyTreeLibrary.Data
             {
                 get
                 {
-                    return Current;
+                    FamilyNode result = currentNode;
+                    currentNode = FindNext(result);
+                    ApplyNode(currentNode);
+                    return result;
                 }
             }
 
@@ -253,40 +257,32 @@ namespace FamilyTreeLibrary.Data
 
             public bool MoveNext()
             {
-                return Current is not null;
+                return currentNode is not null;
             }
 
             public void Reset()
             {
                 vistedNodes.Clear();
-                IList<FamilyNode> firstPart = new List<FamilyNode>();
-                FilterDefinition<BsonDocument> rootFilter;
-                if (initialRoot is null)
-                {
-                    rootFilter = Builders<BsonDocument>.Filter.Eq("Parent", BsonNull.Value);
-                }
-                else
-                {
-                    ObjectId id = initialRoot.Id;
-                    rootFilter = Builders<BsonDocument>.Filter.Eq("_id", id);
-                }
-                IFindFluent<BsonDocument,BsonDocument> queryResult = mongoCollection.Find(rootFilter);
-                if (queryResult.Any())
-                {
-                    firstPart.Add(new(queryResult.First()));
-                }
-                else
-                {
-                    firstPart.Add(null);
-                }
-                vistedNodes.Add(firstPart);
+                currentNode = Root;
+                ApplyNode(currentNode);
             }
 
             private FamilyNode Root
             {
                 get
                 {
-                    return vistedNodes.First().First();
+                    FilterDefinition<BsonDocument> rootFilter;
+                    if (initialRoot is null)
+                    {
+                        rootFilter = Builders<BsonDocument>.Filter.Eq("Parent", BsonNull.Value);
+                    }
+                    else
+                    {
+                        ObjectId id = initialRoot.Id;
+                        rootFilter = Builders<BsonDocument>.Filter.Eq("_id", id);
+                    }
+                    IFindFluent<BsonDocument,BsonDocument> rootResults = mongoCollection.Find(rootFilter);
+                    return rootResults.Any() ? new(rootResults.First()) : null;
                 }
             }
 
@@ -307,17 +303,25 @@ namespace FamilyTreeLibrary.Data
                         int sibilingIndex = sibilings.IndexOf(tempNext);
                         return sibilingIndex > -1 && sibilingIndex < parent.Children.Count - 1 ? sibilings[sibilingIndex + 1] : FindNext(parent);
                     }
+                    return null;
                 }
-                return null;
+                return Root;
             }
 
-            private void InsertNode(FamilyNode node)
+            private void ApplyNode(FamilyNode node)
             {
-                if (vistedNodes.Last().Count == int.MaxValue)
+                if (node is not null && (!vistedNodes.Any() || vistedNodes.Last().Count == int.MaxValue))
                 {
-                    vistedNodes.Add(new List<FamilyNode>());
+                    IList<FamilyNode> subCollection = new List<FamilyNode>()
+                    {
+                        node
+                    };
+                    vistedNodes.Add(subCollection);
                 }
-                vistedNodes.Last().Add(node);
+                else if (node is not null)
+                {
+                    vistedNodes.Last().Add(node);
+                }
             }
         }
     }

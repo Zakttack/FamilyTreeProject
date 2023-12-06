@@ -36,11 +36,11 @@ namespace FamilyTreeLibrary
 
         public static void InitializeLogger()
         {
-                string filePath = GetFileNameFromResources(Directory.GetCurrentDirectory(), @"Logs\log.txt");
-                Log.Logger = new LoggerConfiguration()
-                    .MinimumLevel.Debug()
-                    .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)
-                    .CreateLogger();
+            string filePath = GetFileNameFromResources(Directory.GetCurrentDirectory(), @"Logs\log.txt");
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)
+                .CreateLogger();
         }
 
         public static void WriteError(Exception ex)
