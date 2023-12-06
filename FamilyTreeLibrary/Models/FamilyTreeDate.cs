@@ -131,7 +131,7 @@ namespace FamilyTreeLibrary.Models
 
         public override readonly int GetHashCode()
         {
-            return HashCodeGenerator<FamilyTreeDate>.GenerateHashCode(this);
+            return HashCode.Combine(Day, Month, Year);
         }
 
         public override readonly string ToString()

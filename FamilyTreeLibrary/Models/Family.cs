@@ -100,7 +100,7 @@ namespace FamilyTreeLibrary.Models
 
         public override int GetHashCode()
         {
-            return HashCodeGenerator<Family>.GenerateHashCode(this);
+            return HashCode.Combine(Member, InLaw, MarriageDate);
         }
 
         public override string ToString()

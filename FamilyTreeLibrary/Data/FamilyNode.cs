@@ -107,7 +107,7 @@ namespace FamilyTreeLibrary.Data
 
         public override int GetHashCode()
         {
-            return HashCodeGenerator<FamilyNode>.GenerateHashCode(this);
+            return HashCode.Combine(Id, Parent, Element, Children);
         }
 
         public override string ToString()
