@@ -1,3 +1,4 @@
+using FamilyTreeLibrary.Models;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -35,11 +36,11 @@ namespace FamilyTreeLibrary.Data
             if (node is not null)
             {
                 BsonDocument parent = node.Document;
-                IEnumerable<BsonDocument> childrenOfParent = parent[nameof(node.Children)].AsBsonArray.Select(doc => doc.AsBsonDocument);
-                FilterDefinition<BsonDocument> childrenFilter = Builders<BsonDocument>.Filter.In(nameof(node.Element), childrenOfParent);
+                IEnumerable<BsonDocument> childrenOfParent = parent[3].AsBsonArray.Select(doc => doc.AsBsonDocument);
+                FilterDefinition<BsonDocument> childrenFilter = Builders<BsonDocument>.Filter.In("Element", childrenOfParent);
                 IFindFluent<BsonDocument,BsonDocument> childrenResults = collection.Find(childrenFilter);
                 IEnumerable<BsonDocument> records = childrenResults.ToEnumerable().Where(doc => {
-                    return doc[nameof(node.Parent)] == parent[nameof(node.Element)];
+                    return doc[1] == parent[2];
                 });
                 foreach (BsonDocument record in records)
                 {
@@ -49,15 +50,27 @@ namespace FamilyTreeLibrary.Data
             return children;
         }
 
+        public static FamilyNode GetNodeOf(Family element, IMongoCollection<BsonDocument> collection)
+        {
+            if (element is null)
+            {
+                return null;
+            }
+            BsonDocument elementObj = element.Document;
+            FilterDefinition<BsonDocument> elementFilter = Builders<BsonDocument>.Filter.Eq("Element", elementObj);
+            IFindFluent<BsonDocument,BsonDocument> elementResults = collection.Find(elementFilter);
+            return elementResults.Any() ? new(elementResults.First()) : null;
+        }
+
         public static FamilyNode GetParentOf(FamilyNode node, IMongoCollection<BsonDocument> collection)
         {
             if (node is not null)
             {
                 BsonDocument child = node.Document;
-                if (child[nameof(node.Parent)] is not null && child[nameof(node.Parent)] != BsonNull.Value)
+                if (child[1] is not null && child[1] != BsonNull.Value)
                 {
-                    BsonDocument parent = child[nameof(node.Parent)].AsBsonDocument;
-                    FilterDefinition<BsonDocument> parentFilter = Builders<BsonDocument>.Filter.Eq(nameof(node.Element), parent);
+                    BsonDocument parent = child[1].AsBsonDocument;
+                    FilterDefinition<BsonDocument> parentFilter = Builders<BsonDocument>.Filter.Eq("Element", parent);
                     IFindFluent<BsonDocument,BsonDocument> parentResults = collection.Find(parentFilter);
                     IEnumerable<BsonDocument> records = parentResults.ToEnumerable();
                     foreach (BsonDocument record in records)

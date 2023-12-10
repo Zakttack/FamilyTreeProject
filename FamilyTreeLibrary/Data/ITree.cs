@@ -2,14 +2,9 @@ using FamilyTreeLibrary.Models;
 
 namespace FamilyTreeLibrary.Data
 {
-    public interface ITree : IEnumerable<FamilyNode> 
+    public interface ITree : IEnumerable<Family> 
     {
         public long Count
-        {
-            get;
-        }
-
-        public IEnumerable<Family> this[Person member]
         {
             get;
         }
@@ -24,17 +19,17 @@ namespace FamilyTreeLibrary.Data
             get;
         }
 
-        public void Add(FamilyNode node);
+        public void Add(Family parent, Family child);
 
-        public bool Contains(FamilyNode node);
+        public bool Contains(Family parent, Family child);
 
-        public int Depth(FamilyNode node);
+        public int Depth(Family element);
 
-        public IEnumerable<Family> GetChildren(FamilyNode node);
+        public IEnumerable<Family> GetChildren(Family element);
 
-        public Family GetParent(FamilyNode node);
-        public ITree Subtree(FamilyNode root);
+        public Family GetParent(Family element);
+        public ITree Subtree(Family element);
 
-        public void Update(FamilyNode initialNode, FamilyNode finalNode);
+        public void Update(Family initial, Family final);
     }
 }

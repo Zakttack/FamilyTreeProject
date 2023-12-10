@@ -1,3 +1,4 @@
+using FamilyTreeLibrary.Data.Enumerators;
 using FamilyTreeLibrary.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -15,7 +16,8 @@ namespace FamilyTreeLibrary.Data
         {
             Name = name;
             mongoCollection = DataUtils.GetCollection(Name);
-            Root = this.FirstOrDefault();
+            BsonDocument rootDocument = mongoCollection.Find(FilterDefinition<BsonDocument>.Empty).FirstOrDefault();
+            Root = new(rootDocument);
         }
 
         private Tree(string name, FamilyNode initialRoot)
@@ -24,36 +26,13 @@ namespace FamilyTreeLibrary.Data
             mongoCollection = DataUtils.GetCollection(Name);
             Root = initialRoot;
         }
+
         public long Count
         {
             get
             {
-                IEnumerable<FamilyNode> families = this;
+                IEnumerable<Family> families = this;
                 return families.LongCount();
-            }
-        }
-
-        public IEnumerable<Family> this[Person member]
-        {
-            get
-            {
-                ICollection<Family> families = new SortedSet<Family>();
-                foreach (FamilyNode node in this)
-                {
-                    if (node.Element.Member == member)
-                    {
-                        families.Add(node.Element);
-                    }
-                }
-                return families;
-            }
-        }
-
-        public int Height
-        {
-            get
-            {
-                return this.Any() ? GetHeight(this.First()) : 0;
             }
         }
 
@@ -62,265 +41,171 @@ namespace FamilyTreeLibrary.Data
             get;
         }
 
+        public int Height
+        {
+            get
+            {
+                return Root is null ? 0 : GetHeight(Root);
+            }
+        }
+
         private FamilyNode Root
         {
             get;
         }
 
-        public void Add(FamilyNode node)
+        public void Add(Family parent, Family child)
         {
-            BsonDocument record = node.Document;
+            if (Root is not null)
+            {
+                FamilyNode parentNode = DataUtils.GetNodeOf(parent, mongoCollection);
+                FamilyNode childNode = DataUtils.GetNodeOf(child, mongoCollection);
+                if (parentNode is null && childNode is not null)
+                {
+                    FilterDefinition<BsonDocument> initialParentFilter = Builders<BsonDocument>.Filter.Eq("Element", childNode.Parent.Document);
+                    UpdateDefinition<BsonDocument> initialParentUpdate = Builders<BsonDocument>.Update.Pull("Children", child.Document);
+                    mongoCollection.UpdateOne(initialParentFilter, initialParentUpdate);
+                    FilterDefinition<BsonDocument> childFilter = Builders<BsonDocument>.Filter.Eq("Element", child.Document);
+                    FieldDefinition<BsonDocument,BsonValue> parentField = new StringFieldDefinition<BsonDocument,BsonValue>("Parent");
+                    UpdateDefinition<BsonDocument> childParentUpdate = Builders<BsonDocument>.Update.Set(parentField, parent is null ? BsonNull.Value : parent.Document);
+                    mongoCollection.UpdateOne(childFilter, childParentUpdate);
+                }
+                else if (parentNode is not null && childNode is not null)
+                {
+                    FilterDefinition<BsonDocument> initialParentFilter = Builders<BsonDocument>.Filter.Eq("Element", childNode.Parent.Document);
+                    UpdateDefinition<BsonDocument> initialParentUpdate = Builders<BsonDocument>.Update.Pull("Children", child.Document);
+                    mongoCollection.UpdateOne(initialParentFilter, initialParentUpdate);
+                    FilterDefinition<BsonDocument> finalParentFilter = Builders<BsonDocument>.Filter.Eq("Element", parent.Document);
+                    UpdateDefinition<BsonDocument> finalParentUpdate = Builders<BsonDocument>.Update.Push("Children", child.Document);
+                    mongoCollection.UpdateOne(finalParentFilter, finalParentUpdate);
+                    FilterDefinition<BsonDocument> childFilter = Builders<BsonDocument>.Filter.Eq("Element", child.Document);
+                    FieldDefinition<BsonDocument,BsonDocument> parentField = new StringFieldDefinition<BsonDocument,BsonDocument>("Parent");
+                    UpdateDefinition<BsonDocument> childParentUpdate = Builders<BsonDocument>.Update.Set(parentField, parent.Document);
+                    mongoCollection.UpdateOne(childFilter, childParentUpdate);
+                }
+                else if (parentNode is not null && childNode is null)
+                {
+                    FilterDefinition<BsonDocument> parentFilter = Builders<BsonDocument>.Filter.Eq("Element", parent.Document);
+                    UpdateDefinition<BsonDocument> parentUpdate = Builders<BsonDocument>.Update.Push("Children", child.Document);
+                    mongoCollection.UpdateOne(parentFilter, parentUpdate);
+                }
+            }
+            FamilyNode newNode = new(parent, child);
+            mongoCollection.InsertOne(newNode.Document);
+        }
+
+        public bool Contains(Family parent, Family child)
+        {
             if (Root is null)
             {
-                mongoCollection.InsertOne(record);
+                return false;
             }
-            else
+            else if (parent is null && child == Root.Element)
             {
-                FamilyNode initialParent = null;
-                FamilyNode initialChild = null;
-                BsonValue parentValue = record[1];
-                if (parentValue is not null && parentValue.IsBsonDocument)
+                return true;
+            }
+            else if (parent == Root.Element && DataUtils.GetNodeOf(child, mongoCollection) != null)
+            {
+                return true;
+            }
+            foreach (Family fam in this)
+            {
+                FamilyNode node = DataUtils.GetNodeOf(fam, mongoCollection);
+                if (node.Parent == parent && node.Element == child || DataUtils.GetParentOf(node,mongoCollection).Children.Contains(child))
                 {
-                    FamilyNode tempInitialParent = Find(record[1].AsBsonDocument);
-                    if (tempInitialParent is not null && !tempInitialParent.Children.Contains(node.Element))
-                    {
-                        FamilyNode finalParent = tempInitialParent;
-                        finalParent.Children.Add(node.Element);
-                        Update(tempInitialParent, finalParent, false, false);
-                    }
-                    initialParent = tempInitialParent;
-                }
-                BsonArray children = record[nameof(node.Children)].AsBsonArray;
-                foreach (BsonValue child in children)
-                {
-                    initialChild = Find(child.AsBsonDocument);
-                    initialParent = DataUtils.GetParentOf(initialChild, mongoCollection);
-                    if (initialParent is not null)
-                    {
-                        FamilyNode finalParent = initialParent;
-                        finalParent.Children.Remove(initialChild.Element);
-                        FamilyNode finalChild = initialChild;
-                        Update(initialParent, finalParent, false, false);
-                        finalChild.Parent = node.Element;
-                        Update(initialChild, finalChild, false, false);
-                    }
-                }
-                if (initialChild is not null || initialParent is not null)
-                {
-                    mongoCollection.InsertOne(record);
+                    return true;
                 }
             }
+            return false;
         }
 
-        public bool Contains(FamilyNode node)
+        public int Depth(Family element)
         {
-            return this.Any(n => n is not null && n.Element == node.Element);
-        }
-
-        public int Depth(FamilyNode node)
-        {
-            if (node is null)
-            {
-                return 0;
-            }
+            FamilyNode current = DataUtils.GetNodeOf(element, mongoCollection);
             int depth = 0;
-            FamilyNode currentNode = node;
-            while (currentNode.Parent is not null)
+            while (current != Root)
             {
                 depth++;
-                FamilyNode parentNode = currentNode;
-                currentNode = DataUtils.GetParentOf(parentNode, mongoCollection);
+                FamilyNode temp = current;
+                current = DataUtils.GetParentOf(temp, mongoCollection);
             }
             return depth;
         }
 
-        public IEnumerable<Family> GetChildren(FamilyNode node)
+        public IEnumerable<Family> GetChildren(Family element)
         {
-            return Contains(node) ? node.Children : null;
+            FamilyNode node = DataUtils.GetNodeOf(element,mongoCollection);
+            return node.Children;
         }
 
-        public Family GetParent(FamilyNode node)
+        public IEnumerator<Family> GetEnumerator()
         {
-            return Contains(node) ? node.Parent : null;
-        }
-
-        public IEnumerator<FamilyNode> GetEnumerator()
-        {
-            return new FamilyEnumerator(mongoCollection, Root);
+            ICollection<ICollection<FamilyNode>> families = new List<ICollection<FamilyNode>>();
+            Traverse(families, Root);
+            return new FamilyEnumerator(families);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return new FamilyEnumerator(mongoCollection, Root);
+            return GetEnumerator();
         }
 
-        public ITree Subtree(FamilyNode root)
+        public Family GetParent(Family element)
         {
-            return new Tree(Name, root);
+            FamilyNode node = DataUtils.GetNodeOf(element, mongoCollection);
+            return node.Parent;
         }
 
-        public void Update(FamilyNode initialNode, FamilyNode finalNode)
+        public ITree Subtree(Family element)
         {
-            Update(initialNode, finalNode, true, true);
+            FamilyNode node = DataUtils.GetNodeOf(element, mongoCollection);
+            return new Tree(Name, node);
         }
 
-        private FamilyNode Find(BsonDocument element)
+        public void Update(Family initial, Family final)
         {
-            FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter.Eq("Element", element);
-            IFindFluent<BsonDocument,BsonDocument> results = mongoCollection.Find(filter);
-            return results.Any() ? new(results.First()) : null;
+            FilterDefinition<BsonDocument> parentFilter = Builders<BsonDocument>.Filter.ElemMatch("Children",
+                Builders<BsonDocument>.Filter.Eq("Element", initial.Document));
+            UpdateDefinition<BsonDocument> parentUpdate = Builders<BsonDocument>.Update.Set("Children.Element", final.Document);
+            mongoCollection.UpdateOne(parentFilter, parentUpdate);
+            FilterDefinition<BsonDocument> elementFilter = Builders<BsonDocument>.Filter.Eq("Element", initial.Document);
+            UpdateDefinition<BsonDocument> elementUpdate = Builders<BsonDocument>.Update.Set("Element", final.Document);
+            mongoCollection.UpdateOne(elementFilter, elementUpdate);
+            FilterDefinition<BsonDocument> childrenFilter = Builders<BsonDocument>.Filter.Eq("Parent", initial.Document);
+            UpdateDefinition<BsonDocument> childUpdate = Builders<BsonDocument>.Update.Set("Parent", final.Document);
+            mongoCollection.UpdateMany(childrenFilter, childUpdate);
         }
 
-        private int GetHeight(FamilyNode current)
+        private int GetHeight(FamilyNode start)
         {
-            if (current.Children.Count == 0)
-            {
-                return 0;
-            }
-            int maxChildHeight = 0;
-            IEnumerable<FamilyNode> children = DataUtils.GetChildrenOf(current, mongoCollection);
+            IEnumerable<FamilyNode> children = DataUtils.GetChildrenOf(start, mongoCollection);
+            int height = 0;
             foreach (FamilyNode child in children)
             {
-                maxChildHeight = Math.Max(maxChildHeight, GetHeight(child));
+                height = Math.Max(height, GetHeight(child));
             }
-            return maxChildHeight + 1;
+            return height + 1;
         }
 
-        private void Update(FamilyNode initialNode, FamilyNode finalNode, bool updateParent, bool updateChildren)
+        private void Traverse(ICollection<ICollection<FamilyNode>> nodes, FamilyNode parent)
         {
-            ObjectId id = initialNode.Id;
-            FilterDefinition<BsonDocument> filter = Builders<BsonDocument>.Filter.Eq("_id", id);
-            mongoCollection.FindOneAndReplace(filter, finalNode.Document);
-            FamilyNode initialParentNode = DataUtils.GetParentOf(initialNode, mongoCollection);
-            IEnumerable<FamilyNode> children = DataUtils.GetChildrenOf(initialNode, mongoCollection);
-            if (updateParent)
+            if (parent is not null)
             {
-                FamilyNode finalParentNode = initialParentNode;
-                finalParentNode.Children.Remove(initialNode.Element);
-                finalParentNode.Children.Add(finalNode.Element);
-                Update(initialParentNode, finalParentNode, false, false);
-            }
-            if (updateChildren)
-            {
-                foreach (FamilyNode initialChild in children)
+                if (!nodes.Any() || nodes.Last().Count == int.MaxValue)
                 {
-                    FamilyNode finalChild = initialChild;
-                    finalChild.Parent = initialNode.Element;
-                    FamilyNode tempInitialChild = initialChild;
-                    Update(tempInitialChild, finalChild, false, false);
-                }
-            }
-        }
-
-        private class FamilyEnumerator : IEnumerator<FamilyNode>
-        {
-            private readonly ICollection<IList<FamilyNode>> vistedNodes;
-            private readonly FamilyNode initialRoot;
-
-            private FamilyNode currentNode;
-            private readonly IMongoCollection<BsonDocument> mongoCollection;
-
-            public FamilyEnumerator(IMongoCollection<BsonDocument> collection, FamilyNode initialRoot)
-            {
-                mongoCollection = collection;
-                vistedNodes = new List<IList<FamilyNode>>();
-                this.initialRoot = initialRoot;
-                Reset();
-            }
-
-            public FamilyNode Current
-            {
-                get
-                {
-                    FamilyNode result = currentNode;
-                    currentNode = FindNext(result);
-                    ApplyNode(currentNode);
-                    return result;
-                }
-            }
-
-            object IEnumerator.Current
-            {
-                get
-                {
-                    FamilyNode result = currentNode;
-                    currentNode = FindNext(result);
-                    ApplyNode(currentNode);
-                    return result;
-                }
-            }
-
-            public void Dispose()
-            {
-                Reset();
-            }
-
-            public bool MoveNext()
-            {
-                return currentNode is not null;
-            }
-
-            public void Reset()
-            {
-                vistedNodes.Clear();
-                currentNode = Root;
-                ApplyNode(currentNode);
-            }
-
-            private FamilyNode Root
-            {
-                get
-                {
-                    FilterDefinition<BsonDocument> rootFilter;
-                    if (initialRoot is null)
+                    ICollection<FamilyNode> collection = new HashSet<FamilyNode>()
                     {
-                        rootFilter = Builders<BsonDocument>.Filter.Eq("Parent", BsonNull.Value);
-                    }
-                    else
-                    {
-                        ObjectId id = initialRoot.Id;
-                        rootFilter = Builders<BsonDocument>.Filter.Eq("_id", id);
-                    }
-                    IFindFluent<BsonDocument,BsonDocument> rootResults = mongoCollection.Find(rootFilter);
-                    return rootResults.Any() ? new(rootResults.First()) : null;
-                }
-            }
-
-            private FamilyNode FindNext(FamilyNode tempNext)
-            {
-                if (tempNext is not null)
-                {
-                    IEnumerable<FamilyNode> children = DataUtils.GetChildrenOf(tempNext, mongoCollection);
-                    FamilyNode firstChild = children.FirstOrDefault();
-                    if (firstChild is not null && !vistedNodes.Where((part) => part.Contains(firstChild)).Any())
-                    {
-                        return firstChild;
-                    }
-                    else if (tempNext != Root)
-                    {
-                        FamilyNode parent = DataUtils.GetParentOf(tempNext, mongoCollection);
-                        IList<FamilyNode> sibilings = DataUtils.GetChildrenOf(parent, mongoCollection).ToList();
-                        int sibilingIndex = sibilings.IndexOf(tempNext);
-                        return sibilingIndex > -1 && sibilingIndex < parent.Children.Count - 1 ? sibilings[sibilingIndex + 1] : FindNext(parent);
-                    }
-                    return null;
-                }
-                return Root;
-            }
-
-            private void ApplyNode(FamilyNode node)
-            {
-                if (node is not null && (!vistedNodes.Any() || vistedNodes.Last().Count == int.MaxValue))
-                {
-                    IList<FamilyNode> subCollection = new List<FamilyNode>()
-                    {
-                        node
+                        parent
                     };
-                    vistedNodes.Add(subCollection);
+                    nodes.Add(collection);
                 }
-                else if (node is not null)
+                else
                 {
-                    vistedNodes.Last().Add(node);
+                    nodes.Last().Add(parent);
+                }
+                foreach (Family child in parent.Children)
+                {
+                    Traverse(nodes, DataUtils.GetNodeOf(child, mongoCollection));
                 }
             }
         }

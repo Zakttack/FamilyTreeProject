@@ -1,4 +1,4 @@
-using FamilyTreeLibrary.Comparers;
+using FamilyTreeLibrary.Data.Comparers;
 using FamilyTreeLibrary.Models;
 using MongoDB.Bson;
 

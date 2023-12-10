@@ -1,6 +1,6 @@
 using FamilyTreeLibrary.Models;
 
-namespace FamilyTreeLibrary.Comparers
+namespace FamilyTreeLibrary.Data.Comparers
 {
     public class ChildrenComparer : IComparer<IEnumerable<Family>>
     {

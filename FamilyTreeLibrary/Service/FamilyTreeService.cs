@@ -42,10 +42,10 @@ namespace FamilyTreeLibrary.Service
                 }
                 foreach (FamilyNode node in client.Nodes)
                 {
-                    if (!FamilyTree.Contains(node))
+                    if ((node.Parent is null && !FamilyTree.Any()) || !FamilyTree.Contains(node.Parent, node.Element))
                     {
                         Log.Debug($"Adding {node}");
-                        FamilyTree.Add(node);
+                        FamilyTree.Add(node.Parent, node.Element);
                         Log.Debug($"{node} has been added.");
                     }
                     Log.Information($"{node} exists in the tree.");
@@ -77,14 +77,17 @@ namespace FamilyTreeLibrary.Service
             {
                 throw new ArgumentNullException(nameof(child), "The child you're trying to report doesn't exist.");
             }
-            else if (!FamilyTree.Any(node => node.Element == parent) && !FamilyTree.Any(node => node.Element == child))
+            else if (!FamilyTree.Any(node => node == parent) && !FamilyTree.Any(node => node == child))
             {
                 throw new ArgumentException($"Either {parent.Member.Name} or {child.Member.Name} must be genetically part of the {FamilyTree.Name} Family Tree.");
             }
-            FamilyNode newNode = new(parent, child);
-            Log.Information($"Adding {newNode} to the collection.");
-            FamilyTree.Add(newNode);
-            Log.Information($"{newNode} has been added to the collection.");
+            else if (FamilyTree.Contains(parent, child))
+            {
+                throw new InvalidOperationException($"{parent.Member.Name} already has a child named {child.Member.Name}");
+            }
+            Log.Information($"Adding the parent-child relationship between {parent.Member.Name} and {child.Member.Name}");
+            FamilyTree.Add(parent, child);
+            Log.Information($"{parent.Member.Name} has a child named {child.Member.Name}");
         }
 
         public void ReportDeceased(Person p, FamilyTreeDate deceasedDate)
@@ -97,21 +100,21 @@ namespace FamilyTreeLibrary.Service
             {
                 throw new ArgumentNullException(nameof(deceasedDate), "The deceased date provided doesn't exist.");
             }
-            IEnumerable<FamilyNode> families = FamilyTree.Where((node) => node.Element.Member == p || node.Element.InLaw == p);
+            IEnumerable<Family> families = FamilyTree.Where((node) => node.Member == p || node.InLaw == p);
             if (!families.Any())
             {
                 throw new ArgumentException($"{p.Name} isn't found in the tree.");
             }
-            foreach (FamilyNode fam in families)
+            foreach (Family fam in families)
             {
-                FamilyNode updatedFam = fam;
-                if (updatedFam.Element.Member == p)
+                Family updatedFam = fam;
+                if (updatedFam.Member == p)
                 {
-                    updatedFam.Element.Member.DeceasedDate = deceasedDate;
+                    updatedFam.Member.DeceasedDate = deceasedDate;
                 }
-                else if (updatedFam.Element.InLaw == p)
+                else if (updatedFam.InLaw == p)
                 {
-                    updatedFam.Element.InLaw.DeceasedDate = deceasedDate;
+                    updatedFam.InLaw.DeceasedDate = deceasedDate;
                 }
                 FamilyTree.Update(fam, updatedFam);
             }
@@ -131,7 +134,7 @@ namespace FamilyTreeLibrary.Service
             {
                 throw new ArgumentNullException(nameof(marriageDate), "An unknown marriage date was entered.");
             }
-            IEnumerable<Family> families = FamilyTree[member];
+            IEnumerable<Family> families = FamilyTree.Where(node => node.Member == member);
             if (!families.Any())
             {
                 throw new ArgumentException($"{member.Name} isn't a member of the tree.");
@@ -140,24 +143,24 @@ namespace FamilyTreeLibrary.Service
             if (family is null && (families.Count() > 1 || families.First().InLaw is not null))
             {
                 Family additionalFamily = new(member, inLaw, marriageDate);
-                FamilyNode node = FamilyTree.Where(n => n.Element.Member == member).First();
-                FamilyNode newNode = new(node.Parent, additionalFamily);
-                FamilyTree.Add(newNode);
+                Family node = FamilyTree.Where(n => n.Member == member).First();
+                Family parent = FamilyTree.GetParent(node);
+                FamilyTree.Add(parent, additionalFamily);
             }
             else if (family is null)
             {
-                FamilyNode initialNode = FamilyTree.Where(node => node.Element == families.First()).First();
-                FamilyNode finalNode = initialNode;
-                finalNode.Element.InLaw = inLaw;
-                finalNode.Element.MarriageDate = marriageDate;
-                FamilyTree.Update(initialNode, finalNode);
+                Family initial = FamilyTree.Where(node => node == families.First()).First();
+                Family final = initial;
+                final.InLaw = inLaw;
+                final.MarriageDate = marriageDate;
+                FamilyTree.Update(initial, final);
             }
             else
             {
-                FamilyNode initialNode = FamilyTree.Where(node => node.Element == family).First();
-                FamilyNode finalNode = initialNode;
-                finalNode.Element.MarriageDate = marriageDate;
-                FamilyTree.Update(initialNode, finalNode);
+                Family initial = FamilyTree.Where(node => node == family).First();
+                Family final = initial;
+                final.MarriageDate = marriageDate;
+                FamilyTree.Update(initial, final);
             }
         }
 
