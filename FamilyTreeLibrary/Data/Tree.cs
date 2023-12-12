@@ -140,7 +140,7 @@ namespace FamilyTreeLibrary.Data
 
         public IEnumerator<Family> GetEnumerator()
         {
-            ICollection<ICollection<FamilyNode>> families = new List<ICollection<FamilyNode>>();
+            ICollection<ICollection<ICollection<FamilyNode>>> families = new HashSet<ICollection<ICollection<FamilyNode>>>();
             Traverse(families, Root);
             return new FamilyEnumerator(families);
         }
@@ -187,21 +187,32 @@ namespace FamilyTreeLibrary.Data
             return height + 1;
         }
 
-        private void Traverse(ICollection<ICollection<FamilyNode>> nodes, FamilyNode parent)
+        private void Traverse(ICollection<ICollection<ICollection<FamilyNode>>> nodes, FamilyNode parent)
         {
             if (parent is not null)
             {
                 if (!nodes.Any() || nodes.Last().Count == int.MaxValue)
                 {
-                    ICollection<FamilyNode> collection = new HashSet<FamilyNode>()
+                    ICollection<ICollection<FamilyNode>> subCollection = new List<ICollection<FamilyNode>>()
+                    {
+                        new List<FamilyNode>()
+                        {
+                            parent
+                        }
+                    };
+                    nodes.Add(subCollection);
+                }
+                else if (!nodes.Last().Any() || nodes.Last().Last().Count == int.MaxValue)
+                {
+                    ICollection<FamilyNode> subCollection = new List<FamilyNode>()
                     {
                         parent
                     };
-                    nodes.Add(collection);
+                    nodes.Last().Add(subCollection);
                 }
                 else
                 {
-                    nodes.Last().Add(parent);
+                    nodes.Last().Last().Add(parent);
                 }
                 foreach (Family child in parent.Children)
                 {

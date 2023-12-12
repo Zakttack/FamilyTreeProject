@@ -5,13 +5,14 @@ namespace FamilyTreeLibrary.Data.Enumerators
 {
     public class FamilyEnumerator : IEnumerator<Family>
     {
-        private readonly IEnumerator<ICollection<FamilyNode>> collectionEnumerator;
-        private IEnumerator<FamilyNode> subCollectionEnumerator;
+        private readonly ICollection<ICollection<ICollection<FamilyNode>>> collection;
+        private int outerDimensionPosition;
+        private int middleDimensionPosition;
+        private int innerDimensionPosition;
 
-        public FamilyEnumerator(ICollection<ICollection<FamilyNode>> nodes)
+        public FamilyEnumerator(ICollection<ICollection<ICollection<FamilyNode>>> nodes)
         {
-            NodeCollection = nodes;
-            collectionEnumerator = NodeCollection.GetEnumerator();
+            collection = nodes;
             Reset();
         }
 
@@ -19,16 +20,38 @@ namespace FamilyTreeLibrary.Data.Enumerators
         {
             get
             {
-                if (subCollectionEnumerator.MoveNext())
+                Family result = null;
+                int tempOuter = outerDimensionPosition;
+                int tempMiddle = middleDimensionPosition;
+                int tempInner = innerDimensionPosition;
+                IReadOnlyList<ICollection<ICollection<FamilyNode>>> outerCollection = collection.ToList();
+                if (tempOuter < outerCollection.Count)
                 {
-                    return subCollectionEnumerator.Current.Element;
+                    IReadOnlyList<ICollection<FamilyNode>> middleCollection = outerCollection[tempOuter].ToList();
+                    if (tempMiddle < middleCollection.Count)
+                    {
+                        IReadOnlyList<FamilyNode> innerCollection = middleCollection[tempMiddle].ToList();
+                        result = innerCollection[tempInner].Element;
+                        if (tempInner == int.MaxValue - 1)
+                        {
+                            innerDimensionPosition = 0;
+                            if (tempMiddle == int.MaxValue - 1)
+                            {
+                                outerDimensionPosition++;
+                                middleDimensionPosition = 0;
+                            }
+                            else
+                            {
+                                middleDimensionPosition++;
+                            }
+                        }
+                        else
+                        {
+                            innerDimensionPosition++;
+                        }
+                    }
                 }
-                else if (collectionEnumerator.MoveNext())
-                {
-                    subCollectionEnumerator = collectionEnumerator.Current.GetEnumerator();
-                    return Current;
-                }
-                return null;
+                return result;
             }
         }
 
@@ -40,9 +63,39 @@ namespace FamilyTreeLibrary.Data.Enumerators
             }
         }
 
-        private ICollection<ICollection<FamilyNode>> NodeCollection
+        private long CurrentPosition
         {
-            get;
+            get
+            {
+                checked
+                {
+                    long outer = (long)(Math.Pow(int.MaxValue, 2) * outerDimensionPosition);
+                    long middle = (long)int.MaxValue * middleDimensionPosition;
+                    return outer + middle + innerDimensionPosition;
+                }
+            }
+        }
+
+        private long NodesCount
+        {
+            get
+            {
+                long count = 0L;
+                checked
+                {
+                    foreach (ICollection<ICollection<FamilyNode>> outer in collection)
+                    {
+                        foreach (ICollection<FamilyNode> middle in outer)
+                        {
+                            foreach (FamilyNode inner in middle)
+                            {
+                                count++;
+                            }
+                        }
+                    }
+                }
+                return count;
+            }
         }
 
         public void Dispose()
@@ -52,13 +105,14 @@ namespace FamilyTreeLibrary.Data.Enumerators
 
         public bool MoveNext()
         {
-            return subCollectionEnumerator is not null;
+            return CurrentPosition < NodesCount;
         }
 
         public void Reset()
         {
-            collectionEnumerator.Dispose();
-            subCollectionEnumerator = collectionEnumerator.MoveNext() ? collectionEnumerator.Current.GetEnumerator() : null;
+            outerDimensionPosition = 0;
+            middleDimensionPosition = 0;
+            innerDimensionPosition = 0;
         }
     }
 }
