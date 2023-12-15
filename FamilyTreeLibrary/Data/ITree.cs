@@ -1,4 +1,5 @@
 using FamilyTreeLibrary.Models;
+using MongoDB.Bson;
 
 namespace FamilyTreeLibrary.Data
 {
@@ -19,7 +20,7 @@ namespace FamilyTreeLibrary.Data
             get;
         }
 
-        public void Add(Family parent, Family child);
+        public void Add(ObjectId id, Family parent, Family child);
 
         public bool Contains(Family parent, Family child);
 

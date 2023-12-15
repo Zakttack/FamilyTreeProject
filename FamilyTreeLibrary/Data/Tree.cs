@@ -11,20 +11,19 @@ namespace FamilyTreeLibrary.Data
     public class Tree : ITree
     {
         private readonly IMongoCollection<BsonDocument> mongoCollection;
+        private readonly FamilyNode initialRoot;
 
         public Tree(string name)
         {
             Name = name;
             mongoCollection = DataUtils.GetCollection(Name);
-            BsonDocument rootDocument = mongoCollection.Find(FilterDefinition<BsonDocument>.Empty).FirstOrDefault();
-            Root = new(rootDocument);
         }
 
         private Tree(string name, FamilyNode initialRoot)
         {
             Name = name;
             mongoCollection = DataUtils.GetCollection(Name);
-            Root = initialRoot;
+            this.initialRoot = initialRoot;
         }
 
         public long Count
@@ -51,10 +50,19 @@ namespace FamilyTreeLibrary.Data
 
         private FamilyNode Root
         {
-            get;
+            get
+            {
+                if (initialRoot is null)
+                {
+                    using IAsyncCursor<BsonDocument> cursor = mongoCollection.Find(FilterDefinition<BsonDocument>.Empty).ToCursor();
+                    BsonDocument rootDocument = cursor.FirstOrDefault();
+                    return rootDocument is null ? null : new(rootDocument);
+                }
+                return initialRoot;
+            }
         }
 
-        public void Add(Family parent, Family child)
+        public void Add(ObjectId id, Family parent, Family child)
         {
             if (Root is not null)
             {
@@ -75,22 +83,25 @@ namespace FamilyTreeLibrary.Data
                     FilterDefinition<BsonDocument> initialParentFilter = Builders<BsonDocument>.Filter.Eq("Element", childNode.Parent.Document);
                     UpdateDefinition<BsonDocument> initialParentUpdate = Builders<BsonDocument>.Update.Pull("Children", child.Document);
                     mongoCollection.UpdateOne(initialParentFilter, initialParentUpdate);
-                    FilterDefinition<BsonDocument> finalParentFilter = Builders<BsonDocument>.Filter.Eq("Element", parent.Document);
-                    UpdateDefinition<BsonDocument> finalParentUpdate = Builders<BsonDocument>.Update.Push("Children", child.Document);
-                    mongoCollection.UpdateOne(finalParentFilter, finalParentUpdate);
+                    if (!parentNode.Children.Contains(child))
+                    {
+                        FilterDefinition<BsonDocument> finalParentFilter = Builders<BsonDocument>.Filter.Eq("Element", parent.Document);
+                        UpdateDefinition<BsonDocument> finalParentUpdate = Builders<BsonDocument>.Update.Push("Children", child.Document);
+                        mongoCollection.UpdateOne(finalParentFilter, finalParentUpdate);
+                    }
                     FilterDefinition<BsonDocument> childFilter = Builders<BsonDocument>.Filter.Eq("Element", child.Document);
                     FieldDefinition<BsonDocument,BsonDocument> parentField = new StringFieldDefinition<BsonDocument,BsonDocument>("Parent");
                     UpdateDefinition<BsonDocument> childParentUpdate = Builders<BsonDocument>.Update.Set(parentField, parent.Document);
                     mongoCollection.UpdateOne(childFilter, childParentUpdate);
                 }
-                else if (parentNode is not null && childNode is null)
+                else if (parentNode is not null && childNode is null && !parentNode.Children.Contains(child))
                 {
                     FilterDefinition<BsonDocument> parentFilter = Builders<BsonDocument>.Filter.Eq("Element", parent.Document);
                     UpdateDefinition<BsonDocument> parentUpdate = Builders<BsonDocument>.Update.Push("Children", child.Document);
                     mongoCollection.UpdateOne(parentFilter, parentUpdate);
                 }
             }
-            FamilyNode newNode = new(parent, child);
+            FamilyNode newNode = id == default ? new(parent, child) : new(id, parent, child);
             mongoCollection.InsertOne(newNode.Document);
         }
 
@@ -111,9 +122,17 @@ namespace FamilyTreeLibrary.Data
             foreach (Family fam in this)
             {
                 FamilyNode node = DataUtils.GetNodeOf(fam, mongoCollection);
-                if (node.Parent == parent && node.Element == child || DataUtils.GetParentOf(node,mongoCollection).Children.Contains(child))
+                if (node.Parent == parent && node.Element == child)
                 {
                     return true;
+                }
+                else
+                {
+                    FamilyNode parentNode = DataUtils.GetParentOf(node, mongoCollection);
+                    if (parentNode is not null && parentNode.Children.Contains(child))
+                    {
+                        return true;
+                    }
                 }
             }
             return false;

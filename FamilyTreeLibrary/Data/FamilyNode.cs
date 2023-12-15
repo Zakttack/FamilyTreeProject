@@ -14,6 +14,14 @@ namespace FamilyTreeLibrary.Data
             Children = new SortedSet<Family>();
         }
 
+        public FamilyNode(ObjectId id, Family parent, Family element)
+        {
+            Id = id;
+            Parent = parent;
+            Element = element;
+            Children = new SortedSet<Family>();
+        }
+
         public FamilyNode(BsonDocument document)
         {
             Id = document[0].AsObjectId;

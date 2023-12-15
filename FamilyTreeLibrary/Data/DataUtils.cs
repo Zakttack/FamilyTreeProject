@@ -38,10 +38,8 @@ namespace FamilyTreeLibrary.Data
                 BsonDocument parent = node.Document;
                 IEnumerable<BsonDocument> childrenOfParent = parent[3].AsBsonArray.Select(doc => doc.AsBsonDocument);
                 FilterDefinition<BsonDocument> childrenFilter = Builders<BsonDocument>.Filter.In("Element", childrenOfParent);
-                IFindFluent<BsonDocument,BsonDocument> childrenResults = collection.Find(childrenFilter);
-                IEnumerable<BsonDocument> records = childrenResults.ToEnumerable().Where(doc => {
-                    return doc[1] == parent[2];
-                });
+                using IAsyncCursor<BsonDocument> cursor = collection.Find(childrenFilter).ToCursor();
+                IEnumerable<BsonDocument> records = cursor.ToEnumerable().Where(doc => doc[1] == parent[2]);
                 foreach (BsonDocument record in records)
                 {
                     children.Add(new(record));
@@ -58,8 +56,9 @@ namespace FamilyTreeLibrary.Data
             }
             BsonDocument elementObj = element.Document;
             FilterDefinition<BsonDocument> elementFilter = Builders<BsonDocument>.Filter.Eq("Element", elementObj);
-            IFindFluent<BsonDocument,BsonDocument> elementResults = collection.Find(elementFilter);
-            return elementResults.Any() ? new(elementResults.First()) : null;
+            using IAsyncCursor<BsonDocument> cursor = collection.Find(elementFilter).ToCursor();
+            IReadOnlyList<BsonDocument> elementResults = cursor.ToList();
+            return elementResults.Any() ? new(elementResults[0]) : null;
         }
 
         public static FamilyNode GetParentOf(FamilyNode node, IMongoCollection<BsonDocument> collection)
@@ -71,8 +70,8 @@ namespace FamilyTreeLibrary.Data
                 {
                     BsonDocument parent = child[1].AsBsonDocument;
                     FilterDefinition<BsonDocument> parentFilter = Builders<BsonDocument>.Filter.Eq("Element", parent);
-                    IFindFluent<BsonDocument,BsonDocument> parentResults = collection.Find(parentFilter);
-                    IEnumerable<BsonDocument> records = parentResults.ToEnumerable();
+                    using IAsyncCursor<BsonDocument> cursor = collection.Find(parentFilter).ToCursor();
+                    IEnumerable<BsonDocument> records = cursor.ToEnumerable();
                     foreach (BsonDocument record in records)
                     {
                         FamilyNode parentNode = new(record);

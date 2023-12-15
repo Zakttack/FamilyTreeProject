@@ -42,13 +42,35 @@ namespace FamilyTreeLibrary.Service
                 }
                 foreach (FamilyNode node in client.Nodes)
                 {
+                    string parentPortion;
+                    if (node.Parent is null)
+                    {
+                        parentPortion = "null";
+                    }
+                    else if (node.Parent.Member.Name is null)
+                    {
+                        parentPortion = "root";
+                    }
+                    else
+                    {
+                        parentPortion = node.Parent.InLaw is null ? node.Parent.Member.Name : $"{node.Parent.Member.Name}/{node.Parent.InLaw.Name}";
+                    }
+                    string childPortion;
+                    if (node.Element.Member.Name is null)
+                    {
+                        childPortion = "root";
+                    }
+                    else
+                    {
+                        childPortion = node.Element.InLaw is null ? node.Element.Member.Name : $"{node.Element.Member.Name}/{node.Element.InLaw.Name}";
+                    }
                     if ((node.Parent is null && !FamilyTree.Any()) || !FamilyTree.Contains(node.Parent, node.Element))
                     {
-                        Log.Debug($"Adding {node}");
-                        FamilyTree.Add(node.Parent, node.Element);
-                        Log.Debug($"{node} has been added.");
+                        Log.Debug($"Adding the parent-child relationship between {parentPortion} and {childPortion}.");
+                        FamilyTree.Add(node.Id, node.Parent, node.Element);
+                        Log.Debug($"The parent-child relationship between {parentPortion} and {childPortion} has been added.");
                     }
-                    Log.Information($"{node} exists in the tree.");
+                    Log.Information($"The parent-child relationship between {parentPortion} and {childPortion} exists in the tree.");
                 }
                 long pdfNodesCount = client.Nodes.LongCount();
                 long treeNodesCount = FamilyTree.Count;
@@ -58,7 +80,7 @@ namespace FamilyTreeLibrary.Service
                 }
                 else
                 {
-                    Log.Information("All nodes have been analyzed.");
+                    Log.Information($"{treeNodesCount} nodes have been analyzed.");
                 }
             }
             catch (IOException ex)
@@ -86,7 +108,7 @@ namespace FamilyTreeLibrary.Service
                 throw new InvalidOperationException($"{parent.Member.Name} already has a child named {child.Member.Name}");
             }
             Log.Information($"Adding the parent-child relationship between {parent.Member.Name} and {child.Member.Name}");
-            FamilyTree.Add(parent, child);
+            FamilyTree.Add(default, parent, child);
             Log.Information($"{parent.Member.Name} has a child named {child.Member.Name}");
         }
 
@@ -145,7 +167,7 @@ namespace FamilyTreeLibrary.Service
                 Family additionalFamily = new(member, inLaw, marriageDate);
                 Family node = FamilyTree.Where(n => n.Member == member).First();
                 Family parent = FamilyTree.GetParent(node);
-                FamilyTree.Add(parent, additionalFamily);
+                FamilyTree.Add(default, parent, additionalFamily);
             }
             else if (family is null)
             {
