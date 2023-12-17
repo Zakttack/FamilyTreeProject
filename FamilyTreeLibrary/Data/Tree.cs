@@ -30,8 +30,12 @@ namespace FamilyTreeLibrary.Data
         {
             get
             {
-                IEnumerable<Family> families = this;
-                return families.LongCount();
+                if (initialRoot is not null)
+                {
+                    IEnumerable<Family> families = this;
+                    return families.LongCount();
+                }
+                return mongoCollection.Find(FilterDefinition<BsonDocument>.Empty).CountDocuments();
             }
         }
 
@@ -119,21 +123,34 @@ namespace FamilyTreeLibrary.Data
             {
                 return true;
             }
-            foreach (Family fam in this)
+            else if (initialRoot is not null)
             {
-                FamilyNode node = DataUtils.GetNodeOf(fam, mongoCollection);
-                if (node.Parent == parent && node.Element == child)
+                foreach (Family fam in this)
                 {
-                    return true;
-                }
-                else
-                {
-                    FamilyNode parentNode = DataUtils.GetParentOf(node, mongoCollection);
-                    if (parentNode is not null && parentNode.Children.Contains(child))
+                    FamilyNode node = DataUtils.GetNodeOf(fam, mongoCollection);
+                    if (node.Parent == parent && node.Element == child)
                     {
                         return true;
                     }
+                    else
+                    {
+                        FamilyNode parentNode = DataUtils.GetParentOf(node, mongoCollection);
+                        if (parentNode is not null && parentNode.Children.Contains(child))
+                        {
+                            return true;
+                        }
+                    }
                 }
+            }
+            else
+            {
+                FieldDefinition<BsonDocument,BsonValue> parentField = new StringFieldDefinition<BsonDocument,BsonValue>("Parent");
+                FieldDefinition<BsonDocument,BsonDocument> elementField = new StringFieldDefinition<BsonDocument,BsonDocument>("Element");
+                FilterDefinition<BsonDocument> parentFilter = Builders<BsonDocument>.Filter.Eq(parentField, parent is null ? BsonNull.Value : parent.Document);
+                FilterDefinition<BsonDocument> elementFilter = Builders<BsonDocument>.Filter.Eq(elementField, child.Document);
+                FilterDefinition<BsonDocument> containsFilter = Builders<BsonDocument>.Filter.And(parentFilter, elementFilter);
+                using IAsyncCursor<BsonDocument> cursor = mongoCollection.Find(containsFilter).ToCursor();
+                return cursor.FirstOrDefault() is not null;
             }
             return false;
         }

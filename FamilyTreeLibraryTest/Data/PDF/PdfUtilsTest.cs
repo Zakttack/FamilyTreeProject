@@ -10,7 +10,7 @@ namespace FamilyTreeLibraryTest.Data.PDF
         [Test]
         public void TestGetLines1()
         {
-            string[] tokens = "I. August Fred Pfingsten 26 Jun 1896 14 Sep 1921 24 Aug 1980 Frieda nee Schobinger 10 Nov 1902 13 Jul 1938".Split(' ');
+            string[] tokens = "I. August Fred Pfingsten  26 Jun 1896  14 Sep 1921  24 Aug 1980  Frieda nee Schobinger  10 Nov 1902  13 Jul 1938".Split(' ');
             Queue<Line> expected = new();
             Line expectedMember = new()
             {
