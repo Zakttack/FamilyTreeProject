@@ -17,7 +17,7 @@ namespace FamilyTreeLibrary.Service
         {
             get
             {
-                return FamilyTree.Height;
+                return FamilyTree.Height - 1;
             }
         }
 

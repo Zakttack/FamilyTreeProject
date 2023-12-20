@@ -24,6 +24,18 @@ namespace FamilyTreeLibraryTest.Service
         }
 
         [Test]
+        public void TestGetNumberOfGenerations()
+        {
+            Assert.That(service.NumberOfGenerations, Is.EqualTo(6));
+        }
+
+        [Test]
+        public void TestGetNumberOfFamilies()
+        {
+            Assert.That(service.NumberOfFamilies, Is.EqualTo(777));
+        }
+
+        [Test]
         public void TestAppendTree()
         {
             try
