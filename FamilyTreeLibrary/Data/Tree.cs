@@ -176,9 +176,7 @@ namespace FamilyTreeLibrary.Data
 
         public IEnumerator<Family> GetEnumerator()
         {
-            ICollection<ICollection<ICollection<FamilyNode>>> families = new HashSet<ICollection<ICollection<FamilyNode>>>();
-            Traverse(families, Root);
-            return new FamilyEnumerator(families);
+            return new FamilyEnumerator(Root, mongoCollection);
         }
 
         IEnumerator IEnumerable.GetEnumerator()

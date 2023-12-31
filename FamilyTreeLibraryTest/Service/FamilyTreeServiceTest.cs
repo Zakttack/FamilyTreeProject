@@ -1,4 +1,5 @@
 using FamilyTreeLibrary;
+using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.Service;
 
 namespace FamilyTreeLibraryTest.Service
@@ -46,6 +47,34 @@ namespace FamilyTreeLibraryTest.Service
                 }
                 string templateFilePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), "2023PfingstenBookAlternate.pdf");
                 service.AppendTree(templateFilePath);
+            }
+            catch (Exception ex)
+            {
+                if (ex != problem)
+                {
+                    FamilyTreeUtils.WriteError(ex);
+                    problem = ex;
+                }
+            }
+            finally
+            {
+                Assert.That(problem, Is.Null);
+            }
+        }
+
+        [Test]
+        public void TestReportMarried()
+        {
+            try
+            {
+                if (problem is not null)
+                {
+                    throw problem;
+                }
+                Person member = new("Cade Alan Merrigan", new FamilyTreeDate("29 Oct 2000"), FamilyTreeDate.DefaultDate);
+                Person inLaw = new("Abigail Faleide", new FamilyTreeDate("25 Dec 2001"), FamilyTreeDate.DefaultDate);
+                FamilyTreeDate marriageDate = new("18 Aug 2023");
+                service.ReportMarried(member, inLaw, marriageDate);
             }
             catch (Exception ex)
             {

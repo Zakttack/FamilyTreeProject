@@ -1,18 +1,22 @@
 using FamilyTreeLibrary.Models;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using System.Collections;
 
 namespace FamilyTreeLibrary.Data.Enumerators
 {
     public class FamilyEnumerator : IEnumerator<Family>
     {
-        private readonly ICollection<ICollection<ICollection<FamilyNode>>> collection;
-        private int outerDimensionPosition;
-        private int middleDimensionPosition;
-        private int innerDimensionPosition;
+        private readonly FamilyNode root;
+        private readonly IMongoCollection<BsonDocument> mongoCollection;
+        private FamilyNode current;
 
-        public FamilyEnumerator(ICollection<ICollection<ICollection<FamilyNode>>> nodes)
+        private Stack<Queue<FamilyNode>> familyNodeCollection;
+
+        public FamilyEnumerator(FamilyNode root, IMongoCollection<BsonDocument> mongoCollection)
         {
-            collection = nodes;
+            this.root = root;
+            this.mongoCollection = mongoCollection;
             Reset();
         }
 
@@ -20,38 +24,7 @@ namespace FamilyTreeLibrary.Data.Enumerators
         {
             get
             {
-                Family result = null;
-                int tempOuter = outerDimensionPosition;
-                int tempMiddle = middleDimensionPosition;
-                int tempInner = innerDimensionPosition;
-                IReadOnlyList<ICollection<ICollection<FamilyNode>>> outerCollection = collection.ToList();
-                if (tempOuter < outerCollection.Count)
-                {
-                    IReadOnlyList<ICollection<FamilyNode>> middleCollection = outerCollection[tempOuter].ToList();
-                    if (tempMiddle < middleCollection.Count)
-                    {
-                        IReadOnlyList<FamilyNode> innerCollection = middleCollection[tempMiddle].ToList();
-                        result = innerCollection[tempInner].Element;
-                        if (tempInner == int.MaxValue - 1)
-                        {
-                            innerDimensionPosition = 0;
-                            if (tempMiddle == int.MaxValue - 1)
-                            {
-                                outerDimensionPosition++;
-                                middleDimensionPosition = 0;
-                            }
-                            else
-                            {
-                                middleDimensionPosition++;
-                            }
-                        }
-                        else
-                        {
-                            innerDimensionPosition++;
-                        }
-                    }
-                }
-                return result;
+                return current.Element;
             }
         }
 
@@ -63,56 +36,46 @@ namespace FamilyTreeLibrary.Data.Enumerators
             }
         }
 
-        private long CurrentPosition
-        {
-            get
-            {
-                checked
-                {
-                    long outer = (long)(Math.Pow(int.MaxValue, 2) * outerDimensionPosition);
-                    long middle = (long)int.MaxValue * middleDimensionPosition;
-                    return outer + middle + innerDimensionPosition;
-                }
-            }
-        }
-
-        private long NodesCount
-        {
-            get
-            {
-                long count = 0L;
-                checked
-                {
-                    foreach (ICollection<ICollection<FamilyNode>> outer in collection)
-                    {
-                        foreach (ICollection<FamilyNode> middle in outer)
-                        {
-                            foreach (FamilyNode inner in middle)
-                            {
-                                count++;
-                            }
-                        }
-                    }
-                }
-                return count;
-            }
-        }
-
         public void Dispose()
         {
-            Reset();
+            familyNodeCollection = null;
+            current = null;
         }
 
         public bool MoveNext()
         {
-            return CurrentPosition < NodesCount;
+            if (familyNodeCollection.Count == 0)
+            {
+                return false;
+            }
+            Queue<FamilyNode> families = familyNodeCollection.Pop();
+            current = families.Dequeue();
+            if (families.Any())
+            {
+                familyNodeCollection.Push(families);
+            }
+            Queue<FamilyNode> children = new();
+            IEnumerable<FamilyNode> childNodes = DataUtils.GetChildrenOf(current, mongoCollection);
+            foreach (FamilyNode child in childNodes)
+            {
+                children.Enqueue(child);
+            }
+            if (children.Any())
+            {
+                familyNodeCollection.Push(children);
+            }
+            return true;
         }
 
         public void Reset()
         {
-            outerDimensionPosition = 0;
-            middleDimensionPosition = 0;
-            innerDimensionPosition = 0;
+            familyNodeCollection = new();
+            Queue<FamilyNode> initial = new();
+            if (root is not null)
+            {
+                initial.Enqueue(root);
+                familyNodeCollection.Push(initial);
+            }
         }
     }
 }
