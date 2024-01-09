@@ -198,16 +198,43 @@ namespace FamilyTreeLibrary.Data
 
         public void Update(Family initial, Family final)
         {
-            FilterDefinition<BsonDocument> parentFilter = Builders<BsonDocument>.Filter.ElemMatch("Children",
-                Builders<BsonDocument>.Filter.Eq("Element", initial.Document));
-            UpdateDefinition<BsonDocument> parentUpdate = Builders<BsonDocument>.Update.Set("Children.Element", final.Document);
-            mongoCollection.UpdateOne(parentFilter, parentUpdate);
-            FilterDefinition<BsonDocument> elementFilter = Builders<BsonDocument>.Filter.Eq("Element", initial.Document);
-            UpdateDefinition<BsonDocument> elementUpdate = Builders<BsonDocument>.Update.Set("Element", final.Document);
-            mongoCollection.UpdateOne(elementFilter, elementUpdate);
-            FilterDefinition<BsonDocument> childrenFilter = Builders<BsonDocument>.Filter.Eq("Parent", initial.Document);
-            UpdateDefinition<BsonDocument> childUpdate = Builders<BsonDocument>.Update.Set("Parent", final.Document);
-            mongoCollection.UpdateMany(childrenFilter, childUpdate);
+            IEnumerable<FamilyNode> nodesToBeUpdated = DataUtils.GetNodesToBeUpdated(initial, mongoCollection); // represents the collection of nodes that need updating
+            foreach (FamilyNode node in nodesToBeUpdated)
+            {
+                if (node.Children.Contains(initial)) // Case 1: the node is a parent
+                {
+                    FilterDefinition<BsonDocument> parentFilter = Builders<BsonDocument>.Filter.ElemMatch("Children", 
+                        Builders<BsonDocument>.Filter.Eq("Member", initial.Member.Document)); // This filter will the find the parent of the element
+                    BsonArray initialArray = node.Document["Children"].AsBsonArray; // the initial children of the parent before update
+                    BsonArray finalArray = new();
+                    foreach (BsonValue value in initialArray)
+                    {
+                        Family family = new(value.AsBsonDocument); // localize each child
+                        if (family == initial) // determine if the child need update
+                        {
+                            finalArray.Add(final.Document); // apply the update
+                        }
+                        else
+                        {
+                            finalArray.Add(value); // no update neccessary
+                        }
+                    }
+                    UpdateDefinition<BsonDocument> parentUpdate = Builders<BsonDocument>.Update.Set("Children", finalArray); // constructs the update instruction on the mongo collection for the parent
+                    mongoCollection.UpdateOne(parentFilter, parentUpdate); // runs the update instruction on the mongo collection of the parent
+                }
+                else if (node.Element == initial) // Case 2: the node is an element
+                {
+                    FilterDefinition<BsonDocument> elementFilter = Builders<BsonDocument>.Filter.Eq("Element", initial.Document); // This filter will find the element in the collection
+                    UpdateDefinition<BsonDocument> elementUpdate = Builders<BsonDocument>.Update.Set("Element", final.Document); // constructs the update instruction on the mongo collection for the element
+                    mongoCollection.UpdateOne(elementFilter, elementUpdate); // runs the update instruction on the mongo collection of the element
+                }
+                else if (node.Parent == initial) // Case 3: the node is a child
+                {
+                    FilterDefinition<BsonDocument> childrenFilter = Builders<BsonDocument>.Filter.Eq("Parent", initial.Document); // This filter will find the children of the element.
+                    UpdateDefinition<BsonDocument> childrenUpdate = Builders<BsonDocument>.Update.Set("Parent", final.Document); // constructs the update instruction on the mongo collection for the child
+                    mongoCollection.UpdateOne(childrenFilter, childrenUpdate); // runs the update instruction on the mongo collection of the child
+                }
+            }
         }
 
         private int GetHeight(FamilyNode start)

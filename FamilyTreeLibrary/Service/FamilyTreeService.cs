@@ -156,33 +156,37 @@ namespace FamilyTreeLibrary.Service
             {
                 throw new ArgumentNullException(nameof(marriageDate), "An unknown marriage date was entered.");
             }
-            IEnumerable<Family> families = FamilyTree.Where(node => node.Member == member);
+            IList<Family> familyCollection = FamilyTree.ToList();
+            IList<Family> families = familyCollection.Where(node => node.Member == member).ToList();
             if (!families.Any())
             {
                 throw new ArgumentException($"{member.Name} isn't a member of the tree.");
             }
             Family family = families.Where(fam => fam.InLaw == inLaw).FirstOrDefault();
-            if (family is null && (families.Count() > 1 || families.First().InLaw is not null))
+            if (family is null && (families.Count > 1 || families[0].InLaw is not null))
             {
                 Family additionalFamily = new(member, inLaw, marriageDate);
-                Family node = FamilyTree.Where(n => n.Member == member).First();
+                Family node = families[0];
                 Family parent = FamilyTree.GetParent(node);
+                Log.Debug("An additional partnership is being added.");
                 FamilyTree.Add(default, parent, additionalFamily);
+                Log.Information("The additional partnership has been applied.");
             }
             else if (family is null)
             {
-                Family initial = FamilyTree.Where(node => node == families.First()).First();
-                Family final = initial;
-                final.InLaw = inLaw;
-                final.MarriageDate = marriageDate;
+                Family initial = familyCollection.Where(node => node == families[0]).First();
+                Family final = new(initial.Member, inLaw, marriageDate);
+                Log.Debug($"The node: {initial} is being updated.");
                 FamilyTree.Update(initial, final);
+                Log.Information($"The node has been updated to {final}");
             }
             else
             {
-                Family initial = FamilyTree.Where(node => node == family).First();
-                Family final = initial;
-                final.MarriageDate = marriageDate;
+                Family initial = familyCollection.Where(node => node == family).First();
+                Family final = new(initial.Member, initial.InLaw, marriageDate);
+                Log.Debug($"The marriage date is being changed from {initial.MarriageDate} to {final.MarriageDate}.");
                 FamilyTree.Update(initial, final);
+                Log.Information("The marriage date update was successful");
             }
         }
 
