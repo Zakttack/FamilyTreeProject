@@ -4,7 +4,7 @@ using MongoDB.Bson;
 
 namespace FamilyTreeLibrary.Data
 {
-    public class FamilyNode : IComparable<FamilyNode>, IEquatable<FamilyNode>
+    public class FamilyNode : ICloneable, IComparable<FamilyNode>, IEquatable<FamilyNode>
     {
         public FamilyNode(Family parent, Family element)
         {
@@ -75,6 +75,11 @@ namespace FamilyTreeLibrary.Data
                 doc.Add(nameof(Children), array);
                 return new(doc);
             }
+        }
+
+        public object Clone()
+        {
+            return new FamilyNode(Document);
         }
 
         public int CompareTo(FamilyNode other)

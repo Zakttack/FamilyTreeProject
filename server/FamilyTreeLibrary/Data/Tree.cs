@@ -2,7 +2,6 @@ using FamilyTreeLibrary.Data.Enumerators;
 using FamilyTreeLibrary.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using System.Collections;
 
 
@@ -162,7 +161,7 @@ namespace FamilyTreeLibrary.Data
             while (current != Root)
             {
                 depth++;
-                FamilyNode temp = current;
+                FamilyNode temp = (FamilyNode)current.Clone();
                 current = DataUtils.GetParentOf(temp, mongoCollection);
             }
             return depth;
@@ -246,40 +245,6 @@ namespace FamilyTreeLibrary.Data
                 height = Math.Max(height, GetHeight(child));
             }
             return height + 1;
-        }
-
-        private void Traverse(ICollection<ICollection<ICollection<FamilyNode>>> nodes, FamilyNode parent)
-        {
-            if (parent is not null)
-            {
-                if (!nodes.Any() || nodes.Last().Count == int.MaxValue)
-                {
-                    ICollection<ICollection<FamilyNode>> subCollection = new List<ICollection<FamilyNode>>()
-                    {
-                        new List<FamilyNode>()
-                        {
-                            parent
-                        }
-                    };
-                    nodes.Add(subCollection);
-                }
-                else if (!nodes.Last().Any() || nodes.Last().Last().Count == int.MaxValue)
-                {
-                    ICollection<FamilyNode> subCollection = new List<FamilyNode>()
-                    {
-                        parent
-                    };
-                    nodes.Last().Add(subCollection);
-                }
-                else
-                {
-                    nodes.Last().Last().Add(parent);
-                }
-                foreach (Family child in parent.Children)
-                {
-                    Traverse(nodes, DataUtils.GetNodeOf(child, mongoCollection));
-                }
-            }
         }
     }
 }

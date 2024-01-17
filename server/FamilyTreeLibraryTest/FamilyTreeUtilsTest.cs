@@ -1,10 +1,12 @@
 using FamilyTreeLibrary;
+using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace FamilyTreeLibraryTest
 {
     public class FamilyTreeUtilsTest
     {
-        internal const string PDF_FILE = @"C:\Users\zakme\Documents\FamilyTreeProject\Resources\PfingstenBook2023.pdf";
+        internal const string PDF_FILE = @"C:\Users\zakme\Documents\FamilyTreeProject\resources\PfingstenBook2023.pdf";
 
         [Test]
         public void TestGetConfiguration()
@@ -12,7 +14,7 @@ namespace FamilyTreeLibraryTest
             object result;
             try
             {
-                string appSettingsFilePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), "appsettings.json");
+                string appSettingsFilePath = FamilyTreeUtils.GetFilePathOf("appsettings.json");
                 result = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
             }
             catch (Exception ex)
@@ -24,9 +26,9 @@ namespace FamilyTreeLibraryTest
         }
         
         [Test]
-        public void TestGetFileNameFromResources()
+        public void TestGetFilePathOf()
         {
-            string actaul = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), "PfingstenBook2023.pdf");
+            string actaul = FamilyTreeUtils.GetFilePathOf(@"resources\PfingstenBook2023.pdf");
             Assert.That(actaul, Is.EqualTo(PDF_FILE));
         }
 
@@ -35,7 +37,15 @@ namespace FamilyTreeLibraryTest
         {
             try
             {
-                FamilyTreeUtils.InitializeLogger();
+                string appSettingsFilePath = FamilyTreeUtils.GetFilePathOf("appsettings.json");
+                IConfiguration configuration = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
+                FamilyTreeUtils.InitializeLogger(configuration);
+                Log.Information("Logging Something.");
+                string expectedLogPath = @"C:\Users\zakme\Documents\FamilyTreeProject\resources\Logs\log20240116.txt";
+                if (!File.Exists(expectedLogPath))
+                {
+                    throw new FileNotFoundException("The logger was unable to generate a text file.");
+                }
             }
             catch (Exception)
             {

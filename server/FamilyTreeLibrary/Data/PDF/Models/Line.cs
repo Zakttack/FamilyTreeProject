@@ -2,7 +2,7 @@ using FamilyTreeLibrary.Models;
 
 namespace FamilyTreeLibrary.Data.PDF.Models
 {
-    public class Line
+    public class Line : ICloneable
     {
         public Line(string name = null, Queue<FamilyTreeDate> dates = default)
         {
@@ -20,9 +20,9 @@ namespace FamilyTreeLibrary.Data.PDF.Models
             get;
         }
 
-        public Line Copy()
+        public object Clone()
         {
-            return new(Name,Dates);
+            return new Line(Name,Dates);
         }
 
         public override bool Equals(object obj)

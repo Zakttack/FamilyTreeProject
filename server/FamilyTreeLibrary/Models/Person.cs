@@ -3,7 +3,7 @@ using MongoDB.Bson;
 
 namespace FamilyTreeLibrary.Models
 {
-    public class Person : IComparable<Person>, IEquatable<Person>
+    public class Person : ICloneable, IComparable<Person>, IEquatable<Person>
     {
         private FamilyTreeDate deceasedDate;
 
@@ -59,6 +59,11 @@ namespace FamilyTreeLibrary.Models
                 };
                 return new(doc);
             }
+        }
+
+        public object Clone()
+        {
+            return new Person(Document);
         }
 
         public int CompareTo(Person other)

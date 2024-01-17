@@ -3,17 +3,16 @@ using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
-using System.Linq;
 
 namespace FamilyTreeLibrary.Data
 {
     public static class DataUtils
     {
-        private const string APP_SETTINGS_FILE_NAME = "appsettings.json";
+        private const string APP_SETTINGS_RELATIVE_FILE_PATH = "appsettings.json";
 
         public static IMongoCollection<BsonDocument> GetCollection(string familyName)
         {
-            string appSettingsFilePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), APP_SETTINGS_FILE_NAME);
+            string appSettingsFilePath = FamilyTreeUtils.GetFilePathOf(APP_SETTINGS_RELATIVE_FILE_PATH);
             IConfiguration configuration = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
             string connectionString = configuration.GetSection("FamilyTreeDb:ConnectionString").Value;
             IMongoClient client = new MongoClient(connectionString);

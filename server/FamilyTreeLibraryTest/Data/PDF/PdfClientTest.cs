@@ -1,5 +1,6 @@
 using FamilyTreeLibrary;
 using FamilyTreeLibrary.Data.PDF;
+using Microsoft.Extensions.Configuration;
 
 namespace FamilyTreeLibraryTest.Data.PDF
 {
@@ -12,8 +13,10 @@ namespace FamilyTreeLibraryTest.Data.PDF
         {
             try
             {
-                FamilyTreeUtils.InitializeLogger();
-                string filePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), "2023PfingstenBookAlternate.pdf");
+                string appSettingsFilePath = FamilyTreeUtils.GetFilePathOf("appsettings.json");
+                IConfiguration configuration = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
+                FamilyTreeUtils.InitializeLogger(configuration);
+                string filePath = FamilyTreeUtils.GetFilePathOf(@"resources\2023PfingstenBookAlternate.pdf");
                 client = new(filePath);
                 problem = null;
             }

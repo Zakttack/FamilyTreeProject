@@ -9,7 +9,6 @@ namespace FamilyTreeLibrary.Service
     {
         public FamilyTreeService(string familyName)
         {
-            FamilyTreeUtils.InitializeLogger();
             FamilyTree = new Tree(familyName);
         }
 
@@ -129,7 +128,7 @@ namespace FamilyTreeLibrary.Service
             }
             foreach (Family fam in families)
             {
-                Family updatedFam = fam;
+                Family updatedFam = (Family)fam.Clone();
                 if (updatedFam.Member == p)
                 {
                     updatedFam.Member.DeceasedDate = deceasedDate;
@@ -166,7 +165,7 @@ namespace FamilyTreeLibrary.Service
             if (family is null && (families.Count > 1 || families[0].InLaw is not null))
             {
                 Family additionalFamily = new(member, inLaw, marriageDate);
-                Family node = families[0];
+                Family node = (Family)families[0].Clone();
                 Family parent = FamilyTree.GetParent(node);
                 Log.Debug("An additional partnership is being added.");
                 FamilyTree.Add(default, parent, additionalFamily);

@@ -2,7 +2,7 @@ using FamilyTreeLibrary.Exceptions;
 
 namespace FamilyTreeLibrary.Models
 {
-    public partial struct FamilyTreeDate : IComparable<FamilyTreeDate>, IEquatable<FamilyTreeDate>
+    public partial struct FamilyTreeDate : ICloneable, IComparable<FamilyTreeDate>, IEquatable<FamilyTreeDate>
     {
         private int day;
         private string month;
@@ -102,6 +102,11 @@ namespace FamilyTreeLibrary.Models
                 year = value;
                 FillMonths(isNumber && DateTime.IsLeapYear(Convert.ToInt32(year)));
             }
+        }
+
+        public readonly object Clone()
+        {
+            return new FamilyTreeDate(ToString());
         }
 
         public readonly int CompareTo(FamilyTreeDate other)

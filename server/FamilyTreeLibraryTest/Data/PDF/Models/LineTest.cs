@@ -7,7 +7,7 @@ namespace FamilyTreeLibraryTest.Data.PDF.Models
     {
 
         [Test]
-        public void TestCopy()
+        public void TestClone()
         {
             Line expected = new()
             {
@@ -16,7 +16,7 @@ namespace FamilyTreeLibraryTest.Data.PDF.Models
             expected.Dates.Enqueue(new FamilyTreeDate("26 Jun 1896"));
             expected.Dates.Enqueue(new FamilyTreeDate("14 Sep 1921"));
             expected.Dates.Enqueue(new FamilyTreeDate("24 Aug 1980"));
-            Assert.That(expected.Copy(), Is.EqualTo(expected));
+            Assert.That(expected.Clone(), Is.EqualTo(expected));
         }
     }
 }

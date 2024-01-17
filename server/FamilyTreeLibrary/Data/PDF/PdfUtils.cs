@@ -91,7 +91,7 @@ namespace FamilyTreeLibrary.Data.PDF
                 {
                     if (tempLine.Name != null)
                     {
-                        lines.Enqueue(tempLine.Copy());
+                        lines.Enqueue((Line)tempLine.Clone());
                         tempLine = new();
                     }
                     tempLine.Name = tempName.Trim();
@@ -122,7 +122,7 @@ namespace FamilyTreeLibrary.Data.PDF
             {
                 if (lines.Count == 0 && tempLine.Name != null)
                 {
-                    lines.Enqueue(tempLine.Copy());
+                    lines.Enqueue((Line)tempLine.Clone());
                 }
                 tempLine = new(tokens.Length > 1 ? $"{tempName}{tokens[^1]}" : "");
             }

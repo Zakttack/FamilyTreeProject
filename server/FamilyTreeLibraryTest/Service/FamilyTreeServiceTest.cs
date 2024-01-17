@@ -1,6 +1,7 @@
 using FamilyTreeLibrary;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.Service;
+using Microsoft.Extensions.Configuration;
 
 namespace FamilyTreeLibraryTest.Service
 {
@@ -13,6 +14,9 @@ namespace FamilyTreeLibraryTest.Service
         {
             try
             {
+                string appSettingsFilePath = FamilyTreeUtils.GetFilePathOf("appsettings.json");
+                IConfiguration configuration = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
+                FamilyTreeUtils.InitializeLogger(configuration);
                 string familyName = "Pfingsten";
                 service = new(familyName);
                 problem = null;
@@ -45,7 +49,7 @@ namespace FamilyTreeLibraryTest.Service
                 {
                     throw problem;
                 }
-                string templateFilePath = FamilyTreeUtils.GetFileNameFromResources(Directory.GetCurrentDirectory(), "2023PfingstenBookAlternate.pdf");
+                string templateFilePath = FamilyTreeUtils.GetFilePathOf(@"resources\2023PfingstenBookAlternate.pdf");
                 service.AppendTree(templateFilePath);
             }
             catch (Exception ex)

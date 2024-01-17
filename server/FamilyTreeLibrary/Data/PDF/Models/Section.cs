@@ -1,9 +1,8 @@
 using FamilyTreeLibrary.Data.PDF.OrderingType;
-using FamilyTreeLibrary.Models;
 
 namespace FamilyTreeLibrary.Data.PDF.Models
 {
-    public class Section
+    public class Section : ICloneable
     {
         public Section(AbstractOrderingType[] orderingType, FamilyNode node)
         {
@@ -18,6 +17,11 @@ namespace FamilyTreeLibrary.Data.PDF.Models
         public FamilyNode Node
         {
             get;
+        }
+
+        public object Clone()
+        {
+            return new Section(OrderingType, Node);
         }
 
         public override bool Equals(object obj)
