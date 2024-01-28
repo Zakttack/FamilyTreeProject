@@ -1,7 +1,6 @@
 using FamilyTreeLibrary;
 using FamilyTreeLibrary.Data;
 using FamilyTreeLibrary.Models;
-using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Serilog;
@@ -12,9 +11,7 @@ namespace FamilyTreeLibraryTest.Data
         [SetUp]
         public void SetUp()
         {
-            string appSettingsFilePath = FamilyTreeUtils.GetFilePathOf("appsettings.json");
-            IConfiguration configuration = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
-            FamilyTreeUtils.InitializeLogger(configuration);
+            FamilyTreeUtils.InitializeLogger();
         }
 
         [Test]

@@ -18,8 +18,8 @@ namespace FamilyTreeLibrary
                 throw new NotSupportedException("App Settings Configuration must be stored as a json file.");
             }
             IConfigurationBuilder builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile(appSettingsFilePath, optional: true, reloadOnChange: true);
+                .SetBasePath(Path.GetDirectoryName(appSettingsFilePath))
+                .AddJsonFile(Path.GetFileName(appSettingsFilePath), false, true);
             return builder.Build();
         }
 
@@ -28,9 +28,13 @@ namespace FamilyTreeLibrary
             return Path.Combine(GetRootDirectory(), relativeFilePath);
         }
 
-        public static void InitializeLogger(IConfiguration configuration)
+        public static void InitializeLogger()
         {
-            Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger();
+            string filePath = GetFilePathOf(@"resources\Logs\log.txt");
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)
+                .CreateLogger();
         }
 
         public static void WriteError(Exception ex)

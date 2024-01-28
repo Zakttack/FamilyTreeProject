@@ -14,9 +14,7 @@ namespace FamilyTreeLibraryTest.Service
         {
             try
             {
-                string appSettingsFilePath = FamilyTreeUtils.GetFilePathOf("appsettings.json");
-                IConfiguration configuration = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
-                FamilyTreeUtils.InitializeLogger(configuration);
+                FamilyTreeUtils.InitializeLogger();
                 string familyName = "Pfingsten";
                 service = new(familyName);
                 problem = null;

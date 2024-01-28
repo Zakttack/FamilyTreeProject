@@ -14,7 +14,7 @@ namespace FamilyTreeLibraryTest
             object result;
             try
             {
-                string appSettingsFilePath = FamilyTreeUtils.GetFilePathOf("appsettings.json");
+                string appSettingsFilePath = FamilyTreeUtils.GetFilePathOf(@"server\FamilyTreeLibrary\appsettings.json");
                 result = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
             }
             catch (Exception ex)
@@ -26,7 +26,15 @@ namespace FamilyTreeLibraryTest
         }
         
         [Test]
-        public void TestGetFilePathOf()
+        public void TestGetFilePathOfConfiguration()
+        {
+            string actual = FamilyTreeUtils.GetFilePathOf(@"server\FamilyTreeLibrary\appsettings.json");
+            string expected = @"C:\Users\zakme\Documents\FamilyTreeProject\server\FamilyTreeLibrary\appsettings.json";
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+        
+        [Test]
+        public void TestGetFilePathOfPfingstenBook()
         {
             string actaul = FamilyTreeUtils.GetFilePathOf(@"resources\PfingstenBook2023.pdf");
             Assert.That(actaul, Is.EqualTo(PDF_FILE));
@@ -37,11 +45,9 @@ namespace FamilyTreeLibraryTest
         {
             try
             {
-                string appSettingsFilePath = FamilyTreeUtils.GetFilePathOf("appsettings.json");
-                IConfiguration configuration = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
-                FamilyTreeUtils.InitializeLogger(configuration);
+                FamilyTreeUtils.InitializeLogger();
                 Log.Information("Logging Something.");
-                string expectedLogPath = @"C:\Users\zakme\Documents\FamilyTreeProject\resources\Logs\log20240116.txt";
+                string expectedLogPath = @"C:\Users\zakme\Documents\FamilyTreeProject\resources\Logs\log20240128.txt";
                 if (!File.Exists(expectedLogPath))
                 {
                     throw new FileNotFoundException("The logger was unable to generate a text file.");
