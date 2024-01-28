@@ -1,0 +1,60 @@
+{
+    "Parent": {
+        "Name": null,
+        "BirthDate": null,
+        "DeceasedDate": null
+    },
+    "Member": {
+        "Name": "August Fred Pfingsten",
+        "BirthDate": "26 Jun 1896",
+        "DeceasedDate": "24 Aug 1980"
+    },
+    "InLaw": {
+        "Name": "Frieda nee Schobinger",
+        "BirthDate": "10 Nov 1902",
+        "DeceasedDate": "13 Jul 1938"
+    },
+    "MarriageDate": "14 Sep 1921",
+    "Children": [
+        {
+            "Name": "Lillian Pfingsten",
+            "BirthDate": "12 Nov 1922",
+            "DeceasedDate": "9 Oct 1924"
+        },
+        {
+            "Name": "Dorothy Pfingsten",
+            "BirthDate": "05 Sep 1924",
+            "DeceasedDate": "3 Oct 2003"
+        },
+        {
+            "Name": "Evelyn Pfingsten",
+            "BirthDate": "14 Mar 1926",
+            "DeceasedDate": null
+        },
+        {
+            "Name": "Gordon Pfingsten",
+            "BirthDate": "16 Sep 1928",
+            "DeceasedDate": "28 Mar 1981"
+        },
+        {
+            "Name": "Gladys Lydia Pfingsten",
+            "BirthDate": "3 Jan 1931",
+            "DeceasedDate": "12 Apr 2004"
+        },
+        {
+            "Name": "Orville Pfingsten",
+            "BirthDate": "14 Jul 1933",
+            "DeceasedDate": "30 Sep 1990"
+        },
+        {
+            "Name": "August Conrad Pfingsten, Jr.",
+            "BirthDate": "2 Aug 1935",
+            "DeceasedDate": null
+        },
+        {
+            "Name": "LeRoy John Pfingsten",
+            "BirthDate": "7 Dec 1936",
+            "DeceasedDate": null
+        }
+    ]
+}

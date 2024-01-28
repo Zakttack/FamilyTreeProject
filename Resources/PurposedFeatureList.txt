@@ -1,0 +1,13 @@
+To do:
+1. Implement the README.md file.
+2. Express the tree structure as a collection of family instances rather than the family node.
+
+User Stories:
+1. As a member of a family, they should be able to upload a template to append the tree.
+2. As a member of a family, they should be able to report a marriage of a specified member.
+3. As a member of a family, they should be able to report children of a specified member.
+4. As a member of a family, they should be able to report deceased of a specified person in the tree.
+5. As a member of a family, they should be able to know how many generations are in the tree.
+6. As a member of a family, they should be able to know how many families are part of the family.
+7. As a member of a family, they should be able to know what generation a certain family is in.
+8. As a member of a family, they should be able to enumerate through the tree in a pre-order traversal (parent first than children)
