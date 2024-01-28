@@ -7,7 +7,7 @@ namespace FamilyTreeAPI.Controllers
     public class FamilyTreeController : ControllerBase
     {
         [HttpGet]
-        public IActionResult Get()
+        public IActionResult GetHelloWorld()
         {
             return Ok("Hello World!");
         }
