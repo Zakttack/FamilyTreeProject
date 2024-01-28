@@ -8,7 +8,7 @@ namespace FamilyTreeLibrary.Data
 {
     public static class DataUtils
     {
-        private const string APP_SETTINGS_RELATIVE_FILE_PATH = "appsettings.json";
+        private const string APP_SETTINGS_RELATIVE_FILE_PATH = @"server\FamilyTreeLibrary\appsettings.json";
 
         public static IMongoCollection<BsonDocument> GetCollection(string familyName)
         {
