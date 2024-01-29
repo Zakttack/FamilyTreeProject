@@ -141,6 +141,16 @@ namespace FamilyTreeLibrary.Data
                     }
                 }
             }
+            else if (child.InLaw is null)
+            {
+                FieldDefinition<BsonDocument,BsonValue> parentField = new StringFieldDefinition<BsonDocument,BsonValue>("Parent");
+                FieldDefinition<BsonDocument,BsonDocument> elementField = new StringFieldDefinition<BsonDocument,BsonDocument>("Element.Member");
+                FilterDefinition<BsonDocument> parentFilter = Builders<BsonDocument>.Filter.Eq(parentField, parent is null ? BsonNull.Value : parent.Document);
+                FilterDefinition<BsonDocument> elementFilter = Builders<BsonDocument>.Filter.Eq(elementField, child.Member.Document);
+                FilterDefinition<BsonDocument> containsFilter = Builders<BsonDocument>.Filter.And(parentFilter, elementFilter);
+                using IAsyncCursor<BsonDocument> cursor = mongoCollection.Find(containsFilter).ToCursor();
+                return cursor.FirstOrDefault() is not null;
+            }
             else
             {
                 FieldDefinition<BsonDocument,BsonValue> parentField = new StringFieldDefinition<BsonDocument,BsonValue>("Parent");

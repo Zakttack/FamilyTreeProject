@@ -28,5 +28,7 @@ namespace FamilyTreeAPI.Controllers
                 return StatusCode(500, $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             }
         }
+
+        
     }
 }
