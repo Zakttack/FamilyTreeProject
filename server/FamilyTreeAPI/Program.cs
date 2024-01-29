@@ -1,3 +1,4 @@
+using FamilyTreeLibrary;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -18,5 +19,5 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
-
+FamilyTreeUtils.InitializeLogger();
 app.Run();
