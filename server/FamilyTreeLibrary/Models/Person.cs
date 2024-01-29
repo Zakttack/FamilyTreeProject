@@ -1,3 +1,4 @@
+using FamilyTreeLibrary.Data.Comparers;
 using FamilyTreeLibrary.Exceptions;
 using MongoDB.Bson;
 
@@ -88,23 +89,8 @@ namespace FamilyTreeLibrary.Models
             {
                 return 1;
             }
-            bool thisNameIsNull = Name is null;
-            bool otherNameIsNull = other.Name is null;
-            if (thisNameIsNull && !otherNameIsNull)
-            {
-                return -1;
-            }
-            else if (thisNameIsNull && otherNameIsNull)
-            {
-                return 0;
-            }
-            else if (!thisNameIsNull && otherNameIsNull)
-            {
-                return 1;
-            }
-            string[] nameParts = Name.Split(' ');
-            string[] otherNameParts = other.Name.Split(' ');
-            return nameParts.Intersect(otherNameParts).Count() >= 2 ? 0 : Name.CompareTo(other.Name);
+            IComparer<string> nameCompare = new NameComparer();
+            return nameCompare.Compare(Name, other.Name);
         }
 
         public override bool Equals(object obj)
