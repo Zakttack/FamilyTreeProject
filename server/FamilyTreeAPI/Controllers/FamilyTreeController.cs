@@ -53,7 +53,7 @@ namespace FamilyTreeAPI.Controllers
             {
                 FamilyTreeService service = new(request.FamilyName);
                 service.AppendTree(request.TemplateFilePath);
-                return Ok("The collected has been appended.");
+                return Ok("The collection has been appended.");
             }
             catch (FileNotFoundException ex)
             {
