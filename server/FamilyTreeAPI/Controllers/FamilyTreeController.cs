@@ -27,7 +27,7 @@ namespace FamilyTreeAPI.Controllers
             catch (Exception ex)
             {
                 FamilyTreeUtils.WriteError(ex);
-                return StatusCode(500, $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+                return StatusCode(500, SerializeErrorResponse(ex));
             }
         }
 
@@ -42,7 +42,7 @@ namespace FamilyTreeAPI.Controllers
             catch (Exception ex)
             {
                 FamilyTreeUtils.WriteError(ex);
-                return StatusCode(500, ex);
+                return StatusCode(500, SerializeErrorResponse(ex));
             }
         }
 
@@ -57,11 +57,11 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (FileNotFoundException ex)
             {
-                return BadRequest(ex);
+                return BadRequest(SerializeErrorResponse(ex));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex);
+                return StatusCode(500, SerializeErrorResponse(ex));
             }
         }
 
@@ -83,16 +83,25 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex);
+                return BadRequest(SerializeErrorResponse(ex));
             }
             catch (FormatException ex)
             {
-                return BadRequest(ex);
+                return BadRequest(SerializeErrorResponse(ex));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex);
+                return StatusCode(500, SerializeErrorResponse(ex));
             }
+        }
+
+        private static ExceptionResponse SerializeErrorResponse(Exception ex)
+        {
+            return new ExceptionResponse
+            {
+                Name = ex.GetType().Name,
+                Message = ex.Message
+            };
         }
     }
 }

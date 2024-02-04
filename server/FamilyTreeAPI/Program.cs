@@ -2,6 +2,15 @@ using FamilyTreeLibrary;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "AllowSpecificOrigin", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 builder.WebHost.ConfigureKestrel((context, options) =>
 {
@@ -18,6 +27,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
+app.UseCors("AllowSpecificOrigin");
 app.MapControllers();
 FamilyTreeUtils.InitializeLogger();
 app.Run();

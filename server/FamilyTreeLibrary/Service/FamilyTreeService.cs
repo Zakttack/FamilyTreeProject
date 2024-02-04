@@ -24,7 +24,7 @@ namespace FamilyTreeLibrary.Service
         {
             get
             {
-                return FamilyTree.Count;
+                return FamilyTree.Count - 1;
             }
         }
 
