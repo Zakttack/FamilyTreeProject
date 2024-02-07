@@ -6,7 +6,7 @@ const GetNumberOfFamiliesComponent: React.FC = () => {
     const [familyCount, setFamilyCount] = useState<number>(0);
     useEffect(() => {
         const fetchNumberOfFamilies = async () => {
-            const url = `https://localhost:5201/api/familytree/${familyName}/numberoffamilies`;
+            const url = `http://localhost:5201/api/familytree/${familyName}/numberoffamilies`;
             try {
                 const response = await fetch(url);
                 if (!response.ok) {

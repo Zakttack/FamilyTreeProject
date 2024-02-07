@@ -6,7 +6,7 @@ const GetNumberOfGenerationsComponent: React.FC = () => {
     const [generationCount, setGenerationCount] = useState<number>(0);
     useEffect(() => {
         const fetchNumberOfGenerations = async () => {
-            const url = `https://localhost:5201/api/familytree/${familyName}/numberofgenerations`;
+            const url = `http://localhost:5201/api/familytree/${familyName}/numberofgenerations`;
             try {
                 const response = await fetch(url);
                 if (!response.ok)
