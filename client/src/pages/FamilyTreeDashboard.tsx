@@ -2,6 +2,8 @@ import React, { useContext } from "react";
 import FamilyNameContext from "../models/familyNameContext";
 import GetNumberOfFamiliesComponent from "../components/GetNumberOfFamiliesComponent";
 import GetNumberOfGenerationsComponent from "../components/GetNumberOfGenerationsComponent";
+import OrderTypeProvider from "../providers/orderTypeProvider";
+import SelectOrderTypeComponent from "../components/SelectOrderTypeComponent";
 
 const FamilyTreeDashboard: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
@@ -10,6 +12,9 @@ const FamilyTreeDashboard: React.FC = () => {
             <h1>This is the {familyName} family</h1>
             <GetNumberOfGenerationsComponent />
             <GetNumberOfFamiliesComponent />
+            <OrderTypeProvider>
+                <SelectOrderTypeComponent />
+            </OrderTypeProvider>
         </div>
     );
 }

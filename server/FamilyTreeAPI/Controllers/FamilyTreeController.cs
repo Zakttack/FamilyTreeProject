@@ -16,6 +16,26 @@ namespace FamilyTreeAPI.Controllers
             return Ok("Hello World!");
         }
 
+        [HttpGet("{familyName}/getfamilies/{orderOption}")]
+        public IActionResult GetFamilies(string familyName, string orderOption)
+        {
+            try
+            {
+                FamilyTreeService service = new(familyName);
+                return orderOption switch
+                {
+                    "parent first then children" => Ok(service.ParentFirstThenChildren),
+                    "ascending by name" => Ok(service.AscendingByName),
+                    _ => BadRequest($"{orderOption} is an invalid order option."),
+                };
+            }
+            catch (Exception ex)
+            {
+                FamilyTreeUtils.WriteError(ex);
+                return StatusCode(500, SerializeErrorResponse(ex));
+            }
+        }
+        
         [HttpGet("{familyName}/numberofgenerations")]
         public IActionResult GetNumberOfGenerations(string familyName)
         {
