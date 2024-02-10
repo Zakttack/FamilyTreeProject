@@ -1,4 +1,5 @@
 using FamilyTreeLibrary.Data;
+using FamilyTreeLibrary.Data.Comparers;
 using FamilyTreeLibrary.Data.PDF;
 using FamilyTreeLibrary.Models;
 using Serilog;
@@ -10,6 +11,14 @@ namespace FamilyTreeLibrary.Service
         public FamilyTreeService(string familyName)
         {
             FamilyTree = new Tree(familyName);
+        }
+
+        public IEnumerable<Family> AscendingByName
+        {
+            get
+            {
+                return FamilyTree.Order(new NameAscedendingComparer());
+            }
         }
 
         public int NumberOfGenerations
@@ -25,6 +34,14 @@ namespace FamilyTreeLibrary.Service
             get
             {
                 return FamilyTree.Count - 1;
+            }
+        }
+
+        public IEnumerable<Family> ParentFirstThenChildren
+        {
+            get
+            {
+                return FamilyTree;
             }
         }
 

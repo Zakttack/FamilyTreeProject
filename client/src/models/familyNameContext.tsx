@@ -4,6 +4,6 @@ interface FamilyNameContextType {
     setFamilyName: (name: string) => void;
 }
 
-const FamilyNameContext = React.createContext<FamilyNameContextType>({familyName: '', setFamilyName(name) {this.familyName = name}});
+const FamilyNameContext = React.createContext<FamilyNameContextType>({familyName: '', setFamilyName: () => {}});
 
 export default FamilyNameContext;
