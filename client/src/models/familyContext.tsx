@@ -3,11 +3,11 @@ import { PersonDefault, PersonElement } from "./personContext";
 
 export interface FamilyElement {
     member: PersonElement;
-    inLaw: PersonElement;
-    marriageDate: string;
+    inLaw: PersonElement | null;
+    marriageDate: string | null;
 }
 
-export const FamilyDefault: FamilyElement = {member: PersonDefault, inLaw: PersonDefault, marriageDate: ''};
+export const FamilyDefault: FamilyElement = {member: PersonDefault, inLaw: null, marriageDate: null};
 
 interface FamilyContextType {
     family: FamilyElement;

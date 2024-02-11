@@ -1,12 +1,12 @@
 import React from "react";
 
 export interface PersonElement {
-    name: string;
-    birthDate: string;
-    deceasedDate: string;
+    name: string | null;
+    birthDate: string | null;
+    deceasedDate: string | null;
 }
 
-export const PersonDefault: PersonElement = {name: '', birthDate: '', deceasedDate: ''};
+export const PersonDefault: PersonElement = {name: null, birthDate: null, deceasedDate: null};
 
 interface PersonContextType {
     person: PersonElement;
