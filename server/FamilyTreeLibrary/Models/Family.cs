@@ -19,6 +19,28 @@ namespace FamilyTreeLibrary.Models
             InLaw = document[nameof(InLaw)].IsBsonNull ? null : new(document[nameof(InLaw)].AsBsonDocument);
             MarriageDate = document[nameof(MarriageDate)].IsBsonNull ? FamilyTreeDate.DefaultDate : new(document[nameof(MarriageDate)].AsString);
         }
+
+        public Family(string representation)
+        {
+            if (representation is null || representation == "")
+            {
+                Member = new(null, FamilyTreeDate.DefaultDate, FamilyTreeDate.DefaultDate);
+                InLaw = null;
+                MarriageDate = FamilyTreeDate.DefaultDate;
+            }
+            else
+            {
+                string[] delimiters = {"[", "]-[", "]: "};
+                string[] parts = representation.Split(delimiters, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                switch (parts.Length)
+                {
+                    case 3: Member = new(parts[0]); InLaw = new(parts[1]); MarriageDate = new(parts[2]); break;
+                    case 2: Member = new(parts[0]); InLaw = new(parts[1].TrimEnd(']')); MarriageDate = FamilyTreeDate.DefaultDate; break;
+                    case 1: Member = new(parts[0]); InLaw = null; MarriageDate = FamilyTreeDate.DefaultDate; break;
+                    default: Member = new(null, FamilyTreeDate.DefaultDate, FamilyTreeDate.DefaultDate); InLaw = null; MarriageDate = FamilyTreeDate.DefaultDate; break;
+                }
+            }
+        }
         public Person Member
         {
             get;
@@ -110,7 +132,19 @@ namespace FamilyTreeLibrary.Models
 
         public override string ToString()
         {
-            return Document.ToJson();
+            if (Member.Name is not null && InLaw is not null && MarriageDate > FamilyTreeDate.DefaultDate)
+            {
+                return $"[{Member}]-[{InLaw}]: {MarriageDate}";
+            }
+            else if (Member.Name is not null && InLaw is not null)
+            {
+                return $"[{Member}]-[{InLaw}]";
+            }
+            else if (Member.Name is not null)
+            {
+                return Member.ToString();
+            }
+            return "";
         }
 
         public static bool operator== (Family a, Family b)
