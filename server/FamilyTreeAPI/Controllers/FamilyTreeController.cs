@@ -24,8 +24,8 @@ namespace FamilyTreeAPI.Controllers
                 FamilyTreeService service = new(familyName);
                 return orderOption switch
                 {
-                    "parent first then children" => Ok(SerializeFamilyElements(service.ParentFirstThenChildren)),
-                    "ascending by name" => Ok(SerializeFamilyElements(service.AscendingByName)),
+                    "parent first then children" => Ok(service.ParentFirstThenChildren),
+                    "ascending by name" => Ok(service.AscendingByName),
                     _ => BadRequest("There is nothing to show if you don't select an ordering option."),
                 };
             }

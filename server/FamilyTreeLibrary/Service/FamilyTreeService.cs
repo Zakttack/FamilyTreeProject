@@ -13,11 +13,15 @@ namespace FamilyTreeLibrary.Service
             FamilyTree = new Tree(familyName);
         }
 
-        public IEnumerable<Family> AscendingByName
+        public IEnumerable<string> AscendingByName
         {
             get
             {
-                return FamilyTree.Order(new NameAscedendingComparer());
+                IEnumerable<Family> families = FamilyTree.Order(new NameAscedendingComparer());
+                return families.Select((family) => 
+                {
+                    return family.ToString();
+                });
             }
         }
 
@@ -37,11 +41,14 @@ namespace FamilyTreeLibrary.Service
             }
         }
 
-        public IEnumerable<Family> ParentFirstThenChildren
+        public IEnumerable<string> ParentFirstThenChildren
         {
             get
             {
-                return FamilyTree;
+                return FamilyTree.Select((family) =>
+                {
+                    return family.ToString();
+                });
             }
         }
 
