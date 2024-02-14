@@ -21,6 +21,24 @@ namespace FamilyTreeLibrary.Models
             BirthDate = document[nameof(BirthDate)].IsBsonNull ? FamilyTreeDate.DefaultDate : new(document[nameof(BirthDate)].AsString);
             DeceasedDate = document[nameof(DeceasedDate)].IsBsonNull ? FamilyTreeDate.DefaultDate : new(document[nameof(DeceasedDate)].AsString);
         }
+
+        public Person(string representation)
+        {
+            if (representation is null || representation == "")
+            {
+                Name = null;
+                BirthDate = FamilyTreeDate.DefaultDate;
+                DeceasedDate = FamilyTreeDate.DefaultDate;
+            }
+            else
+            {
+                string[] delimiters = {" (", " - ", ")"};
+                string[] parts = representation.Split(delimiters, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                Name = parts[0];
+                BirthDate = parts.Length == 3 ? new FamilyTreeDate(parts[1]) : FamilyTreeDate.DefaultDate;
+                DeceasedDate = parts.Length == 3 && parts[2] != "Present" ? new FamilyTreeDate(parts[2]) : FamilyTreeDate.DefaultDate;
+            }
+        }
         public string Name
         {
             get;
@@ -110,7 +128,19 @@ namespace FamilyTreeLibrary.Models
 
         public override string ToString()
         {
-            return Document.ToJson();
+            if (Name is not null && BirthDate > FamilyTreeDate.DefaultDate && DeceasedDate > BirthDate)
+            {
+                return $"{Name} ({BirthDate} - {DeceasedDate})";
+            }
+            else if (Name is not null && BirthDate > FamilyTreeDate.DefaultDate)
+            {
+                return $"{Name} ({BirthDate} - Present)";
+            }
+            else if (Name is not null)
+            {
+                return Name;
+            }
+            return "";
         }
 
         public static bool operator== (Person a, Person b)
