@@ -26,8 +26,13 @@ namespace FamilyTreeAPI.Controllers
                 {
                     "parent first then children" => Ok(service.ParentFirstThenChildren),
                     "ascending by name" => Ok(service.AscendingByName),
-                    _ => BadRequest("There is nothing to show if you don't select an ordering option."),
+                    _ => throw new ArgumentException("There is nothing to show if you don't select an ordering option.")
                 };
+            }
+            catch (ArgumentException ex)
+            {
+                FamilyTreeUtils.WriteError(ex);
+                return BadRequest(SerializeErrorResponse(ex));
             }
             catch (Exception ex)
             {
@@ -113,35 +118,6 @@ namespace FamilyTreeAPI.Controllers
             {
                 return StatusCode(500, SerializeErrorResponse(ex));
             }
-        }
-
-        private static IEnumerable<FamilyElement> SerializeFamilyElements(IEnumerable<Family> families)
-        {
-            ICollection<FamilyElement> familyElements = new List<FamilyElement>();
-            foreach (Family family in families)
-            {
-                FamilyElement familyElement = new()
-                {
-                    Member = new PersonElement
-                    {
-                        Name = family.Member.Name,
-                        BirthDate = family.Member.BirthDate == FamilyTreeDate.DefaultDate ? null : family.Member.BirthDate.ToString(),
-                        DeceasedDate = family.Member.DeceasedDate == FamilyTreeDate.DefaultDate ? null : family.Member.DeceasedDate.ToString()
-                    }
-                };
-                if (family.InLaw is not null)
-                {
-                    familyElement.InLaw = new PersonElement
-                    {
-                        Name = family.InLaw.Name,
-                        BirthDate = family.InLaw.BirthDate == FamilyTreeDate.DefaultDate ? null : family.InLaw.BirthDate.ToString(),
-                        DeceasedDate = family.InLaw.DeceasedDate == FamilyTreeDate.DefaultDate ? null : family.InLaw.DeceasedDate.ToString()
-                    };
-                }
-                familyElement.MarriageDate = family.MarriageDate == FamilyTreeDate.DefaultDate ? null : family.MarriageDate.ToString();
-                familyElements.Add(familyElement);
-            }
-            return familyElements;
         }
         private static ExceptionResponse SerializeErrorResponse(Exception ex)
         {

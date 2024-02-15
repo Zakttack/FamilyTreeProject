@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from "react";
 import FamilyNameContext from "../models/familyNameContext";
-import { ErrorResponse } from "../models/errorResponse";
+import ExceptionResponse from "../models/exceptionResponse";
 
 const GetNumberOfFamiliesComponent: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
@@ -11,7 +11,7 @@ const GetNumberOfFamiliesComponent: React.FC = () => {
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
-                    const errorData: ErrorResponse = await response.json();
+                    const errorData: ExceptionResponse = await response.json();
                     throw new Error(`${errorData.name}: ${errorData.message}`);
                 }
                 const data: number = await response.json();

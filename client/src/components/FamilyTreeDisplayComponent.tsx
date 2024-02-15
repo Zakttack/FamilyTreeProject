@@ -2,32 +2,28 @@ import React, { useContext, useEffect, useState} from "react";
 import _ from "lodash";
 import FamilyNameContext from "../models/familyNameContext";
 import OrderTypeContext from "../models/orderTypeContext";
-import { ErrorResponse } from "../models/errorResponse";
+import ExceptionResponse  from "../models/exceptionResponse";
 
 interface FamilyTreeDisplayResponse {
     familyElements: string[] | null;
-    errorMessage: string | null;
+    errorOutput: ExceptionResponse | null;
 }
 
 const FamilyTreeDisplayComponent: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
     const {selectedOrderType} = useContext(OrderTypeContext);
-    const [handlerResponse, setHandlerResponse] = useState<FamilyTreeDisplayResponse>({familyElements: null, errorMessage: null});
+    const [handlerResponse, setHandlerResponse] = useState<FamilyTreeDisplayResponse>({familyElements: null, errorOutput: null});
     useEffect(() => {
         const handleRender = async () => {
             const url = `http://localhost:5201/api/familytree/${familyName}/getfamilies/${selectedOrderType}`;
             const response = await fetch(url);
-            if (response.ok) {
+            if (!response.ok) {
+                let errorOutput: ExceptionResponse = await response.json();
+                setHandlerResponse({familyElements: null, errorOutput: errorOutput});
+            }
+            else {
                 let familyElements: string[] = await response.json();
-                setHandlerResponse({familyElements: familyElements, errorMessage: null});
-            }
-            else if (response.status === 400) {
-                let errorMessage: string = await response.json();
-                setHandlerResponse({familyElements: null, errorMessage: errorMessage});
-            }
-            else if (response.status === 500) {
-                let errorOutput: ErrorResponse = await response.json();
-                setHandlerResponse({familyElements: null, errorMessage: `${errorOutput.name}: ${errorOutput.message}`});
+                setHandlerResponse({familyElements: familyElements, errorOutput: null});
             }
         };
         handleRender();
@@ -35,15 +31,16 @@ const FamilyTreeDisplayComponent: React.FC = () => {
 
     return (
         <div>
+            <p>Selected Order: {selectedOrderType}</p>
+            {!_.isNull(handlerResponse.errorOutput) && (
+                <p>{handlerResponse.errorOutput.name}: {handlerResponse.errorOutput.message}</p>
+            )}
             {!_.isNull(handlerResponse.familyElements) && (
                 <div>
                     {handlerResponse.familyElements.map(element => (
                         <p>{element}</p>
                     ))}
                 </div>
-            )}
-            {!_.isNull(handlerResponse.errorMessage) && (
-                <p>{handlerResponse.errorMessage}</p>
             )}
         </div>
     );
