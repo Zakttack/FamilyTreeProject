@@ -1,9 +1,12 @@
 import React, { useContext, useEffect, useState} from "react";
+import { useNavigate } from "react-router-dom";
 import _ from "lodash";
 import FamilyNameContext from "../models/familyNameContext";
 import OrderTypeContext from "../models/orderTypeContext";
 import ExceptionResponse  from "../models/exceptionResponse";
 import "./FamilyTreeDisplayComponent.css";
+import FamilyRepresenatationElementContext from "../models/familyRepresentationElementContext";
+import FamilyRepresenatationElement from "../models/familyRepresentationElement";
 
 interface FamilyTreeDisplayResponse {
     familyElements: string[] | null;
@@ -14,6 +17,13 @@ const FamilyTreeDisplayComponent: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
     const {selectedOrderType} = useContext(OrderTypeContext);
     const [handlerResponse, setHandlerResponse] = useState<FamilyTreeDisplayResponse>({familyElements: null, errorOutput: null});
+    const {setRepresentationElement} = useContext(FamilyRepresenatationElementContext);
+    let navigate = useNavigate();
+    const handleClick = (e: React.MouseEvent<HTMLParagraphElement>) => {
+        const represenation: FamilyRepresenatationElement = {familyRepresenatation: e.currentTarget.textContent};
+        setRepresentationElement(represenation);
+        navigate('/subtree-dashboard');
+    }
     useEffect(() => {
         const handleRender = async () => {
             const url = `http://localhost:5201/api/familytree/${familyName}/getfamilies/${selectedOrderType}`;
@@ -39,7 +49,7 @@ const FamilyTreeDisplayComponent: React.FC = () => {
             {!_.isNull(handlerResponse.familyElements) && (
                 <div>
                     {handlerResponse.familyElements.map(element => (
-                        <p>{element}</p>
+                        <p className="familyElement" onClick={handleClick}>{element}</p>
                     ))}
                 </div>
             )}
