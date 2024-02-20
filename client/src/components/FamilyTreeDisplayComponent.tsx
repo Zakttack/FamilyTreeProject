@@ -3,6 +3,7 @@ import _ from "lodash";
 import FamilyNameContext from "../models/familyNameContext";
 import OrderTypeContext from "../models/orderTypeContext";
 import ExceptionResponse  from "../models/exceptionResponse";
+import "./FamilyTreeDisplayComponent.css";
 
 interface FamilyTreeDisplayResponse {
     familyElements: string[] | null;
@@ -33,7 +34,7 @@ const FamilyTreeDisplayComponent: React.FC = () => {
         <div>
             <p>Selected Order: {selectedOrderType}</p>
             {!_.isNull(handlerResponse.errorOutput) && (
-                <p>{handlerResponse.errorOutput.name}: {handlerResponse.errorOutput.message}</p>
+                <p className="error">{handlerResponse.errorOutput.name}: {handlerResponse.errorOutput.message}</p>
             )}
             {!_.isNull(handlerResponse.familyElements) && (
                 <div>
