@@ -10,11 +10,6 @@ namespace FamilyTreeAPI.Controllers
     [Route("api/[controller]")]
     public class FamilyTreeController : ControllerBase
     {
-        [HttpGet]
-        public IActionResult GetHelloWorld()
-        {
-            return Ok("Hello World!");
-        }
 
         [HttpGet("{familyName}/getfamilies/{orderOption}")]
         public IActionResult GetFamilies(string familyName, string orderOption)
@@ -32,12 +27,12 @@ namespace FamilyTreeAPI.Controllers
             catch (ArgumentException ex)
             {
                 FamilyTreeUtils.WriteError(ex);
-                return BadRequest(SerializeErrorResponse(ex));
+                return BadRequest(APIUtils.SerializeErrorResponse(ex));
             }
             catch (Exception ex)
             {
                 FamilyTreeUtils.WriteError(ex);
-                return StatusCode(500, SerializeErrorResponse(ex));
+                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
             }
         }
         
@@ -52,7 +47,7 @@ namespace FamilyTreeAPI.Controllers
             catch (Exception ex)
             {
                 FamilyTreeUtils.WriteError(ex);
-                return StatusCode(500, SerializeErrorResponse(ex));
+                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
             }
         }
 
@@ -67,7 +62,7 @@ namespace FamilyTreeAPI.Controllers
             catch (Exception ex)
             {
                 FamilyTreeUtils.WriteError(ex);
-                return StatusCode(500, SerializeErrorResponse(ex));
+                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
             }
         }
 
@@ -82,11 +77,11 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (FileNotFoundException ex)
             {
-                return BadRequest(SerializeErrorResponse(ex));
+                return BadRequest(APIUtils.SerializeErrorResponse(ex));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, SerializeErrorResponse(ex));
+                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
             }
         }
 
@@ -108,24 +103,16 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(SerializeErrorResponse(ex));
+                return BadRequest(APIUtils.SerializeErrorResponse(ex));
             }
             catch (FormatException ex)
             {
-                return BadRequest(SerializeErrorResponse(ex));
+                return BadRequest(APIUtils.SerializeErrorResponse(ex));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, SerializeErrorResponse(ex));
+                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
             }
-        }
-        private static ExceptionResponse SerializeErrorResponse(Exception ex)
-        {
-            return new ExceptionResponse
-            {
-                Name = ex.GetType().Name,
-                Message = ex.Message
-            };
         }
     }
 }
