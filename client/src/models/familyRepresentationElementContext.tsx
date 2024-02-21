@@ -5,6 +5,6 @@ interface FamilyRepresentationElementContextType {
     setRepresentationElement: (representationElement: FamilyRepresenationElement) => void;
 }
 
-const FamilyRepresenatationElementContext = React.createContext<FamilyRepresentationElementContextType>({representationElement: FamilyRepresentationDefault, setRepresentationElement: () => {}});
+const FamilyRepresentationElementContext = React.createContext<FamilyRepresentationElementContextType>({representationElement: FamilyRepresentationDefault, setRepresentationElement: () => {}});
 
-export default FamilyRepresenatationElementContext;
+export default FamilyRepresentationElementContext;

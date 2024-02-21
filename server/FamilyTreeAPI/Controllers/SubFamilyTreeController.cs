@@ -10,7 +10,7 @@ namespace FamilyTreeAPI.Controllers
     public class SubFamilyTreeController : ControllerBase
     {
         [HttpPost]
-        public IActionResult AnalyzeRepresentation([FromBody] FamilyRepresenationElement represenationElement)
+        public IActionResult AnalyzeRepresentation([FromBody] FamilyRepresentationElement represenationElement)
         {
             try
             {

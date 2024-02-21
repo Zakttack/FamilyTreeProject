@@ -1,5 +1,5 @@
-export default interface FamilyRepresenatationElement {
-    familyRepresenatation: string | null;
+export default interface FamilyRepresentationElement {
+    representation: string | null;
 }
 
-export const FamilyRepresentationDefault: FamilyRepresenatationElement = {familyRepresenatation: ''};
+export const FamilyRepresentationDefault: FamilyRepresentationElement = {representation: ''};

@@ -6,7 +6,7 @@ import OrderTypeContext from "../models/orderTypeContext";
 import ExceptionResponse  from "../models/exceptionResponse";
 import "./FamilyTreeDisplayComponent.css";
 import FamilyRepresenatationElementContext from "../models/familyRepresentationElementContext";
-import FamilyRepresenatationElement from "../models/familyRepresentationElement";
+import FamilyRepresentationElement from "../models/familyRepresentationElement";
 
 interface FamilyTreeDisplayResponse {
     familyElements: string[] | null;
@@ -20,7 +20,8 @@ const FamilyTreeDisplayComponent: React.FC = () => {
     const {setRepresentationElement} = useContext(FamilyRepresenatationElementContext);
     let navigate = useNavigate();
     const handleClick = (e: React.MouseEvent<HTMLParagraphElement>) => {
-        const represenation: FamilyRepresenatationElement = {familyRepresenatation: e.currentTarget.textContent};
+        const text = e.currentTarget.textContent;
+        const represenation: FamilyRepresentationElement = {representation: text};
         setRepresentationElement(represenation);
         navigate('/subtree-dashboard');
     }
