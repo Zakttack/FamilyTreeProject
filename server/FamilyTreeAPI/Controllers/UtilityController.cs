@@ -9,7 +9,7 @@ namespace FamilyTreeAPI.Controllers
     [Route("api/[controller]")]
     public class UtilityController : ControllerBase
     {
-        [HttpPost("represention-to-element")]
+        [HttpPost("representation-to-element")]
         public IActionResult RepresentationToElement([FromBody] FamilyRepresentationElement represenationElement)
         {
             try
