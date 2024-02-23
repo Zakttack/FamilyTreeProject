@@ -30,7 +30,7 @@ const FamilyDashboard: React.FC = () => {
     //const {familyName} = useContext(FamilyNameContext);
     const {representationElement} = useContext(FamilyRepresentationElementContext);
     const [output, setOutput] = useState<FamilyProfileOutput>({problem: null, result: null});
-    let text: string = 'Something went wrong';
+    let familyDashboardPageTitle: string = 'Something went wrong';
     useEffect(() => {
         const analyzeRepresentation = async () => {
             const url = 'http://localhost:5201/api/subfamilytree';
@@ -54,16 +54,16 @@ const FamilyDashboard: React.FC = () => {
         analyzeRepresentation();
     }, [representationElement]);
     if (!_.isNull(output.result) && !_.isNull(output.result.member.name) && !_.isNull(output.result.inLaw) && !_.isNull(output.result.inLaw.name)) {
-        text = `This is the family of ${output.result.member.name} and ${output.result.inLaw.name}.`
+        familyDashboardPageTitle = `This is the family of ${output.result.member.name} and ${output.result.inLaw.name}.`
     }
     else if (!_.isNull(output.result) && !_.isNull(output.result.member.name)) {
-        text = `This is the family of ${output.result.member.name}.`;
+        familyDashboardPageTitle = `This is the family of ${output.result.member.name}.`;
     }
     else if (!_.isNull(output.result)) {
-        text = `Representation result is: ${representationElement.representation}.`
+        familyDashboardPageTitle = `Representation result is: ${representationElement.representation}.`
     }
     return (
-        <h1>{text}</h1>
+        <h1>{familyDashboardPageTitle}</h1>
     )
 };
 

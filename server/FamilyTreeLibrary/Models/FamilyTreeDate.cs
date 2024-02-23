@@ -154,7 +154,8 @@ namespace FamilyTreeLibrary.Models
             {
                 output += Year;
             }
-            return output.Trim();
+            string result = output.Trim();
+            return result == "" ? null : result;
         }
 
         public static bool IsDefault(FamilyTreeDate date)

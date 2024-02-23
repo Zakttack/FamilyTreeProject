@@ -31,7 +31,7 @@ namespace FamilyTreeLibrary.Data.PDF.Models
 
         public override int GetHashCode()
         {
-            return ToString().GetHashCode();
+            return HashCode.Combine(OrderingType, Node);
         }
 
         public override string ToString()

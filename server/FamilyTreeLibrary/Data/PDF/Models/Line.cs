@@ -32,7 +32,7 @@ namespace FamilyTreeLibrary.Data.PDF.Models
 
         public override int GetHashCode()
         {
-            return ToString().GetHashCode();
+            return HashCode.Combine(Name, Dates);
         }
 
         public override string ToString()
@@ -40,7 +40,7 @@ namespace FamilyTreeLibrary.Data.PDF.Models
             string result = Name ?? "";
             foreach (FamilyTreeDate d in Dates)
             {
-                result += $" {d}";
+                result += $" {d.ToString() ?? ""}";
             }
             return result;
         }

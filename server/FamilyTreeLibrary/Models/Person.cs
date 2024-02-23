@@ -140,7 +140,7 @@ namespace FamilyTreeLibrary.Models
             {
                 return Name;
             }
-            return "";
+            return null;
         }
 
         public static bool operator== (Person a, Person b)

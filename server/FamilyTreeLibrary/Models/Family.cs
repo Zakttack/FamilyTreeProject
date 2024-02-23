@@ -144,7 +144,7 @@ namespace FamilyTreeLibrary.Models
             {
                 return Member.ToString();
             }
-            return "";
+            return null;
         }
 
         public static bool operator== (Family a, Family b)

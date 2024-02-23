@@ -25,7 +25,7 @@ namespace FamilyTreeLibrary.Data.PDF.OrderingType.Comparers
 
         public int GetHashCode(AbstractOrderingType[] orderingType)
         {
-            return orderingType.GetHashCode();
+            return HashCode.Combine(orderingType);
         }
     }
 }

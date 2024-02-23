@@ -61,7 +61,7 @@ namespace FamilyTreeLibrary.Data.PDF.OrderingType
 
         public override int GetHashCode()
         {
-            return ConversionPair.GetHashCode();
+            return HashCode.Combine(ConversionPair);
         }
 
         public static AbstractOrderingType GetOrderingType(int key, int generation, int maxKey = int.MaxValue)
