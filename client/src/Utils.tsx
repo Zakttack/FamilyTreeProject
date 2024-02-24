@@ -36,3 +36,20 @@ export async function representationToElement(representation: FamilyRepresentati
     const result: FamilyElement = await response.json();
     return {output: result, problem: null};
 }
+
+export async function retrieveParent(familyName: string, element: FamilyElement): Promise<OutputResponse<FamilyElement>> {
+    const url = `http://localhost:5201/api/familytree/${familyName}/retrieveParent`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(element)
+    });
+    if (!response.ok) {
+        const errorResult: ExceptionResponse = await response.json();
+        return {output: null, problem: errorResult};
+    }
+    const result: FamilyElement = await response.json();
+    return {output: result, problem: null};
+}
