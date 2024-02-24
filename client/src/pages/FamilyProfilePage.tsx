@@ -15,9 +15,7 @@ const FamilyProfilePage: React.FC = () => {
     }, [selectedElement]);
 
     return (
-        <div>
-            <h1>{title}</h1>
-        </div>
+        <h1>{title}</h1>
     );
 };
 

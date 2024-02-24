@@ -28,7 +28,7 @@ const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
             navigate(createURL('/family-profile', {member: element.member.name}));
         }
         else {
-            navigate(createURL('family-profile', {member: element.member.name, inLaw: element.inLaw.name}));
+            navigate(createURL('/family-profile', {member: element.member.name, inLaw: element.inLaw.name}));
         }
     };
 

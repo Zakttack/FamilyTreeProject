@@ -4,13 +4,13 @@ import ChooseFamilyNamePage from './pages/ChooseFamilyNamePage';
 import FamilyTreeDashboard from './pages/FamilyTreeDashboard';
 import FamilyNameProvider from './providers/FamilyNameProvider';
 import './App.css';
-import FamilyRepresentionElementProvider from './providers/FamilyRepresentionElementProvider';
 import FamilyProfilePage from './pages/FamilyProfilePage';
+import FamilyElementProvider from './providers/FamilyElementProvider';
 
 const App: React.FC = () => {
   return (
     <FamilyNameProvider>
-      <FamilyRepresentionElementProvider>
+      <FamilyElementProvider>
         <Router>
           <div>
             <Routes>
@@ -20,7 +20,7 @@ const App: React.FC = () => {
             </Routes>
           </div>
         </Router>
-      </FamilyRepresentionElementProvider>
+      </FamilyElementProvider>
     </FamilyNameProvider>
   )
 }
