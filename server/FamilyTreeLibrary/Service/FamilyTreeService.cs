@@ -1,6 +1,7 @@
 using FamilyTreeLibrary.Data;
 using FamilyTreeLibrary.Data.Comparers;
 using FamilyTreeLibrary.Data.PDF;
+using FamilyTreeLibrary.Exceptions;
 using FamilyTreeLibrary.Models;
 using Serilog;
 
@@ -204,6 +205,16 @@ namespace FamilyTreeLibrary.Service
                 FamilyTree.Update(initial, final);
                 Log.Information("The marriage date update was successful");
             }
+        }
+
+        public Family RetrieveParentOf(Family element)
+        {
+            Family parent = FamilyTree.GetParent(element);
+            if (parent is null || parent == Family.EmptyFamily)
+            {
+                throw new FamilyNotFoundException($"{element.Member.Name} has an unknown parent.");
+            }
+            return parent;
         }
 
         private ITree FamilyTree

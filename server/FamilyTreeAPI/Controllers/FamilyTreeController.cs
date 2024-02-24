@@ -2,6 +2,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using FamilyTreeAPI.Models;
 using FamilyTreeLibrary;
+using FamilyTreeLibrary.Exceptions;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.Service;
 using Microsoft.AspNetCore.Mvc;
@@ -110,6 +111,27 @@ namespace FamilyTreeAPI.Controllers
             catch (FormatException ex)
             {
                 return BadRequest(APIUtils.SerializeErrorResponse(ex));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
+            }
+        }
+
+        [HttpPost("{familyName}/retrieveParent")]
+        public IActionResult RetrieveParent([FromRoute] string familyName, [FromBody] FamilyElement element)
+        {
+            try
+            {
+                FamilyTreeService service = new(familyName);
+                Family family = APIUtils.DeserializeFamilyElement(element);
+                FamilyElement result = APIUtils.SerializeFamily(service.RetrieveParentOf(family));
+                return Ok(result);
+            }
+            catch (FamilyNotFoundException ex)
+            {
+                FamilyTreeUtils.WriteError(ex);
+                return NotFound(APIUtils.SerializeErrorResponse(ex));
             }
             catch (Exception ex)
             {

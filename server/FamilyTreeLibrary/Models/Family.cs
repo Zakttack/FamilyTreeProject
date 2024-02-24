@@ -81,6 +81,14 @@ namespace FamilyTreeLibrary.Models
             }
         }
 
+        public static Family EmptyFamily
+        {
+            get
+            {
+                return new(Person.EmptyPerson, null, FamilyTreeDate.DefaultDate);
+            }
+        }
+
         public object Clone()
         {
             return new Family(Document);
