@@ -1,41 +1,28 @@
 import React, { useContext, useEffect, useState} from "react";
-import { useNavigate } from "react-router-dom";
 import _ from "lodash";
 import FamilyNameContext from "../models/familyNameContext";
 import OrderTypeContext from "../models/orderTypeContext";
 import ExceptionResponse  from "../models/exceptionResponse";
-import "./FamilyTreeDisplayComponent.css";
-import FamilyRepresenatationElementContext from "../models/familyRepresentationElementContext";
-import FamilyRepresentationElement from "../models/familyRepresentationElement";
-
-interface FamilyTreeDisplayResponse {
-    familyElements: string[] | null;
-    errorOutput: ExceptionResponse | null;
-}
+import FamilyElement from "../models/FamilyElement";
+import FamilyElementDisplay from "./FamilyElementDisplay";
+import ErrorDisplayComponent from "./ErrorDisplayComponent";
+import OutputResponse from "../models/outputResponse";
 
 const FamilyTreeDisplayComponent: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
     const {selectedOrderType} = useContext(OrderTypeContext);
-    const [handlerResponse, setHandlerResponse] = useState<FamilyTreeDisplayResponse>({familyElements: null, errorOutput: null});
-    const {setRepresentationElement} = useContext(FamilyRepresenatationElementContext);
-    let navigate = useNavigate();
-    const handleClick = (e: React.MouseEvent<HTMLParagraphElement>) => {
-        const text = e.currentTarget.textContent;
-        const represenation: FamilyRepresentationElement = {representation: text};
-        setRepresentationElement(represenation);
-        navigate('/subtree-dashboard');
-    }
+    const [handlerResponse, setHandlerResponse] = useState<OutputResponse<FamilyElement[]>>({problem: null, output: null});
     useEffect(() => {
         const handleRender = async () => {
             const url = `http://localhost:5201/api/familytree/${familyName}/getfamilies/${selectedOrderType}`;
             const response = await fetch(url);
             if (!response.ok) {
-                let errorOutput: ExceptionResponse = await response.json();
-                setHandlerResponse({familyElements: null, errorOutput: errorOutput});
+                const errorOutput: ExceptionResponse = await response.json();
+                setHandlerResponse({output: null, problem: errorOutput});
             }
             else {
-                let familyElements: string[] = await response.json();
-                setHandlerResponse({familyElements: familyElements, errorOutput: null});
+                const familyElements: FamilyElement[] = await response.json();
+                setHandlerResponse({output: familyElements, problem: null});
             }
         };
         handleRender();
@@ -44,13 +31,13 @@ const FamilyTreeDisplayComponent: React.FC = () => {
     return (
         <div>
             <p>Selected Order: {selectedOrderType}</p>
-            {!_.isNull(handlerResponse.errorOutput) && (
-                <p className="error">{handlerResponse.errorOutput.name}: {handlerResponse.errorOutput.message}</p>
+            {!_.isNull(handlerResponse.problem) && (
+                <ErrorDisplayComponent name={handlerResponse.problem.name} message={handlerResponse.problem.message}/>
             )}
-            {!_.isNull(handlerResponse.familyElements) && (
+            {!_.isNull(handlerResponse.output) && (
                 <div>
-                    {handlerResponse.familyElements.map(element => (
-                        <p className="familyElement" onClick={handleClick}>{element}</p>
+                    {handlerResponse.output.map((element: FamilyElement) => (
+                        <FamilyElementDisplay member={element.member} inLaw={element.inLaw} marriageDate={element.marriageDate}/>
                     ))}
                 </div>
             )}

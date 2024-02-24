@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Runtime.CompilerServices;
 using FamilyTreeAPI.Models;
 using FamilyTreeLibrary;
 using FamilyTreeLibrary.Models;
@@ -19,8 +21,8 @@ namespace FamilyTreeAPI.Controllers
                 FamilyTreeService service = new(familyName);
                 return orderOption switch
                 {
-                    "parent first then children" => Ok(service.ParentFirstThenChildren),
-                    "ascending by name" => Ok(service.AscendingByName),
+                    "parent first then children" => Ok(service.ParentFirstThenChildren.Select(APIUtils.SerializeFamily)),
+                    "ascending by name" => Ok(service.AscendingByName.Select(APIUtils.SerializeFamily)),
                     _ => throw new ArgumentException("There is nothing to show if you don't select an ordering option.")
                 };
             }
