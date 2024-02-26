@@ -7,6 +7,7 @@ import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import "./FamilyElementDisplay.css"
 import OutputResponse from "../models/outputResponse";
 import { elementToRepresentation, representationToElement } from "../Utils";
+import { PersonDefault } from "../models/PersonElement";
 
 const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
     const {changeSelectedElement} = useContext(FamilyElementContext);
@@ -24,7 +25,7 @@ const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
         if (_.isNull(element.member.name)) {
             navigate('/dashboard');
         }
-        else if (_.isNull(element.inLaw) || _.isNull(element.inLaw.name)) {
+        else if (_.isEqual(element.inLaw, PersonDefault)) {
             navigate(createURL('/family-profile', {member: element.member.name}));
         }
         else {

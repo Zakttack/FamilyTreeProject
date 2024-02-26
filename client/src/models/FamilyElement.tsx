@@ -2,13 +2,13 @@ import React from "react";
 import PersonElement, { PersonDefault } from "./PersonElement";
 export default interface FamilyElement {
     member: PersonElement;
-    inLaw: PersonElement | null;
+    inLaw: PersonElement;
     marriageDate: string | null;
 }
 
 export const FamilyDefault: FamilyElement = {
     member: PersonDefault,
-    inLaw: null,
+    inLaw: PersonDefault,
     marriageDate: null
 };
 
