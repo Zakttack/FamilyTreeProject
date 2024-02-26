@@ -1,7 +1,7 @@
 import PersonElement from "./PersonElement";
 export enum PersonType {
-    Member,
-    InLaw
+    Member = 'Member',
+    InLaw = 'InLaw'
 };
 
 export default interface PersonInfoInput {
