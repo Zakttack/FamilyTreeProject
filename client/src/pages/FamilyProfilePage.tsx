@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import _ from "lodash";
 import { FamilyElementContext } from "../models/FamilyElement";
 import ParentOfSelectedElement from "../components/ParentOfSelectedElementDisplay";
+import FamilyInfoElement from "../components/FamilyInfoElementComponent";
 
 const FamilyProfilePage: React.FC = () => {
     const {selectedElement} = useContext(FamilyElementContext);
@@ -19,6 +20,7 @@ const FamilyProfilePage: React.FC = () => {
         <div>
             <h1>{title}</h1>
             <ParentOfSelectedElement/>
+            <FamilyInfoElement/>
         </div>
     );
 };
