@@ -1,4 +1,5 @@
 using FamilyTreeAPI.Models;
+using FamilyTreeLibrary.Exceptions;
 using FamilyTreeLibrary.Models;
 
 namespace FamilyTreeAPI
@@ -11,6 +12,15 @@ namespace FamilyTreeAPI
             Person inLaw = element.InLaw is null ? null : new(element.InLaw.Name, new FamilyTreeDate(element.InLaw.BirthDate), new FamilyTreeDate(element.InLaw.DeceasedDate));
             FamilyTreeDate marriageDate = new(element.MarriageDate);
             return new(member, inLaw, marriageDate);
+        }
+
+        public static Person DeserializePersonElement(PersonElement element)
+        {
+            if (element is null || (element.Name is null && element.BirthDate is null && element.DeceasedDate is null))
+            {
+                throw new PersonNotFoundException("The person doesn't exist.");
+            }
+            return new(element.Name, new FamilyTreeDate(element.BirthDate), new FamilyTreeDate(element.DeceasedDate));
         }
         
         public static ExceptionResponse SerializeErrorResponse(Exception ex)
