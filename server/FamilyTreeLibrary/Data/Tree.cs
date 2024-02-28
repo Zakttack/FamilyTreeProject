@@ -108,6 +108,12 @@ namespace FamilyTreeLibrary.Data
             mongoCollection.InsertOne(newNode.Document);
         }
 
+        public void Clear()
+        {
+            FilterDefinition<BsonDocument> clearFilter = Builders<BsonDocument>.Filter.Empty;
+            mongoCollection.DeleteMany(clearFilter);
+        }
+        
         public bool Contains(Family parent, Family child)
         {
             if (Root is null)
@@ -118,7 +124,7 @@ namespace FamilyTreeLibrary.Data
             {
                 return true;
             }
-            else if (parent == Root.Element && DataUtils.GetNodeOf(child, mongoCollection) != null)
+            else if (parent == Root.Element && Root.Children.Contains(child))
             {
                 return true;
             }

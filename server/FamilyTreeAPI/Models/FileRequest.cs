@@ -1,12 +1,7 @@
 namespace FamilyTreeAPI.Models
 {
-    public class AppendTestRequest
+    public class FileRequest
     {
-        public string FamilyName
-        {
-            get;
-            set;
-        }
         public string TemplateFilePath
         {
             get;

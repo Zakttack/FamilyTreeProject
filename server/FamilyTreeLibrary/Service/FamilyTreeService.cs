@@ -217,6 +217,12 @@ namespace FamilyTreeLibrary.Service
             return parent;
         }
 
+        public void RevertTree(string templateFilePath)
+        {
+            FamilyTree.Clear();
+            AppendTree(templateFilePath);
+        }
+
         private ITree FamilyTree
         {
             get;

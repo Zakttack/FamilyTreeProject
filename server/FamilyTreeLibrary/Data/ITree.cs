@@ -22,6 +22,8 @@ namespace FamilyTreeLibrary.Data
 
         public void Add(ObjectId id, Family parent, Family child);
 
+        public void Clear();
+
         public bool Contains(Family parent, Family child);
 
         public int Depth(Family element);

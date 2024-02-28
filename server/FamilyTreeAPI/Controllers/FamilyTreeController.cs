@@ -5,6 +5,7 @@ using FamilyTreeLibrary;
 using FamilyTreeLibrary.Exceptions;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.Service;
+using iText.StyledXmlParser.Css.Util;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FamilyTreeAPI.Controllers
@@ -69,25 +70,6 @@ namespace FamilyTreeAPI.Controllers
             }
         }
 
-        [HttpPost("appendtree")]
-        public IActionResult AppendTree([FromBody] AppendTestRequest request)
-        {
-            try
-            {
-                FamilyTreeService service = new(request.FamilyName);
-                service.AppendTree(request.TemplateFilePath);
-                return Ok("The collection has been appended.");
-            }
-            catch (FileNotFoundException ex)
-            {
-                return BadRequest(APIUtils.SerializeErrorResponse(ex));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
-            }
-        }
-
         [HttpPatch("{familyName}/reportmarried")]
         public IActionResult ReportMarried(string familyName, [FromBody] FamilyElement request)
         {
@@ -136,6 +118,26 @@ namespace FamilyTreeAPI.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
+            }
+        }
+
+        [HttpPut("{familyName}/revert-tree")]
+        public IActionResult RevertTree([FromRoute] string familyName, [FromBody] FileRequest request)
+        {
+            try
+            {
+                FamilyTreeService service = new(familyName);
+                service.RevertTree(request.TemplateFilePath);
+                SucessResponse response = new()
+                {
+                    Message = $"{familyName} tree has been reverted successfully."
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                ExceptionResponse response = APIUtils.SerializeErrorResponse(ex);
+                return ex is FileNotFoundException ? BadRequest(response) : StatusCode(500, response);
             }
         }
     }
