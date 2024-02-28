@@ -70,33 +70,26 @@ namespace FamilyTreeAPI.Controllers
             }
         }
 
-        [HttpPatch("{familyName}/reportmarried")]
-        public IActionResult ReportMarried(string familyName, [FromBody] FamilyElement request)
+        [HttpPatch("{familyName}/report-married")]
+        public IActionResult ReportMarried([FromRoute] string familyName, [FromBody] FamilyElement request)
         {
             try
             {
                 FamilyTreeService service = new(familyName);
-                Person member = new(request.Member.Name, 
-                request.Member.BirthDate is null || request.Member.BirthDate == "" ? FamilyTreeDate.DefaultDate : new FamilyTreeDate(request.Member.BirthDate),
-                request.Member.DeceasedDate is null || request.Member.DeceasedDate == "" ? FamilyTreeDate.DefaultDate : new FamilyTreeDate(request.Member.DeceasedDate));
-                Person inLaw = new(request.InLaw.Name,
-                request.InLaw.BirthDate is null || request.InLaw.BirthDate == "" ? FamilyTreeDate.DefaultDate : new FamilyTreeDate(request.InLaw.BirthDate),
-                request.InLaw.DeceasedDate is null || request.InLaw.DeceasedDate == "" ? FamilyTreeDate.DefaultDate : new FamilyTreeDate(request.InLaw.DeceasedDate));
-                FamilyTreeDate marriageDate = request.MarriageDate is null || request.MarriageDate == "" ? FamilyTreeDate.DefaultDate : new(request.MarriageDate);
+                Person member = new(request.Member.Name, new FamilyTreeDate(request.Member.BirthDate), new FamilyTreeDate(request.Member.DeceasedDate));
+                Person inLaw = new(request.InLaw.Name, new FamilyTreeDate(request.InLaw.BirthDate), new FamilyTreeDate(request.InLaw.DeceasedDate));
+                FamilyTreeDate marriageDate = new(request.MarriageDate);
                 service.ReportMarried(member, inLaw, marriageDate);
-                return Ok($"The marriage between {request.Member.Name} and {request.InLaw.Name} has been applied to the tree.");
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(APIUtils.SerializeErrorResponse(ex));
-            }
-            catch (FormatException ex)
-            {
-                return BadRequest(APIUtils.SerializeErrorResponse(ex));
+                SucessResponse response = new()
+                {
+                    Message = $"The marriage between {request.Member.Name} and {request.InLaw.Name} has been applied to the tree."
+                };
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
+                ExceptionResponse response = APIUtils.SerializeErrorResponse(ex);
+                return ex is ArgumentException || ex is FormatException ? BadRequest(response) : StatusCode(500, response);
             }
         }
 
