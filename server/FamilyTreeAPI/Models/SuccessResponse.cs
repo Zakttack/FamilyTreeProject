@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace FamilyTreeAPI.Models
 {
-    public class SucessResponse
+    public class SuccessResponse
     {
         public string Message
         {

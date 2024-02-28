@@ -1,8 +1,10 @@
 import ExceptionResponse from "./models/exceptionResponse";
 import FamilyElement from "./models/FamilyElement";
 import FamilyRepresentationElement from "./models/familyRepresentationElement";
+import FileRequest from "./models/fileRequest";
 import OutputResponse from "./models/outputResponse";
 import PersonElement from "./models/PersonElement";
+import SuccessResponse from "./models/successResponse";
 
 export async function elementToRepresentation(element: FamilyElement): Promise<OutputResponse<FamilyRepresentationElement>> {
     const url = 'http://localhost:5201/api/utility/element-to-representation';
@@ -52,6 +54,23 @@ export async function retrieveParent(familyName: string, element: FamilyElement)
         return {output: null, problem: errorResult};
     }
     const result: FamilyElement = await response.json();
+    return {output: result, problem: null};
+}
+
+export async function revertTree(familyName: string, request: FileRequest): Promise<OutputResponse<SuccessResponse>> {
+    const url = `http://localhost:5201/api/familytree/${familyName}/revert-tree`;
+    const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request)
+    });
+    if (!response.ok) {
+        const errorResult: ExceptionResponse = await response.json();
+        return {output: null, problem: errorResult};
+    }
+    const result: SuccessResponse = await response.json();
     return {output: result, problem: null};
 }
 

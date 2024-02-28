@@ -80,7 +80,7 @@ namespace FamilyTreeAPI.Controllers
                 Person inLaw = new(request.InLaw.Name, new FamilyTreeDate(request.InLaw.BirthDate), new FamilyTreeDate(request.InLaw.DeceasedDate));
                 FamilyTreeDate marriageDate = new(request.MarriageDate);
                 service.ReportMarried(member, inLaw, marriageDate);
-                SucessResponse response = new()
+                SuccessResponse response = new()
                 {
                     Message = $"The marriage between {request.Member.Name} and {request.InLaw.Name} has been applied to the tree."
                 };
@@ -121,7 +121,7 @@ namespace FamilyTreeAPI.Controllers
             {
                 FamilyTreeService service = new(familyName);
                 service.RevertTree(request.TemplateFilePath);
-                SucessResponse response = new()
+                SuccessResponse response = new()
                 {
                     Message = $"{familyName} tree has been reverted successfully."
                 };
