@@ -1,6 +1,7 @@
 /server/*/bin
 /server/*/obj
 /.vs
+*/.vs
 /.vscode
 */Logs
 .hintrc

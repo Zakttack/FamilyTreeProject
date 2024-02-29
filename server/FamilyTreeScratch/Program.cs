@@ -1,8 +1,38 @@
-﻿string line = "[Margaret Ann Lass (5 Apr 1947 - Present)]-[Ronald Merrigan (29 Mar 1945 - 6 Aug 1972)]: 25 Jun 1965";
-string[] separator = new string[] {"[", "]-[", "]: "};
-string[] parts = line.Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-foreach (string part in parts)
+﻿using System.Security;
+
+Stack<DirectoryInfo> directories = new();
+string fileName = "2023PfingstenBookAlternate.pdf";
+IList<string> filePaths = new List<string>();
+directories.Push(new(@"C:\"));
+while (directories.TryPop(out DirectoryInfo current))
 {
-    Console.WriteLine(part);
+    try
+    {
+        IEnumerable<FileInfo> files = current.EnumerateFiles().Where((file) =>
+        {
+            return file.Name == fileName;
+        });
+        foreach (FileInfo file in files)
+        {
+            filePaths.Add(file.FullName);
+        }
+        IEnumerable<DirectoryInfo> subDirectories = current.EnumerateDirectories();
+        foreach (DirectoryInfo subDirectory in subDirectories)
+        {
+            directories.Push(subDirectory);
+        }
+    }
+    catch (SecurityException)
+    {
+        continue;
+    }
+    catch(UnauthorizedAccessException)
+    {
+        continue;
+    }
 }
 
+foreach (string filePath in filePaths)
+{
+    Console.WriteLine(filePath);
+}
