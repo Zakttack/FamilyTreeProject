@@ -1,6 +1,4 @@
-﻿using System.Security;
-
-Stack<DirectoryInfo> directories = new();
+﻿Stack<DirectoryInfo> directories = new();
 string fileName = "2023PfingstenBookAlternate.pdf";
 IList<string> filePaths = new List<string>();
 directories.Push(new(@"C:\"));
@@ -22,12 +20,9 @@ while (directories.TryPop(out DirectoryInfo current))
             directories.Push(subDirectory);
         }
     }
-    catch (SecurityException)
+    catch(UnauthorizedAccessException ex)
     {
-        continue;
-    }
-    catch(UnauthorizedAccessException)
-    {
+        Console.WriteLine(ex.Message);
         continue;
     }
 }
