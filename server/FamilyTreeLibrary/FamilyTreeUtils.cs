@@ -37,6 +37,18 @@ namespace FamilyTreeLibrary
                 .CreateLogger();
         }
 
+        public static void LogMessage(LoggingLevels level, string message)
+        {
+            switch (level)
+            {
+                case LoggingLevels.Debug: Log.Debug(message); break;
+                case LoggingLevels.Information: Log.Information(message); break;
+                case LoggingLevels.Warning: Log.Warning(message); break;
+                case LoggingLevels.Error: Log.Error(message); break;
+                case LoggingLevels.Fatal: Log.Fatal(message); break;
+            }
+        }
+
         public static void WriteError(Exception ex)
         {
             Log.Fatal($"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");

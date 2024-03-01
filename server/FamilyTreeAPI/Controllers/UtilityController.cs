@@ -11,17 +11,30 @@ namespace FamilyTreeAPI.Controllers
     public class UtilityController : ControllerBase
     {
         [HttpPost("representation-to-element")]
-        public IActionResult RepresentationToElement([FromBody] FamilyRepresentationElement represenationElement)
+        public IActionResult RepresentationToElement([FromBody] FamilyRepresentationElement representationElement)
         {
             try
             {
-                Family family = new(represenationElement.Representation);
-                return Ok(APIUtils.SerializeFamily(family));
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Representation: {representationElement.Representation}");
+                Family family = new(representationElement.Representation);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Family: {family}");
+                return APIUtils.SerializeFamily(this, family);
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                FamilyTreeUtils.WriteError(ex);
-                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
+                return APIUtils.SerializeErrorResponse(this, new ClientBadRequestException(ex.Message, ex));
+            }
+            catch (FormatException ex)
+            {
+                return APIUtils.SerializeErrorResponse(this, new ClientBadRequestException(ex.Message, ex));
+            }
+            catch (NullReferenceException ex)
+            {
+                return APIUtils.SerializeErrorResponse(this, new ClientNotFoundException(ex.Message, ex));
+            }
+            catch (ServerException ex)
+            {
+                return APIUtils.SerializeFatalResponse(this, ex);
             }
         }
 
@@ -31,16 +44,25 @@ namespace FamilyTreeAPI.Controllers
             try
             {
                 Family family = APIUtils.DeserializeFamilyElement(element);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Family: {family}");
                 FamilyRepresentationElement representation = new()
                 {
                     Representation = family.ToString()
                 };
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Representation: {representation.Representation}");
                 return Ok(representation);
             }
-            catch (Exception ex)
+            catch (ClientException ex)
             {
-                FamilyTreeUtils.WriteError(ex);
-                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
+                return APIUtils.SerializeErrorResponse(this, ex);
+            }
+            catch (NullReferenceException ex)
+            {
+                return APIUtils.SerializeErrorResponse(this, new ClientNotFoundException(ex.Message, ex));
+            }
+            catch (ServerException ex)
+            {
+                return APIUtils.SerializeFatalResponse(this, ex);
             }
         }
 
@@ -50,16 +72,25 @@ namespace FamilyTreeAPI.Controllers
             try
             {
                 Person person = APIUtils.DeserializePersonElement(element);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Person: {person}");
                 FamilyRepresentationElement representation = new()
                 {
                     Representation = person.ToString()
                 };
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Representation: {representation.Representation}");
                 return Ok(representation);
             }
-            catch (Exception ex)
+            catch (ClientException ex)
             {
-                ExceptionResponse response = APIUtils.SerializeErrorResponse(ex);
-                return ex is PersonNotFoundException ? NotFound(response) : StatusCode(500, response);
+                return APIUtils.SerializeErrorResponse(this, ex);
+            }
+            catch (NullReferenceException ex)
+            {
+                return APIUtils.SerializeErrorResponse(this, new ClientNotFoundException(ex.Message, ex));
+            }
+            catch (ServerException ex)
+            {
+                return APIUtils.SerializeFatalResponse(this, ex);
             }
         }
     }

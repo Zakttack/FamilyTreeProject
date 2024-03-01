@@ -11,14 +11,32 @@ namespace FamilyTreeLibrary.Service
     {
         public FamilyTreeService(string familyName)
         {
-            FamilyTree = new Tree(familyName);
+            try
+            {
+                FamilyTree = new Tree(familyName);
+            }
+            catch (ArgumentNullException ex)
+            {
+                throw new ClientNotFoundException("The family doesn't exist.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new ServerException(ex);
+            }
         }
 
         public IEnumerable<Family> AscendingByName
         {
             get
             {
-                return FamilyTree.Order(new NameAscedendingComparer());
+                try
+                {
+                    return FamilyTree.Order(new NameAscedendingComparer());
+                }
+                catch (Exception ex)
+                {
+                    throw new ServerException(ex);
+                }
             }
         }
 
@@ -26,7 +44,14 @@ namespace FamilyTreeLibrary.Service
         {
             get
             {
-                return FamilyTree.Height - 1;
+                try
+                {
+                    return FamilyTree.Height - 1;
+                }
+                catch (Exception ex)
+                {
+                    throw new ServerException(ex);
+                }
             }
         }
 
@@ -34,7 +59,14 @@ namespace FamilyTreeLibrary.Service
         {
             get
             {
-                return FamilyTree.Count - 1;
+                try
+                {
+                    return FamilyTree.Count - 1;
+                }
+                catch (Exception ex)
+                {
+                    throw new ServerException(ex);
+                }
             }
         }
 
@@ -42,7 +74,14 @@ namespace FamilyTreeLibrary.Service
         {
             get
             {
-                return FamilyTree;
+                try
+                {
+                    return FamilyTree;
+                }
+                catch (Exception ex)
+                {
+                    throw new ServerException(ex);
+                }
             }
         }
 
@@ -83,26 +122,26 @@ namespace FamilyTreeLibrary.Service
                     }
                     if ((node.Parent is null && !FamilyTree.Any()) || !FamilyTree.Contains(node.Parent, node.Element))
                     {
-                        Log.Debug($"Adding the parent-child relationship between {parentPortion} and {childPortion}.");
+                        FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"Adding the parent-child relationship between {parentPortion} and {childPortion}.");
                         FamilyTree.Add(node.Id, node.Parent, node.Element);
-                        Log.Debug($"The parent-child relationship between {parentPortion} and {childPortion} has been added.");
+                        FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"The parent-child relationship between {parentPortion} and {childPortion} has been added.");
                     }
-                    Log.Information($"The parent-child relationship between {parentPortion} and {childPortion} exists in the tree.");
+                    FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The parent-child relationship between {parentPortion} and {childPortion} exists in the tree.");
                 }
                 long pdfNodesCount = client.Nodes.LongCount();
                 long treeNodesCount = FamilyTree.Count;
                 if (pdfNodesCount != treeNodesCount)
                 {
-                    Log.Warning($"Only {treeNodesCount} of {pdfNodesCount} were analyzed.");
+                    FamilyTreeUtils.LogMessage(LoggingLevels.Warning, $"Only {treeNodesCount} of {pdfNodesCount} were analyzed.");
                 }
                 else
                 {
-                    Log.Information($"{treeNodesCount} nodes have been analyzed.");
+                    FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"{treeNodesCount} nodes have been analyzed.");
                 }
             }
             catch (IOException ex)
             {
-                throw new FileNotFoundException("The provided file isn't found in your directory. Try to upload again.", ex);
+                throw new ClientNotFoundException("The provided file isn't found in your directory. Try to upload again.", ex);
             }
         }
 
@@ -110,39 +149,39 @@ namespace FamilyTreeLibrary.Service
         {
             if (parent is null)
             {
-                throw new ArgumentNullException(nameof(parent), $"The child has to be a parent of somebody in the {FamilyTree.Name} family tree.");
+                throw new ClientBadRequestException($"The child has to be a parent of somebody in the {FamilyTree.Name} family tree.");
             }
             else if (child is null)
             {
-                throw new ArgumentNullException(nameof(child), "The child you're trying to report doesn't exist.");
+                throw new ClientBadRequestException("The child you're trying to report doesn't exist.");
             }
             else if (!FamilyTree.Any(node => node == parent) && !FamilyTree.Any(node => node == child))
             {
-                throw new ArgumentException($"Either {parent.Member.Name} or {child.Member.Name} must be genetically part of the {FamilyTree.Name} Family Tree.");
+                throw new ClientBadRequestException($"Either {parent.Member.Name} or {child.Member.Name} must be genetically part of the {FamilyTree.Name} Family Tree.");
             }
             else if (FamilyTree.Contains(parent, child))
             {
-                throw new InvalidOperationException($"{parent.Member.Name} already has a child named {child.Member.Name}");
+                throw new ClientBadRequestException($"{parent.Member.Name} already has a child named {child.Member.Name}");
             }
-            Log.Information($"Adding the parent-child relationship between {parent.Member.Name} and {child.Member.Name}");
+            FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Adding the parent-child relationship between {parent.Member.Name} and {child.Member.Name}");
             FamilyTree.Add(default, parent, child);
-            Log.Information($"{parent.Member.Name} has a child named {child.Member.Name}");
+            FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"{parent.Member.Name} has a child named {child.Member.Name}");
         }
 
         public void ReportDeceased(Person p, FamilyTreeDate deceasedDate)
         {
             if (p is null)
             {
-                throw new ArgumentNullException(nameof(p), "The person you're trying to report doesn't exist.");
+                throw new ClientBadRequestException("The person you're trying to report doesn't exist.");
             }
             else if (deceasedDate == default || deceasedDate == FamilyTreeDate.DefaultDate)
             {
-                throw new ArgumentNullException(nameof(deceasedDate), "The deceased date provided doesn't exist.");
+                throw new ClientBadRequestException("The deceased date provided doesn't exist.");
             }
             IEnumerable<Family> families = FamilyTree.Where((node) => node.Member == p || node.InLaw == p);
             if (!families.Any())
             {
-                throw new ArgumentException($"{p.Name} isn't found in the tree.");
+                throw new ClientBadRequestException($"{p.Name} isn't found in the tree.");
             }
             foreach (Family fam in families)
             {
@@ -163,21 +202,21 @@ namespace FamilyTreeLibrary.Service
         {
             if (member is null)
             {
-                throw new ArgumentNullException(nameof(member), "The biological member you're trying to report doesn't exist.");
+                throw new ClientBadRequestException("The biological member you're trying to report doesn't exist.");
             }
             else if (inLaw is null)
             {
-                throw new ArgumentNullException(nameof(inLaw), $"{member.Name} can't married to someone who doesn't exist.");
+                throw new ClientBadRequestException($"{member.Name} can't married to someone who doesn't exist.");
             }
             else if (marriageDate == default || marriageDate == FamilyTreeDate.DefaultDate)
             {
-                throw new ArgumentNullException(nameof(marriageDate), "An unknown marriage date was entered.");
+                throw new ClientBadRequestException("An unknown marriage date was entered.");
             }
             IList<Family> familyCollection = FamilyTree.ToList();
             IList<Family> families = familyCollection.Where(node => node.Member == member).ToList();
             if (!families.Any())
             {
-                throw new ArgumentException($"{member.Name} isn't a member of the tree.");
+                throw new ClientBadRequestException($"{member.Name} isn't a member of the tree.");
             }
             Family family = families.Where(fam => fam.InLaw == inLaw).FirstOrDefault();
             if (family is null && (families.Count > 1 || families[0].InLaw is not null))
@@ -185,25 +224,25 @@ namespace FamilyTreeLibrary.Service
                 Family additionalFamily = new(member, inLaw, marriageDate);
                 Family node = (Family)families[0].Clone();
                 Family parent = FamilyTree.GetParent(node);
-                Log.Debug("An additional partnership is being added.");
+                FamilyTreeUtils.LogMessage(LoggingLevels.Debug, "An additional partnership is being added.");
                 FamilyTree.Add(default, parent, additionalFamily);
-                Log.Information("The additional partnership has been applied.");
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, "The additional partnership has been applied.");
             }
             else if (family is null)
             {
                 Family initial = familyCollection.Where(node => node == families[0]).First();
                 Family final = new(initial.Member, inLaw, marriageDate);
-                Log.Debug($"The node: {initial} is being updated.");
+                FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"The node: {initial} is being updated.");
                 FamilyTree.Update(initial, final);
-                Log.Information($"The node has been updated to {final}");
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The node has been updated to {final}");
             }
             else
             {
                 Family initial = familyCollection.Where(node => node == family).First();
                 Family final = new(initial.Member, initial.InLaw, marriageDate);
-                Log.Debug($"The marriage date is being changed from {initial.MarriageDate} to {final.MarriageDate}.");
+                FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"The marriage date is being changed from {initial.MarriageDate} to {final.MarriageDate}.");
                 FamilyTree.Update(initial, final);
-                Log.Information("The marriage date update was successful");
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, "The marriage date update was successful");
             }
         }
 
@@ -212,7 +251,7 @@ namespace FamilyTreeLibrary.Service
             Family parent = FamilyTree.GetParent(element);
             if (parent is null || parent == Family.EmptyFamily)
             {
-                throw new FamilyNotFoundException($"{element.Member.Name} has an unknown parent.");
+                throw new ClientNotFoundException($"{element.Member.Name} has an unknown parent.");
             }
             return parent;
         }

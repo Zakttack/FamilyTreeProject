@@ -1,6 +1,9 @@
 using FamilyTreeAPI.Models;
+using FamilyTreeLibrary;
 using FamilyTreeLibrary.Exceptions;
 using FamilyTreeLibrary.Models;
+using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace FamilyTreeAPI
 {
@@ -8,33 +11,102 @@ namespace FamilyTreeAPI
     {
         public static Family DeserializeFamilyElement(FamilyElement element)
         {
-            Person member = new(element.Member.Name, new FamilyTreeDate(element.Member.BirthDate), new FamilyTreeDate(element.Member.DeceasedDate));
-            Person inLaw = element.InLaw is null ? null : new(element.InLaw.Name, new FamilyTreeDate(element.InLaw.BirthDate), new FamilyTreeDate(element.InLaw.DeceasedDate));
-            FamilyTreeDate marriageDate = new(element.MarriageDate);
-            return new(member, inLaw, marriageDate);
+            try
+            {
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"This family element: \"{element}\" is being deserialized.");
+                Person member = DeserializePersonElement(element.Member);
+                Person inLaw = DeserializePersonElement(element.InLaw);
+                FamilyTreeDate marriageDate = new(element.MarriageDate);
+                return new(member, inLaw, marriageDate);
+            }
+            catch (ClientException ex)
+            {
+                throw ex;
+            }
+            catch (FormatException ex)
+            {
+                throw new ClientBadRequestException(ex.Message, ex);
+            }
+            catch (NullReferenceException)
+            {
+                FamilyTreeUtils.LogMessage(LoggingLevels.Warning, "The family doesn't exist.");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                throw new ServerException(ex);
+            }
         }
 
         public static Person DeserializePersonElement(PersonElement element)
         {
-            if (element is null || (element.Name is null && element.BirthDate is null && element.DeceasedDate is null))
+            try
             {
-                throw new PersonNotFoundException("The person doesn't exist.");
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"This person element: \"{element}\" is being deserialized.");
+                return new(element.Name, new FamilyTreeDate(element.BirthDate), new FamilyTreeDate(element.DeceasedDate));
             }
-            return new(element.Name, new FamilyTreeDate(element.BirthDate), new FamilyTreeDate(element.DeceasedDate));
+            catch (ClientException ex)
+            {
+                throw ex;
+            }
+            catch (FormatException ex)
+            {
+                throw new ClientBadRequestException(ex.Message, ex);
+            }
+            catch (NullReferenceException)
+            {
+                FamilyTreeUtils.LogMessage(LoggingLevels.Warning, "The person doesn't exist.");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                throw new ServerException(ex);
+            }
         }
         
-        public static ExceptionResponse SerializeErrorResponse(Exception ex)
+        public static ObjectResult SerializeErrorResponse(ControllerBase controller, ClientException ex)
         {
-            return new ExceptionResponse
+            MessageResponse response = new()
             {
-                Name = ex.GetType().Name,
-                Message = ex.Message
+                Message = ex.ToString(),
+                Type = MessageType.Problem
+            };
+            FamilyTreeUtils.LogMessage(LoggingLevels.Error, ex.ToString());
+            return ex.StatusCode switch
+            {
+                HttpStatusCode.BadRequest => controller.BadRequest(response),
+                HttpStatusCode.NotFound => controller.NotFound(response),
+                _ => controller.Unauthorized(response),
             };
         }
 
-        public static FamilyElement SerializeFamily(Family family)
+        public static OkObjectResult SerializeFamily(ControllerBase controller, Family family)
         {
-            return new FamilyElement
+            FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The family: \"{family}\" is being serialized.");
+            FamilyElement response = GetFamilyElement(family);
+            return controller.Ok(response);
+        }
+
+        public static OkObjectResult SerializeFamilies(ControllerBase controller, string orderOption, IEnumerable<Family> families)
+        {
+            FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The families are being serialized in {orderOption} order.");
+            return controller.Ok(families.Select(GetFamilyElement));
+        }
+
+        public static ObjectResult SerializeFatalResponse(ControllerBase controller, ServerException ex)
+        {
+            FamilyTreeUtils.LogMessage(LoggingLevels.Fatal, ex.ToString());
+            MessageResponse response = new()
+            {
+                Message = ex.ToString(),
+                Type = MessageType.Problem
+            };
+            return controller.StatusCode(500, response);
+        }
+
+        private static FamilyElement GetFamilyElement(Family family)
+        {
+            return new()
             {
                 Member = new PersonElement
                 {

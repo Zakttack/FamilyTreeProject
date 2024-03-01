@@ -24,5 +24,13 @@ namespace FamilyTreeAPI.Models
             get;
             set;
         }
+
+        public override string ToString()
+        {
+            string nameMessage = "Name = " + (Name is null ? "unkown" : Name);
+            string birthDateMessage = "Birth Date = " + (BirthDate is null ? "unkown" : BirthDate);
+            string deceasedDateMessage = "Deceased Date = " + (DeceasedDate is null ? "unkown" : DeceasedDate);
+            return $"{nameMessage}; {birthDateMessage}; {deceasedDateMessage};";
+        }
     }
 }

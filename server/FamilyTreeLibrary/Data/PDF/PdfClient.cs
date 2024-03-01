@@ -2,6 +2,7 @@ using FamilyTreeLibrary.Data.PDF.OrderingType;
 using FamilyTreeLibrary.Data.PDF.Models;
 using FamilyTreeLibrary.Models;
 using Serilog;
+using FamilyTreeLibrary.Exceptions;
 
 namespace FamilyTreeLibrary.Data.PDF
 {
@@ -47,13 +48,13 @@ namespace FamilyTreeLibrary.Data.PDF
 
         public void LoadNodes()
         {
-            Log.Debug($"Reading {FilePath}.");
+            FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"Reading {FilePath}.");
             AbstractOrderingType[] currentOrderingType = Array.Empty<AbstractOrderingType>();
             Queue<AbstractOrderingType> previousPossibilities = new();
             string previousLine = "";
             int sectionNumber = 1;
             IReadOnlyCollection<string> pdfLines = PdfUtils.GetLinesFromDocument(FilePath);
-            Log.Debug($"{pdfLines.Count} lines were detected.");
+            FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"{pdfLines.Count} lines were detected.");
             foreach (string line in pdfLines)
             {
                 try
@@ -77,29 +78,29 @@ namespace FamilyTreeLibrary.Data.PDF
                 }
             }
             CreateNode(previousLine, previousPossibilities, ref currentOrderingType, ref sectionNumber);
-            Log.Debug($"{FamilyNodeCollection.Count} sections were detected.");
+            FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"{FamilyNodeCollection.Count} sections were detected.");
         }
 
         public void AttachNodes()
         {
-            Log.Debug("Nodes are connecting.");
+            FamilyTreeUtils.LogMessage(LoggingLevels.Debug, "Nodes are connecting.");
             AttachNodes(FamilyNodeCollection, Root);
-            Log.Debug("Nodes are connected.");
+            FamilyTreeUtils.LogMessage(LoggingLevels.Debug, "Nodes are connected.");
         }
 
         private void AttachNodes(IEnumerable<Section> familyNodeCollection, Section parent)
         {
             ICollection<Section> subFamilyNodeCollection = new List<Section>();
             Section previousFamilyNode = parent;
-            Log.Debug($"Attaching children of {PdfUtils.GetPersonLogName(parent)}.");
+            FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"Attaching children of {PdfUtils.GetPersonLogName(parent)}.");
             foreach (Section familyNode in familyNodeCollection)
             {
                 if (familyNode.OrderingType.Length == parent.OrderingType.Length + 1)
                 {
                     parent.Node.Children.Add(familyNode.Node.Element);
-                    Log.Debug($"{PdfUtils.GetPersonLogName(parent)} has a child named {PdfUtils.GetPersonLogName(familyNode)}:\n{parent}");
+                    FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"{PdfUtils.GetPersonLogName(parent)} has a child named {PdfUtils.GetPersonLogName(familyNode)}:\n{parent}");
                     familyNode.Node.Parent = parent.Node.Element;
-                    Log.Debug($"{PdfUtils.GetPersonLogName(familyNode)} has a parent named {PdfUtils.GetPersonLogName(parent)}:\n{familyNode}");
+                    FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"{PdfUtils.GetPersonLogName(familyNode)} has a parent named {PdfUtils.GetPersonLogName(parent)}:\n{familyNode}");
                     nodes.Add(familyNode.Node);
                     if (previousFamilyNode != parent)
                     {
@@ -114,18 +115,18 @@ namespace FamilyTreeLibrary.Data.PDF
                 }
             }
             AttachSubNodes(ref subFamilyNodeCollection, previousFamilyNode);
-            Log.Debug($"The children of {PdfUtils.GetPersonLogName(parent)} have been attached.");
+            FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"The children of {PdfUtils.GetPersonLogName(parent)} have been attached.");
         }
 
         private void AttachSubNodes(ref ICollection<Section> subFamilyNodeCollection, Section parent)
         {
-            Log.Debug($"Analyzing sub-sections of {PdfUtils.GetPersonLogName(parent)}.");
+            FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"Analyzing sub-sections of {PdfUtils.GetPersonLogName(parent)}.");
             if (subFamilyNodeCollection.Any())
             {
                 AttachNodes(subFamilyNodeCollection.AsEnumerable(), parent);
                 subFamilyNodeCollection.Clear();
             }
-            Log.Debug($"Sub-section analysis of {PdfUtils.GetPersonLogName(parent)} complete.");
+            FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"Sub-section analysis of {PdfUtils.GetPersonLogName(parent)} complete.");
         }
 
         private void CreateNode(string previousLine, Queue<AbstractOrderingType> previousPossibilities, ref AbstractOrderingType[] currentOrderingType, ref int sectionNumber)

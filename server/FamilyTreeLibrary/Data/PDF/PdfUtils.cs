@@ -30,7 +30,7 @@ namespace FamilyTreeLibrary.Data.PDF
                     {
                         sectionNumber++;
                     }
-                    Log.Debug($"Section #{sectionNumber}: {section}");
+                    FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"Section #{sectionNumber}: {section}");
                     break;
                 }
                 AbstractOrderingType[] next = AbstractOrderingType.NextOrderingType(previous, type);
@@ -42,7 +42,7 @@ namespace FamilyTreeLibrary.Data.PDF
                     {
                         sectionNumber++;
                     }
-                    Log.Debug($"Section #{sectionNumber}: {section}");
+                    FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"Section #{sectionNumber}: {section}");
                     return next;
                 }
             }

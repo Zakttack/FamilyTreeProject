@@ -1,11 +1,8 @@
-using System.Linq;
-using System.Runtime.CompilerServices;
 using FamilyTreeAPI.Models;
 using FamilyTreeLibrary;
 using FamilyTreeLibrary.Exceptions;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.Service;
-using iText.StyledXmlParser.Css.Util;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FamilyTreeAPI.Controllers
@@ -20,23 +17,28 @@ namespace FamilyTreeAPI.Controllers
         {
             try
             {
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, "Based on the family name, the tree is being sorted in a certain order.");
+                bool familyNameIsProvided = familyName is not null && familyName != "";
+                string message = $"Family Name: " + (familyNameIsProvided ? familyName : "Unknown") + "; ";
+                bool orderOptionIsProvided = orderOption is not null && orderOption != "";
+                message += "Order Option: " + (orderOptionIsProvided ? orderOption : "Unkown") + ";";
+                LoggingLevels level = familyNameIsProvided && orderOptionIsProvided ? LoggingLevels.Information : LoggingLevels.Warning;
+                FamilyTreeUtils.LogMessage(level, message);
                 FamilyTreeService service = new(familyName);
                 return orderOption switch
                 {
-                    "parent first then children" => Ok(service.ParentFirstThenChildren.Select(APIUtils.SerializeFamily)),
-                    "ascending by name" => Ok(service.AscendingByName.Select(APIUtils.SerializeFamily)),
-                    _ => throw new ArgumentException("There is nothing to show if you don't select an ordering option.")
+                    "parent first then children" => APIUtils.SerializeFamilies(this, orderOption, service.ParentFirstThenChildren),
+                    "ascending by name" => APIUtils.SerializeFamilies(this, orderOption, service.AscendingByName),
+                    _ => throw new ClientBadRequestException("There is nothing to show if you don't select an ordering option.")
                 };
             }
-            catch (ArgumentException ex)
+            catch (ClientException ex)
             {
-                FamilyTreeUtils.WriteError(ex);
-                return BadRequest(APIUtils.SerializeErrorResponse(ex));
+                return APIUtils.SerializeErrorResponse(this, ex);
             }
-            catch (Exception ex)
+            catch (ServerException ex)
             {
-                FamilyTreeUtils.WriteError(ex);
-                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
+                return APIUtils.SerializeFatalResponse(this, ex);
             }
         }
         
@@ -45,13 +47,21 @@ namespace FamilyTreeAPI.Controllers
         {
             try
             {
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, "Counting the number of generations in the tree.");
+                bool familyNameIsProvided = familyName is not null && familyName != "";
+                string message = $"Family Name: " + (familyNameIsProvided ? familyName : "Unknown");
+                LoggingLevels level = familyNameIsProvided ? LoggingLevels.Information : LoggingLevels.Warning;
+                FamilyTreeUtils.LogMessage(level, message);
                 FamilyTreeService service = new(familyName);
                 return Ok(service.NumberOfGenerations);
             }
-            catch (Exception ex)
+            catch (ClientException ex)
             {
-                FamilyTreeUtils.WriteError(ex);
-                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
+                return APIUtils.SerializeErrorResponse(this, ex);
+            }
+            catch (ServerException ex)
+            {
+                return APIUtils.SerializeFatalResponse(this, ex);
             }
         }
 
@@ -60,13 +70,21 @@ namespace FamilyTreeAPI.Controllers
         {
             try
             {
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, "Counting the number of families in the tree.");
+                bool familyNameIsProvided = familyName is not null && familyName != "";
+                string message = $"Family Name: " + (familyNameIsProvided ? familyName : "Unknown");
+                LoggingLevels level = familyNameIsProvided ? LoggingLevels.Information : LoggingLevels.Warning;
+                FamilyTreeUtils.LogMessage(level, message);
                 FamilyTreeService service = new(familyName);
                 return Ok(service.NumberOfFamilies);
             }
-            catch (Exception ex)
+            catch (ClientException ex)
             {
-                FamilyTreeUtils.WriteError(ex);
-                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
+                return APIUtils.SerializeErrorResponse(this, ex);
+            }
+            catch (ServerException ex)
+            {
+                return APIUtils.SerializeFatalResponse(this, ex);
             }
         }
 
@@ -76,20 +94,30 @@ namespace FamilyTreeAPI.Controllers
             try
             {
                 FamilyTreeService service = new(familyName);
-                Person member = new(request.Member.Name, new FamilyTreeDate(request.Member.BirthDate), new FamilyTreeDate(request.Member.DeceasedDate));
-                Person inLaw = new(request.InLaw.Name, new FamilyTreeDate(request.InLaw.BirthDate), new FamilyTreeDate(request.InLaw.DeceasedDate));
+                Person member = APIUtils.DeserializePersonElement(request.Member);
+                Person inLaw = APIUtils.DeserializePersonElement(request.InLaw);
                 FamilyTreeDate marriageDate = new(request.MarriageDate);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"A marriage between {request.Member.Name} and {request.InLaw.Name} on {request.MarriageDate} is being reported.");
                 service.ReportMarried(member, inLaw, marriageDate);
-                SuccessResponse response = new()
+                MessageResponse response = new()
                 {
-                    Message = $"The marriage between {request.Member.Name} and {request.InLaw.Name} has been applied to the tree."
+                    Message = $"The marriage between {request.Member.Name} and {request.InLaw.Name} has been applied to the tree.",
+                    Type = MessageType.Success
                 };
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, response.Message);
                 return Ok(response);
             }
-            catch (Exception ex)
+            catch (ClientException ex)
             {
-                ExceptionResponse response = APIUtils.SerializeErrorResponse(ex);
-                return ex is ArgumentException || ex is FormatException ? BadRequest(response) : StatusCode(500, response);
+                return APIUtils.SerializeErrorResponse(this, ex);
+            }
+            catch (NullReferenceException ex)
+            {
+                return APIUtils.SerializeErrorResponse(this, new ClientBadRequestException(ex.Message, ex));
+            }
+            catch (ServerException ex)
+            {
+                return APIUtils.SerializeFatalResponse(this, ex);
             }
         }
 
@@ -100,17 +128,16 @@ namespace FamilyTreeAPI.Controllers
             {
                 FamilyTreeService service = new(familyName);
                 Family family = APIUtils.DeserializeFamilyElement(element);
-                FamilyElement result = APIUtils.SerializeFamily(service.RetrieveParentOf(family));
-                return Ok(result);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"In the {familyName} family tree, we are retrieving the parent of {family.Member.Name}");
+                return APIUtils.SerializeFamily(this, service.RetrieveParentOf(family));
             }
-            catch (FamilyNotFoundException ex)
+            catch (ClientException ex)
             {
-                FamilyTreeUtils.WriteError(ex);
-                return NotFound(APIUtils.SerializeErrorResponse(ex));
+                return APIUtils.SerializeErrorResponse(this, ex);
             }
-            catch (Exception ex)
+            catch (ServerException ex)
             {
-                return StatusCode(500, APIUtils.SerializeErrorResponse(ex));
+                return APIUtils.SerializeFatalResponse(this, ex);
             }
         }
 
@@ -120,17 +147,22 @@ namespace FamilyTreeAPI.Controllers
             try
             {
                 FamilyTreeService service = new(familyName);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {familyName} family tree is being reverted based on the following file path: {request.TemplateFilePath}");
                 service.RevertTree(request.TemplateFilePath);
-                SuccessResponse response = new()
+                MessageResponse response = new()
                 {
-                    Message = $"{familyName} tree has been reverted successfully."
+                    Message = $"{familyName} tree has been reverted successfully.",
+                    Type = MessageType.Success
                 };
                 return Ok(response);
             }
-            catch (Exception ex)
+            catch (ClientException ex)
             {
-                ExceptionResponse response = APIUtils.SerializeErrorResponse(ex);
-                return ex is FileNotFoundException ? BadRequest(response) : StatusCode(500, response);
+                return APIUtils.SerializeErrorResponse(this, ex);
+            }
+            catch (ServerException ex)
+            {
+                return APIUtils.SerializeFatalResponse(this, ex);
             }
         }
     }
