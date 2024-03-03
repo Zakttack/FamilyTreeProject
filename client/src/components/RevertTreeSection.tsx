@@ -25,8 +25,8 @@ const RevertTreeSection: React.FC = () => {
     }
 
     return (
-        <section>
-            <header id="revert-tree-header">
+        <section id="revert-tree-section">
+            <header id="revert-tree-header" onClick={handleVisability}>
                 <h2>Revert Tree&nbsp;&nbsp;<ArrowComponent isVisible={isVisible}/></h2>
             </header>
             {isVisible && (
@@ -39,4 +39,6 @@ const RevertTreeSection: React.FC = () => {
             )}
         </section>
     )
-}
+};
+
+export default RevertTreeSection;
