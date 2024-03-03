@@ -1,6 +1,4 @@
 using FamilyTreeLibrary;
-using Microsoft.Extensions.Configuration;
-using Serilog;
 
 namespace FamilyTreeLibraryTest
 {
@@ -46,8 +44,8 @@ namespace FamilyTreeLibraryTest
             try
             {
                 FamilyTreeUtils.InitializeLogger();
-                Log.Information("Logging Something.");
-                string expectedLogPath = @"C:\Users\zakme\Documents\FamilyTreeProject\resources\Logs\log20240128.txt";
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information,"Logging Something.");
+                string expectedLogPath = @"C:\Users\zakme\Documents\FamilyTreeProject\resources\Logs\log20240302.txt";
                 if (!File.Exists(expectedLogPath))
                 {
                     throw new FileNotFoundException("The logger was unable to generate a text file.");

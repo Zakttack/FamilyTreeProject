@@ -69,7 +69,7 @@ namespace FamilyTreeAPI
             MessageResponse response = new()
             {
                 Message = ex.ToString(),
-                Type = MessageType.Problem
+                IsSuccess = false
             };
             FamilyTreeUtils.LogMessage(LoggingLevels.Error, ex.ToString());
             return ex.StatusCode switch
@@ -99,7 +99,7 @@ namespace FamilyTreeAPI
             MessageResponse response = new()
             {
                 Message = ex.ToString(),
-                Type = MessageType.Problem
+                IsSuccess = false
             };
             return controller.StatusCode(500, response);
         }

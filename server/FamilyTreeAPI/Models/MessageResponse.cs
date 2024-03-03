@@ -13,7 +13,7 @@ namespace FamilyTreeAPI.Models
             set;
         }
 
-        public MessageType Type
+        public bool IsSuccess
         {
             get;
             set;

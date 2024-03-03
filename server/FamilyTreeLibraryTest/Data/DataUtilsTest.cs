@@ -22,12 +22,12 @@ namespace FamilyTreeLibraryTest.Data
             {
                 string familyName = "Pfingsten";
                 DataUtils.GetCollection(familyName);
-                Log.Information("Connection Successful.");
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information,"Connection Successful.");
                 problem = null;
             }
             catch (Exception ex)
             {
-                Log.Fatal($"Unable to Connect.\n{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+                FamilyTreeUtils.LogMessage(LoggingLevels.Fatal,$"Unable to Connect.\n{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
                 problem = ex;
             }
             Assert.That(problem, Is.Null);

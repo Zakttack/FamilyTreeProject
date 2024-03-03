@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Serilog;
+using System.Security;
 using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary
@@ -25,12 +26,54 @@ namespace FamilyTreeLibrary
 
         public static string GetFilePathOf(string relativeFilePath)
         {
-            return Path.Combine(GetRootDirectory(), relativeFilePath);
+            string[] relativeParts = relativeFilePath.Split('\\');
+            IEnumerable<string> filePaths = GetFilePathsOf(relativeParts[^1]);
+            foreach (string filePath in filePaths)
+            {
+                string[] parts = filePath.Split('\\');
+                if (parts.Length >= relativeParts.Length && relativeParts[0] == parts[^relativeParts.Length] && parts.Intersect(relativeParts).Count() == relativeParts.Length)
+                {
+                    return filePath;
+                }
+            }
+            return null;
+        }
+
+        public static IEnumerable<string> GetFilePathsOf(string fileName)
+        {
+            Stack<DirectoryInfo> directories = new();
+            ICollection<string> filePaths = new List<string>();
+            directories.Push(new(@"C:\"));
+            while (directories.TryPop(out DirectoryInfo current))
+            {
+                try
+                {
+                    IEnumerable<FileInfo> files = current.EnumerateFiles().Where((file) =>
+                    {
+                        return file.Name == fileName;
+                    });
+                    foreach (FileInfo file in files)
+                    {
+                        filePaths.Add(file.FullName);
+                    }
+                    IEnumerable<DirectoryInfo> subDirectories = current.EnumerateDirectories();
+                    foreach (DirectoryInfo subDirectory in subDirectories)
+                    {
+                        directories.Push(subDirectory);
+                    }
+                }
+                catch(UnauthorizedAccessException ex)
+                {
+                    LogMessage(LoggingLevels.Warning, ex.Message);
+                    continue;
+                }
+            }
+            return filePaths;
         }
 
         public static void InitializeLogger()
         {
-            string filePath = GetFilePathOf(@"resources\Logs\log.txt");
+            string filePath = Path.Combine(GetRootDirectory(),@"resources\Logs\log.txt");
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.File(filePath, rollingInterval: RollingInterval.Day)
@@ -62,12 +105,26 @@ namespace FamilyTreeLibrary
 
         private static string GetRootDirectory()
         {
-            DirectoryInfo directory = new(Directory.GetCurrentDirectory());
-            while (directory != null && !directory.GetDirectories(".git").Any())
+            Stack<DirectoryInfo> directories = new();
+            string targetDirectoryName = "FamilyTreeProject";
+            directories.Push(new DirectoryInfo(Directory.GetCurrentDirectory()));
+            while (directories.TryPop(out DirectoryInfo current))
             {
-                directory = directory.Parent;
+                try
+                {
+                    if (current.Name == targetDirectoryName)
+                    {
+                        return current.FullName;
+                    }
+                    directories.Push(current.Parent);
+                }
+                catch (SecurityException ex)
+                {
+                    LogMessage(LoggingLevels.Warning, ex.Message);
+                    continue;
+                }
             }
-            return directory.FullName;
+            throw new InvalidOperationException("This isn't the FamilyTreeProject.");
         }
     }
 }

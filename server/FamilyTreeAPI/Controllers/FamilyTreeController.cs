@@ -102,7 +102,7 @@ namespace FamilyTreeAPI.Controllers
                 MessageResponse response = new()
                 {
                     Message = $"The marriage between {request.Member.Name} and {request.InLaw.Name} has been applied to the tree.",
-                    Type = MessageType.Success
+                    IsSuccess = true
                 };
                 FamilyTreeUtils.LogMessage(LoggingLevels.Information, response.Message);
                 return Ok(response);
@@ -142,17 +142,17 @@ namespace FamilyTreeAPI.Controllers
         }
 
         [HttpPut("{familyName}/revert-tree")]
-        public IActionResult RevertTree([FromRoute] string familyName, [FromBody] FileRequest request)
+        public IActionResult RevertTree([FromRoute] string familyName, [FromBody] FileElement request)
         {
             try
             {
                 FamilyTreeService service = new(familyName);
-                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {familyName} family tree is being reverted based on the following file path: {request.TemplateFilePath}");
-                service.RevertTree(request.TemplateFilePath);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {familyName} family tree is being reverted based on the following file path: {request.FilePath}");
+                service.RevertTree(request.FilePath);
                 MessageResponse response = new()
                 {
                     Message = $"{familyName} tree has been reverted successfully.",
-                    Type = MessageType.Success
+                    IsSuccess = true
                 };
                 return Ok(response);
             }

@@ -3,7 +3,6 @@ using FamilyTreeLibrary.Data.Comparers;
 using FamilyTreeLibrary.Data.PDF;
 using FamilyTreeLibrary.Exceptions;
 using FamilyTreeLibrary.Models;
-using Serilog;
 
 namespace FamilyTreeLibrary.Service
 {
@@ -143,6 +142,10 @@ namespace FamilyTreeLibrary.Service
             {
                 throw new ClientNotFoundException("The provided file isn't found in your directory. Try to upload again.", ex);
             }
+            catch (Exception ex)
+            {
+                throw new ServerException(ex);
+            }
         }
 
         public void ReportChildren(Family parent, Family child)
@@ -258,8 +261,12 @@ namespace FamilyTreeLibrary.Service
 
         public void RevertTree(string templateFilePath)
         {
+            FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {FamilyTree.Name} family tree is being emptied.");
             FamilyTree.Clear();
+            FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"The {FamilyTree.Name} is now empty.");
+            FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {FamilyTree.Name} family tree is now being reverted based on the template file path: \"{templateFilePath}\".");
             AppendTree(templateFilePath);
+            FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {FamilyTree.Name} family tree has been reverted successfully.");
         }
 
         private ITree FamilyTree

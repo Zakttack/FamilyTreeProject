@@ -1,8 +1,8 @@
 namespace FamilyTreeAPI.Models
 {
-    public class FileRequest
+    public class FileElement
     {
-        public string TemplateFilePath
+        public string FilePath
         {
             get;
             set;
