@@ -1,6 +1,9 @@
 import React from "react";
-import SuccessResponse from "../models/successResponse";
 import './SuccessDisplayComponent.css';
+
+interface SuccessResponse {
+    message: string;
+}
 
 const SuccessDisplay: React.FC<SuccessResponse> = (response) => {
     return (

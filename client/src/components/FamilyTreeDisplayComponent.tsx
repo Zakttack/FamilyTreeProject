@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState} from "react";
 import _ from "lodash";
 import FamilyNameContext from "../models/familyNameContext";
 import OrderTypeContext from "../models/orderTypeContext";
-import ExceptionResponse  from "../models/exceptionResponse";
+import MessageResponse from "../models/MessageResponse";
 import FamilyElement from "../models/FamilyElement";
 import FamilyElementDisplay from "./FamilyElementDisplay";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
@@ -17,7 +17,7 @@ const FamilyTreeDisplayComponent: React.FC = () => {
             const url = `http://localhost:5201/api/familytree/${familyName}/getfamilies/${selectedOrderType}`;
             const response = await fetch(url);
             if (!response.ok) {
-                const errorOutput: ExceptionResponse = await response.json();
+                const errorOutput: MessageResponse = await response.json();
                 setHandlerResponse({output: null, problem: errorOutput});
             }
             else {
@@ -32,7 +32,7 @@ const FamilyTreeDisplayComponent: React.FC = () => {
         <div>
             <p>Selected Order: {selectedOrderType}</p>
             {!_.isNull(handlerResponse.problem) && (
-                <ErrorDisplayComponent name={handlerResponse.problem.name} message={handlerResponse.problem.message}/>
+                <ErrorDisplayComponent message={handlerResponse.problem.message}/>
             )}
             {!_.isNull(handlerResponse.output) && (
                 <div>

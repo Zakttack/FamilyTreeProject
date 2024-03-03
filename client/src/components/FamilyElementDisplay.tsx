@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import _ from "lodash";
 import FamilyElement, { FamilyDefault, FamilyElementContext } from "../models/FamilyElement";
-import FamilyRepresentationElement from "../models/familyRepresentationElement";
+import RepresentationElement from "../models/RepresentationElement";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import "./FamilyElementDisplay.css"
 import OutputResponse from "../models/outputResponse";
@@ -11,7 +11,7 @@ import { PersonDefault } from "../models/PersonElement";
 
 const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
     const {changeSelectedElement} = useContext(FamilyElementContext);
-    const [representationOutput, setRepresentationOutput] = useState<OutputResponse<FamilyRepresentationElement>>({problem: null, output: null});
+    const [representationOutput, setRepresentationOutput] = useState<OutputResponse<RepresentationElement>>({problem: null, output: null});
     let navigate = useNavigate();
 
     const createURL = (path: string, queryParams = {}) => {
@@ -35,7 +35,7 @@ const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
 
     useEffect(() => {
         const handleRender = async () => {
-            const response: OutputResponse<FamilyRepresentationElement> = await elementToRepresentation(element);
+            const response: OutputResponse<RepresentationElement> = await elementToRepresentation(element);
             setRepresentationOutput(response);
         };
         handleRender();
@@ -43,7 +43,7 @@ const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
 
     if (!_.isNull(representationOutput.problem)) {
         return (
-            <ErrorDisplayComponent name={representationOutput.problem.name} message={representationOutput.problem.name}/>
+            <ErrorDisplayComponent message={representationOutput.problem.message}/>
         );
     }
     else if (!_.isNull(representationOutput.output)) {
@@ -52,7 +52,7 @@ const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
         );
     }
     return (
-        <ErrorDisplayComponent name="Exception" message="Something Went Wrong"/>
+        <ErrorDisplayComponent message="Something Went Wrong"/>
     );
 };
 

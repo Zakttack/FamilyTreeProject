@@ -44,7 +44,7 @@ namespace FamilyTreeAPI.Controllers
         }
 
         [HttpPost("representation-to-element")]
-        public IActionResult RepresentationToElement([FromBody] FamilyRepresentationElement representationElement)
+        public IActionResult RepresentationToElement([FromBody] RepresentationElement representationElement)
         {
             try
             {
@@ -74,7 +74,7 @@ namespace FamilyTreeAPI.Controllers
             {
                 Family family = APIUtils.DeserializeFamilyElement(element);
                 FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Family: {family}");
-                FamilyRepresentationElement representation = new()
+                RepresentationElement representation = new()
                 {
                     Representation = family.ToString()
                 };
@@ -102,7 +102,7 @@ namespace FamilyTreeAPI.Controllers
             {
                 Person person = APIUtils.DeserializePersonElement(element);
                 FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Person: {person}");
-                FamilyRepresentationElement representation = new()
+                RepresentationElement representation = new()
                 {
                     Representation = person.ToString()
                 };

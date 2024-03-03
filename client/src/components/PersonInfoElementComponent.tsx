@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import _ from "lodash";
 import OutputResponse from "../models/outputResponse";
 import { personElementToRepresentation } from "../Utils";
-import FamilyRepresentationElement from "../models/familyRepresentationElement";
+import FamilyRepresentationElement from "../models/RepresentationElement";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import PersonInfoInput from "../models/personInfoInput";
 import './PersonInfoElementComponent.css';
@@ -24,7 +24,7 @@ const PersonInfoElement: React.FC<PersonInfoInput> = (input) => {
     return (
         <div>
             <h3>{input.type}:</h3>
-            {!_.isNull(personInfoResult.problem) && <ErrorDisplayComponent name={personInfoResult.problem.name} message={personInfoResult.problem.message}/>}
+            {!_.isNull(personInfoResult.problem) && <ErrorDisplayComponent message={personInfoResult.problem.message}/>}
             {!_.isNull(personInfoResult.output) && (
                 <p>{personInfoResult.output.representation}<span id="checkBoxPadder"><label><input type="checkbox" checked={personInfoShown} onChange={handleChecked}/>Show Person Info</label></span></p>
             )}

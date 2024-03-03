@@ -1,6 +1,6 @@
 namespace FamilyTreeAPI.Models
 {
-    public class FamilyRepresentationElement
+    public class RepresentationElement
     {
         public string Representation
         {

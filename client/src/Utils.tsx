@@ -1,12 +1,11 @@
-import ExceptionResponse from "./models/exceptionResponse";
 import FamilyElement from "./models/FamilyElement";
-import FamilyRepresentationElement from "./models/familyRepresentationElement";
-import FileRequest from "./models/fileRequest";
+import RepresentationElement from "./models/RepresentationElement";
+import MessageResponse from "./models/MessageResponse";
 import OutputResponse from "./models/outputResponse";
 import PersonElement from "./models/PersonElement";
-import SuccessResponse from "./models/successResponse";
+import FileElement from "./models/FileElement";
 
-export async function elementToRepresentation(element: FamilyElement): Promise<OutputResponse<FamilyRepresentationElement>> {
+export async function elementToRepresentation(element: FamilyElement): Promise<OutputResponse<RepresentationElement>> {
     const url = 'http://localhost:5201/api/utility/element-to-representation';
     const response = await fetch(url, {
         method: 'POST',
@@ -16,14 +15,25 @@ export async function elementToRepresentation(element: FamilyElement): Promise<O
         body: JSON.stringify(element)
     });
     if (!response.ok) {
-        const result: ExceptionResponse = await response.json();
+        const result: MessageResponse = await response.json();
         return {output: null, problem: result};
     }
-    const result: FamilyRepresentationElement = await response.json();
+    const result: RepresentationElement = await response.json();
     return {output: result, problem: null};
 };
 
-export async function representationToElement(representation: FamilyRepresentationElement): Promise<OutputResponse<FamilyElement>> {
+export async function getFilePaths(fileName: string | null): Promise<OutputResponse<FileElement[]>> {
+    const url = `http://localhost:5201/api/utility/get-file-paths/${fileName}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+        const result: MessageResponse = await response.json();
+        return {output: null, problem: result};
+    }
+    const result: FileElement[] = await response.json();
+    return {output: result, problem: null};
+}
+
+export async function representationToElement(representation: RepresentationElement): Promise<OutputResponse<FamilyElement>> {
     const url = 'http://localhost:5201/api/utility/representation-to-element';
     const response = await fetch(url, {
         method: 'POST',
@@ -33,7 +43,7 @@ export async function representationToElement(representation: FamilyRepresentati
         body: JSON.stringify(representation)
     });
     if (!response.ok) {
-        const result: ExceptionResponse = await response.json();
+        const result: MessageResponse = await response.json();
         return {output: null, problem: result};
     }
     const result: FamilyElement = await response.json();
@@ -50,14 +60,14 @@ export async function retrieveParent(familyName: string, element: FamilyElement)
         body: JSON.stringify(element)
     });
     if (!response.ok) {
-        const errorResult: ExceptionResponse = await response.json();
+        const errorResult: MessageResponse = await response.json();
         return {output: null, problem: errorResult};
     }
     const result: FamilyElement = await response.json();
     return {output: result, problem: null};
 }
 
-export async function revertTree(familyName: string, request: FileRequest): Promise<OutputResponse<SuccessResponse>> {
+export async function revertTree(familyName: string, request: FileElement): Promise<OutputResponse<MessageResponse>> {
     const url = `http://localhost:5201/api/familytree/${familyName}/revert-tree`;
     const response = await fetch(url, {
         method: 'PUT',
@@ -67,14 +77,14 @@ export async function revertTree(familyName: string, request: FileRequest): Prom
         body: JSON.stringify(request)
     });
     if (!response.ok) {
-        const errorResult: ExceptionResponse = await response.json();
+        const errorResult: MessageResponse = await response.json();
         return {output: null, problem: errorResult};
     }
-    const result: SuccessResponse = await response.json();
+    const result: MessageResponse = await response.json();
     return {output: result, problem: null};
 }
 
-export async function personElementToRepresentation(element: PersonElement): Promise<OutputResponse<FamilyRepresentationElement>> {
+export async function personElementToRepresentation(element: PersonElement): Promise<OutputResponse<RepresentationElement>> {
     const url = 'http://localhost:5201/api/utility/person-element-to-representation';
     const response = await fetch(url, {
         method: 'POST',
@@ -84,9 +94,9 @@ export async function personElementToRepresentation(element: PersonElement): Pro
         body: JSON.stringify(element)
     });
     if (!response.ok) {
-        const result: ExceptionResponse = await response.json();
+        const result: MessageResponse = await response.json();
         return {output: null, problem: result};
     }
-    const result: FamilyRepresentationElement = await response.json();
+    const result: RepresentationElement = await response.json();
     return {output: result, problem: null};
 }

@@ -5,6 +5,8 @@ import FamilyNameContext from "../models/familyNameContext";
 import OrderTypeProvider from "../providers/orderTypeProvider";
 import SelectOrderTypeComponent from "../components/SelectOrderTypeComponent";
 import FamilyTreeDisplayComponent from "../components/FamilyTreeDisplayComponent";
+import FileElementProvider from "../providers/FileElementProvider";
+import FileUpload from "../components/FileUploadComponent";
 
 const FamilyTreeDashboard: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
@@ -15,6 +17,9 @@ const FamilyTreeDashboard: React.FC = () => {
                 <SelectOrderTypeComponent />
                 <FamilyTreeDisplayComponent />
             </OrderTypeProvider>
+            <FileElementProvider>
+                <FileUpload />
+            </FileElementProvider>
         </div>
     );
 }
