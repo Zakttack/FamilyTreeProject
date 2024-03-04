@@ -1,15 +1,16 @@
 import React from "react";
 import PersonElement, { PersonDefault } from "./PersonElement";
+import { StringDefault } from "../Utils";
 export default interface FamilyElement {
     member: PersonElement;
     inLaw: PersonElement;
-    marriageDate: string | null;
+    marriageDate: string;
 }
 
 export const FamilyDefault: FamilyElement = {
     member: PersonDefault,
     inLaw: PersonDefault,
-    marriageDate: null
+    marriageDate: StringDefault
 };
 
 interface FamilyElementContextType {

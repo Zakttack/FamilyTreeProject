@@ -13,7 +13,7 @@ import './RevertTreeSection.css';
 const RevertTreeSection: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
     const {selectedFile} = useContext(FileElementContext);
-    const [revertTreeResponse, setRevertTreeResponse] = useState<OutputResponse<MessageResponse>>({output: null, problem: null});
+    const [revertTreeResponse, setRevertTreeResponse] = useState<OutputResponse<MessageResponse>>({});
     const [isVisible, setIsVisible] = useState<boolean>(false);
 
     const handleRevertTree = async(e: FormEvent<HTMLFormElement>) => {

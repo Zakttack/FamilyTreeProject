@@ -1,28 +1,20 @@
 import React, {useContext, useEffect, useState} from "react";
 import FamilyNameContext from "../models/familyNameContext";
-import MessageResponse from "../models/MessageResponse";
 import OutputResponse from "../models/outputResponse";
+import { NumberDefault, getNumberOfFamilies } from "../Utils";
 
 const GetNumberOfFamiliesComponent: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
-    const [numericOutput, setNumericOutput] = useState<OutputResponse<number>>({output: null, problem: null});
+    const [numericOutput, setNumericOutput] = useState<OutputResponse<number>>({});
     useEffect(() => {
         const fetchNumberOfFamilies = async () => {
-            const url = `http://localhost:5201/api/familytree/${familyName}/numberoffamilies`;
-            const response = await fetch(url);
-            if (!response.ok) {
-                const errorData: MessageResponse = await response.json();
-                setNumericOutput({output: null, problem: errorData});
-            }
-            else {
-                const value: number = await response.json();
-                setNumericOutput({output: value, problem: null});
-            }
+            const response: OutputResponse<number> = await getNumberOfFamilies(familyName);
+            setNumericOutput(response);
         };
         fetchNumberOfFamilies();
     }, [familyName]);
     return (
-        <p>There are {numericOutput.output} families in the {familyName} family.</p>
+        <p>There are {numericOutput.output ? NumberDefault : numericOutput.output} families in the {familyName} family.</p>
     )
 };
 

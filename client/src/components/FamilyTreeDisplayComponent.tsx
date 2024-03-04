@@ -11,18 +11,18 @@ import OutputResponse from "../models/outputResponse";
 const FamilyTreeDisplayComponent: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
     const {selectedOrderType} = useContext(OrderTypeContext);
-    const [handlerResponse, setHandlerResponse] = useState<OutputResponse<FamilyElement[]>>({problem: null, output: null});
+    const [handlerResponse, setHandlerResponse] = useState<OutputResponse<FamilyElement[]>>({});
     useEffect(() => {
         const handleRender = async () => {
             const url = `http://localhost:5201/api/familytree/${familyName}/getfamilies/${selectedOrderType}`;
             const response = await fetch(url);
             if (!response.ok) {
                 const errorOutput: MessageResponse = await response.json();
-                setHandlerResponse({output: null, problem: errorOutput});
+                setHandlerResponse({problem: errorOutput});
             }
             else {
                 const familyElements: FamilyElement[] = await response.json();
-                setHandlerResponse({output: familyElements, problem: null});
+                setHandlerResponse({output: familyElements});
             }
         };
         handleRender();
@@ -31,10 +31,10 @@ const FamilyTreeDisplayComponent: React.FC = () => {
     return (
         <div>
             <p>Selected Order: {selectedOrderType}</p>
-            {!_.isNull(handlerResponse.problem) && (
+            {!_.isUndefined(handlerResponse.problem) && (
                 <ErrorDisplayComponent message={handlerResponse.problem.message}/>
             )}
-            {!_.isNull(handlerResponse.output) && (
+            {!_.isUndefined(handlerResponse.output) && (
                 <div>
                     {handlerResponse.output.map((element: FamilyElement) => (
                         <FamilyElementDisplay member={element.member} inLaw={element.inLaw} marriageDate={element.marriageDate}/>

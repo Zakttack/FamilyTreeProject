@@ -9,7 +9,7 @@ import './PersonInfoElementComponent.css';
 
 
 const PersonInfoElement: React.FC<PersonInfoInput> = (input) => {
-    const [personInfoResult, setPersonInfoResult] = useState<OutputResponse<FamilyRepresentationElement>>({output: null, problem: null});
+    const [personInfoResult, setPersonInfoResult] = useState<OutputResponse<FamilyRepresentationElement>>({});
     const [personInfoShown, showPersonInfo] = useState<boolean>(false);
     const handleChecked = () => {
         showPersonInfo(!personInfoShown);
@@ -24,8 +24,8 @@ const PersonInfoElement: React.FC<PersonInfoInput> = (input) => {
     return (
         <div>
             <h3>{input.type}:</h3>
-            {!_.isNull(personInfoResult.problem) && <ErrorDisplayComponent message={personInfoResult.problem.message}/>}
-            {!_.isNull(personInfoResult.output) && (
+            {!_.isUndefined(personInfoResult.problem) && <ErrorDisplayComponent message={personInfoResult.problem.message}/>}
+            {!_.isUndefined(personInfoResult.output) && (
                 <p>{personInfoResult.output.representation}<span id="checkBoxPadder"><label><input type="checkbox" checked={personInfoShown} onChange={handleChecked}/>Show Person Info</label></span></p>
             )}
             {personInfoShown && (

@@ -16,10 +16,10 @@ export async function elementToRepresentation(element: FamilyElement): Promise<O
     });
     if (!response.ok) {
         const result: MessageResponse = await response.json();
-        return {output: null, problem: result};
+        return {problem: result};
     }
     const result: RepresentationElement = await response.json();
-    return {output: result, problem: null};
+    return {output: result};
 };
 
 export async function getFilePaths(fileName: string): Promise<OutputResponse<FileElement[]>> {
@@ -27,10 +27,32 @@ export async function getFilePaths(fileName: string): Promise<OutputResponse<Fil
     const response = await fetch(url);
     if (!response.ok) {
         const result: MessageResponse = await response.json();
-        return {output: null, problem: result};
+        return {problem: result};
     }
     const result: FileElement[] = await response.json();
-    return {output: result, problem: null};
+    return {output: result};
+}
+
+export async function getNumberOfFamilies(familyName: string): Promise<OutputResponse<number>> {
+    const url = `http://localhost:5201/api/familytree/${familyName}/number-of-families`;
+    const response = await fetch(url);
+    if (!response.ok) {
+        const result: MessageResponse = await response.json();
+        return {problem: result};
+    }
+    const result: number = await response.json();
+    return {output: result};
+}
+
+export async function getNumberOfGenerations(familyName: string): Promise<OutputResponse<number>> {
+    const url = `http://localhost:5201/api/familytree/${familyName}/number-of-generations`;
+    const response = await fetch(url);
+    if (!response.ok) {
+        const result: MessageResponse = await response.json();
+        return {problem: result};
+    }
+    const result: number = await response.json();
+    return {output: result};
 }
 
 export async function representationToElement(representation: RepresentationElement): Promise<OutputResponse<FamilyElement>> {
@@ -44,10 +66,10 @@ export async function representationToElement(representation: RepresentationElem
     });
     if (!response.ok) {
         const result: MessageResponse = await response.json();
-        return {output: null, problem: result};
+        return {problem: result};
     }
     const result: FamilyElement = await response.json();
-    return {output: result, problem: null};
+    return {output: result};
 }
 
 export async function retrieveParent(familyName: string, element: FamilyElement): Promise<OutputResponse<FamilyElement>> {
@@ -61,10 +83,10 @@ export async function retrieveParent(familyName: string, element: FamilyElement)
     });
     if (!response.ok) {
         const errorResult: MessageResponse = await response.json();
-        return {output: null, problem: errorResult};
+        return {problem: errorResult};
     }
     const result: FamilyElement = await response.json();
-    return {output: result, problem: null};
+    return {output: result};
 }
 
 export async function revertTree(familyName: string, request: FileElement): Promise<OutputResponse<MessageResponse>> {
@@ -76,12 +98,8 @@ export async function revertTree(familyName: string, request: FileElement): Prom
         },
         body: JSON.stringify(request)
     });
-    if (!response.ok) {
-        const errorResult: MessageResponse = await response.json();
-        return {output: null, problem: errorResult};
-    }
     const result: MessageResponse = await response.json();
-    return {output: result, problem: null};
+    return result.isSuccess ? {output: result} : {problem: result};
 }
 
 export async function personElementToRepresentation(element: PersonElement): Promise<OutputResponse<RepresentationElement>> {
@@ -95,8 +113,11 @@ export async function personElementToRepresentation(element: PersonElement): Pro
     });
     if (!response.ok) {
         const result: MessageResponse = await response.json();
-        return {output: null, problem: result};
+        return {problem: result};
     }
     const result: RepresentationElement = await response.json();
-    return {output: result, problem: null};
+    return {output: result};
 }
+
+export const StringDefault = 'unknown';
+export const NumberDefault = 0;

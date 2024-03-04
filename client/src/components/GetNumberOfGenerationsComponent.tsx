@@ -1,29 +1,20 @@
 import React, {useContext, useEffect, useState} from "react";
 import FamilyNameContext from "../models/familyNameContext";
-import MessageResponse from "../models/MessageResponse";
 import OutputResponse from "../models/outputResponse";
+import { NumberDefault, getNumberOfGenerations } from "../Utils";
 
 const GetNumberOfGenerationsComponent: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
-    const [numericOutput, setNumericOutput] = useState<OutputResponse<number>>({output: null, problem: null});
+    const [numericOutput, setNumericOutput] = useState<OutputResponse<number>>({});
     useEffect(() => {
         const fetchNumberOfGenerations = async () => {
-            const url = `http://localhost:5201/api/familytree/${familyName}/numberofgenerations`;
-            const response = await fetch(url);
-            if (!response.ok)
-            {
-                const errorOutput: MessageResponse = await response.json();
-                setNumericOutput({output: null, problem: errorOutput});
-            }
-            else {
-                const output: number = await response.json();
-                setNumericOutput({output: output, problem: null});
-            }
+            const response: OutputResponse<number> = await getNumberOfGenerations(familyName);
+            setNumericOutput(response);
         };
         fetchNumberOfGenerations();
     }, [familyName]);
     return (
-        <p>There are {numericOutput.output} generations in the {familyName} family tree.</p>
+        <p>There are {numericOutput.output ? NumberDefault : numericOutput.output} generations in the {familyName} family tree.</p>
     )
 }
 

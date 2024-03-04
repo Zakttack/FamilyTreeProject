@@ -42,7 +42,7 @@ namespace FamilyTreeAPI.Controllers
             }
         }
         
-        [HttpGet("{familyName}/numberofgenerations")]
+        [HttpGet("{familyName}/number-of-generations")]
         public IActionResult GetNumberOfGenerations(string familyName)
         {
             try
@@ -65,7 +65,7 @@ namespace FamilyTreeAPI.Controllers
             }
         }
 
-        [HttpGet("{familyName}/numberoffamilies")]
+        [HttpGet("{familyName}/number-of-families")]
         public IActionResult GetNumberOfFamilies(string familyName)
         {
             try

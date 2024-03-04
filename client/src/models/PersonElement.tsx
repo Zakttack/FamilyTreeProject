@@ -1,11 +1,13 @@
+import { StringDefault } from "../Utils";
+
 export default interface PersonElement {
-    name: string | null;
-    birthDate: string | null;
-    deceasedDate: string | null;
+    name: string;
+    birthDate: string;
+    deceasedDate: string;
 }
 
 export const PersonDefault: PersonElement = {
-    name: null,
-    birthDate: null,
-    deceasedDate: null
+    name: StringDefault,
+    birthDate: StringDefault,
+    deceasedDate: StringDefault
 };
