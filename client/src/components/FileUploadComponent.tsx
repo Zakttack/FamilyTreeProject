@@ -23,18 +23,17 @@ const FileUpload: React.FC = () => {
     };
 
     return (
-        <div>
-            <form onSubmit={handleFindPaths}>
-                <p>Enter File Name Including Extension:&nbsp;<input type="text" value={fileName} onChange={handleFileNameChange}/>&nbsp;<button type="submit">Find Paths</button></p>
-            </form>
-            {pathsResponse.problem && <ErrorDisplayComponent message={pathsResponse.problem.message}/>}
-            {pathsResponse.output && 
-                <div>
-                    {pathsResponse.output.map((element: FileElement) => (
-                        <label><input type="radio" value={element.filePath} checked={!_.isNull(selectedFile) && selectedFile.filePath === element.filePath} onChange={handleSelectFile}/>{element.filePath}</label>
-                    ))}
-                </div>}
-        </div>
+        <>
+            <label>Enter File Name Including Extension:&nbsp;<input type="text" value={fileName} onChange={handleFileNameChange}/>&nbsp;<button onClick={handleFindPaths}>Find Paths</button></label>
+            {!_.isNull(pathsResponse.problem) && <ErrorDisplayComponent message={pathsResponse.problem.message}/>}
+            {!_.isNull(pathsResponse.output) && (
+            <div>
+                {pathsResponse.output.map((element: FileElement) => (
+                    <label><input type="radio" value={element.filePath} checked={!_.isNull(selectedFile) && selectedFile.filePath === element.filePath} onChange={handleSelectFile}/>{element.filePath}</label>
+                ))}
+            </div>
+            )}
+        </>
     );
 };
 

@@ -30,7 +30,7 @@ namespace FamilyTreeLibrary.Exceptions
 
         public override string ToString()
         {
-            return $"Status {Data["StatusCode"]}: {Data["Message"]}";
+            return $"Status {Data["Status Code"]}: {Data["Message"]}";
         }
     }
 }

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { FormEvent, useContext, useState } from "react";
 import { FileElementContext } from "../models/FileElement";
 import FamilyNameContext from "../models/familyNameContext";
 import OutputResponse from "../models/outputResponse";
@@ -8,6 +8,7 @@ import ArrowComponent from "./ArrowComponent";
 import FileUpload from "./FileUploadComponent";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import SuccessDisplay from "./SuccessDisplayComponent";
+import './RevertTreeSection.css';
 
 const RevertTreeSection: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
@@ -15,7 +16,8 @@ const RevertTreeSection: React.FC = () => {
     const [revertTreeResponse, setRevertTreeResponse] = useState<OutputResponse<MessageResponse>>({output: null, problem: null});
     const [isVisible, setIsVisible] = useState<boolean>(false);
 
-    const handleRevertTree = async() => {
+    const handleRevertTree = async(e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
         const response: OutputResponse<MessageResponse> = await revertTree(familyName, selectedFile);
         setRevertTreeResponse(response);
     };

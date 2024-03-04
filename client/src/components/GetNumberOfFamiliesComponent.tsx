@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from "react";
 import FamilyNameContext from "../models/familyNameContext";
-import ExceptionResponse from "../models/exceptionResponse";
+import MessageResponse from "../models/MessageResponse";
 import OutputResponse from "../models/outputResponse";
 
 const GetNumberOfFamiliesComponent: React.FC = () => {
@@ -11,7 +11,7 @@ const GetNumberOfFamiliesComponent: React.FC = () => {
             const url = `http://localhost:5201/api/familytree/${familyName}/numberoffamilies`;
             const response = await fetch(url);
             if (!response.ok) {
-                const errorData: ExceptionResponse = await response.json();
+                const errorData: MessageResponse = await response.json();
                 setNumericOutput({output: null, problem: errorData});
             }
             else {

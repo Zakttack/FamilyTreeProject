@@ -6,7 +6,7 @@ import OrderTypeProvider from "../providers/orderTypeProvider";
 import SelectOrderTypeComponent from "../components/SelectOrderTypeComponent";
 import FamilyTreeDisplayComponent from "../components/FamilyTreeDisplayComponent";
 import FileElementProvider from "../providers/FileElementProvider";
-import FileUpload from "../components/FileUploadComponent";
+import RevertTreeSection from "../components/RevertTreeSection";
 
 const FamilyTreeDashboard: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
@@ -18,7 +18,7 @@ const FamilyTreeDashboard: React.FC = () => {
                 <FamilyTreeDisplayComponent />
             </OrderTypeProvider>
             <FileElementProvider>
-                <FileUpload />
+                <RevertTreeSection />
             </FileElementProvider>
         </div>
     );

@@ -13,7 +13,7 @@ namespace FamilyTreeAPI.Controllers
     {
 
         [HttpGet("{familyName}/getfamilies/{orderOption}")]
-        public IActionResult GetFamilies(string familyName, string orderOption)
+        public IActionResult GetFamilies([FromRoute]string familyName,[FromRoute]string orderOption)
         {
             try
             {

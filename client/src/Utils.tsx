@@ -22,7 +22,7 @@ export async function elementToRepresentation(element: FamilyElement): Promise<O
     return {output: result, problem: null};
 };
 
-export async function getFilePaths(fileName: string | null): Promise<OutputResponse<FileElement[]>> {
+export async function getFilePaths(fileName: string): Promise<OutputResponse<FileElement[]>> {
     const url = `http://localhost:5201/api/utility/get-file-paths/${fileName}`;
     const response = await fetch(url);
     if (!response.ok) {

@@ -5,7 +5,7 @@ import { ProviderProps } from "../models/providerProps";
 const FileElementProvider: React.FC<ProviderProps> = ({children}) => {
     const [selectedFile, changeSelectedFile] = useState<FileElement>({filePath: ''});
     return (
-        <FileElementContext.Provider value={{selectedFile: selectedFile, changeSelectedFile: changeSelectedFile}}>
+        <FileElementContext.Provider value={{selectedFile, changeSelectedFile}}>
             {children}
         </FileElementContext.Provider>
     );

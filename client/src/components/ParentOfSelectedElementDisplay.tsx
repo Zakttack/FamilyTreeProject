@@ -22,7 +22,7 @@ const ParentOfSelectedElement: React.FC = () => {
     return (
         <div>
             <h2>Parent:</h2>
-            {!_.isNull(parentResult.problem) && <ErrorDisplayComponent name={parentResult.problem.name} message={parentResult.problem.message}/>}
+            {!_.isNull(parentResult.problem) && <ErrorDisplayComponent message={parentResult.problem.message}/>}
             {!_.isNull(parentResult.output) && <FamilyElementDisplay member={parentResult.output.member} inLaw={parentResult.output.inLaw} marriageDate={parentResult.output.marriageDate}/>}
         </div>
     );
