@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import FileElement, {FileElementContext} from "../models/FileElement";
+import FileElement, {FileDefault, FileElementContext} from "../models/FileElement";
 import { ProviderProps } from "../models/providerProps";
 
 const FileElementProvider: React.FC<ProviderProps> = ({children}) => {
-    const [selectedFile, changeSelectedFile] = useState<FileElement>({filePath: ''});
+    const [selectedFile, changeSelectedFile] = useState<FileElement>(FileDefault);
     return (
         <FileElementContext.Provider value={{selectedFile, changeSelectedFile}}>
             {children}

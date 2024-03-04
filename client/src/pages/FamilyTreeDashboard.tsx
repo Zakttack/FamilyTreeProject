@@ -13,13 +13,13 @@ const FamilyTreeDashboard: React.FC = () => {
     return (
         <div>
             <h1>This is the {familyName} family</h1>
+            <FileElementProvider>
+                <RevertTreeSection />
+            </FileElementProvider>
             <OrderTypeProvider>
                 <SelectOrderTypeComponent />
                 <FamilyTreeDisplayComponent />
             </OrderTypeProvider>
-            <FileElementProvider>
-                <RevertTreeSection />
-            </FileElementProvider>
         </div>
     );
 }
