@@ -1,12 +1,19 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using FamilyTreeLibrary.Data;
+using Microsoft.Extensions.Configuration;
 using Serilog;
-using System.Security;
 using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary
 {
     public static partial class FamilyTreeUtils
     {
+        public static IEnumerable<string> FilePaths
+        {
+            get
+            {
+                return new FileEnumerable();
+            }
+        }
         public static IConfiguration GetConfiguration(string appSettingsFilePath)
         {
             if (appSettingsFilePath == null || !File.Exists(appSettingsFilePath))
@@ -27,48 +34,21 @@ namespace FamilyTreeLibrary
         public static string GetFilePathOf(string relativeFilePath)
         {
             string[] relativeParts = relativeFilePath.Split('\\');
-            IEnumerable<string> filePaths = GetFilePathsOf(relativeParts[^1]);
-            foreach (string filePath in filePaths)
+            return FilePaths.Where((filePath) => 
             {
                 string[] parts = filePath.Split('\\');
-                if (parts.Length >= relativeParts.Length && relativeParts[0] == parts[^relativeParts.Length] && parts.Intersect(relativeParts).Count() == relativeParts.Length)
-                {
-                    return filePath;
-                }
-            }
-            return null;
+                string[] intersect = parts.Intersect(relativeParts).ToArray();
+                return relativeFilePath == string.Join('\\', intersect);
+            }).FirstOrDefault();
         }
 
         public static IEnumerable<string> GetFilePathsOf(string fileName)
         {
-            Stack<DirectoryInfo> directories = new();
-            ICollection<string> filePaths = new List<string>();
-            directories.Push(new(@"C:\"));
-            while (directories.TryPop(out DirectoryInfo current))
+            return FilePaths.Where((filePath) => 
             {
-                try
-                {
-                    IEnumerable<FileInfo> files = current.EnumerateFiles().Where((file) =>
-                    {
-                        return file.Name == fileName;
-                    });
-                    foreach (FileInfo file in files)
-                    {
-                        filePaths.Add(file.FullName);
-                    }
-                    IEnumerable<DirectoryInfo> subDirectories = current.EnumerateDirectories();
-                    foreach (DirectoryInfo subDirectory in subDirectories)
-                    {
-                        directories.Push(subDirectory);
-                    }
-                }
-                catch(UnauthorizedAccessException ex)
-                {
-                    LogMessage(LoggingLevels.Warning, ex.Message);
-                    continue;
-                }
-            }
-            return filePaths;
+                string[] parts = filePath.Split('\\');
+                return fileName == parts[^1];
+            });
         }
 
         public static void InitializeLogger()
@@ -102,7 +82,6 @@ namespace FamilyTreeLibrary
 
         [GeneratedRegex(@"^\d+-\d+$")]
         internal static partial Regex RangePattern();
-
         private static string GetRootDirectory()
         {
             Stack<DirectoryInfo> directories = new();
@@ -118,9 +97,8 @@ namespace FamilyTreeLibrary
                     }
                     directories.Push(current.Parent);
                 }
-                catch (SecurityException ex)
+                catch (UnauthorizedAccessException)
                 {
-                    LogMessage(LoggingLevels.Warning, ex.Message);
                     continue;
                 }
             }

@@ -11,7 +11,6 @@ namespace FamilyTreeAPI.Controllers
     [Route("api/[controller]")]
     public class FamilyTreeController : ControllerBase
     {
-
         [HttpGet("{familyName}/getfamilies/{orderOption}")]
         public IActionResult GetFamilies([FromRoute]string familyName,[FromRoute]string orderOption)
         {
@@ -81,6 +80,35 @@ namespace FamilyTreeAPI.Controllers
             catch (ClientException ex)
             {
                 return APIUtils.SerializeErrorResponse(this, ex);
+            }
+            catch (ServerException ex)
+            {
+                return APIUtils.SerializeFatalResponse(this, ex);
+            }
+        }
+
+        [HttpGet("initialize-service/{familyName}")]
+        public IActionResult InitializeService([FromRoute] string familyName)
+        {
+            try
+            {
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The service is being initialized based on the {familyName} Family Tree.");
+                APIUtils.Service = new(familyName);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The service has been initialized based on the {familyName} Family Tree.");
+                MessageResponse response = new()
+                {
+                    Message = $"This is the {familyName} Family Tree.",
+                    IsSuccess = true
+                };
+                return Ok(response);
+            }
+            catch (ClientException ex)
+            {
+                return APIUtils.SerializeErrorResponse(this, ex);
+            }
+            catch (NullReferenceException ex)
+            {
+                return APIUtils.SerializeErrorResponse(this, new ClientBadRequestException("Family name is unknown.", ex));
             }
             catch (ServerException ex)
             {

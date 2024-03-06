@@ -2,6 +2,7 @@ using FamilyTreeAPI.Models;
 using FamilyTreeLibrary;
 using FamilyTreeLibrary.Exceptions;
 using FamilyTreeLibrary.Models;
+using FamilyTreeLibrary.Service;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -9,6 +10,12 @@ namespace FamilyTreeAPI
 {
     public static class APIUtils
     {
+        public static FamilyTreeService Service
+        {
+            get;
+            set;
+        }
+
         public static Family DeserializeFamilyElement(FamilyElement element)
         {
             try
