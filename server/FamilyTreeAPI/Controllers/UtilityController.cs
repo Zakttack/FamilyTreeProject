@@ -21,8 +21,10 @@ namespace FamilyTreeAPI.Controllers
                 {
                     throw new ClientNotFoundException($"{fileName} doesn't exist in your directory.");
                 }
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, "The following files paths have been found:");
                 return Ok(filePaths.Select((filePath) =>
                 {
+                    FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"{filePath}");
                     return new FileElement()
                     {
                         FilePath = filePath
@@ -43,8 +45,8 @@ namespace FamilyTreeAPI.Controllers
             }
         }
 
-        [HttpPost("representation-to-element")]
-        public IActionResult RepresentationToElement([FromBody] RepresentationElement representationElement)
+        [HttpPost("representation-to-family-element")]
+        public IActionResult RepresentationToFamilyElement([FromBody] RepresentationElement representationElement)
         {
             try
             {
@@ -67,8 +69,8 @@ namespace FamilyTreeAPI.Controllers
             }
         }
 
-        [HttpPost("element-to-representation")]
-        public IActionResult ElementToRepresenation([FromBody] FamilyElement element)
+        [HttpPost("family-element-to-representation")]
+        public IActionResult FamilyElementToRepresenation([FromBody] FamilyElement element)
         {
             try
             {

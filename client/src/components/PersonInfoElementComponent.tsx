@@ -30,9 +30,9 @@ const PersonInfoElement: React.FC<PersonInfoInput> = (input) => {
             )}
             {personInfoShown && (
                 <div>
-                    <p>Name: {_.isNull(input.element.name) ? 'unknown' : input.element.name}</p>
-                    <p>Birth Date: {_.isNull(input.element.birthDate) ? 'unknown' : input.element.birthDate}</p>
-                    <p>Deceased Date: {_.isNull(input.element.deceasedDate) ? 'unknown': input.element.deceasedDate}</p>
+                    <p>Name: {input.element.name}</p>
+                    <p>Birth Date: {input.element.birthDate}</p>
+                    <p>Deceased Date: {input.element.deceasedDate}</p>
                 </div>
             )}
         </div>

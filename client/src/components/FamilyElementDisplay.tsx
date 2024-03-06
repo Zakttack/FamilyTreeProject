@@ -6,7 +6,7 @@ import RepresentationElement from "../models/RepresentationElement";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import "./FamilyElementDisplay.css"
 import OutputResponse from "../models/outputResponse";
-import { StringDefault, elementToRepresentation, representationToElement } from "../Utils";
+import { StringDefault, familyElementToRepresentation, representationToFamilyElement } from "../Utils";
 import { PersonDefault } from "../models/PersonElement";
 
 const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
@@ -21,7 +21,7 @@ const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
 
     const handleClick = async(e: React.MouseEvent<HTMLParagraphElement>) => {
         const input = _.isNull(e.currentTarget.textContent) ? StringDefault : e.currentTarget.textContent;
-        const response: OutputResponse<FamilyElement> = await representationToElement({representation: input});
+        const response: OutputResponse<FamilyElement> = await representationToFamilyElement({representation: input});
         changeSelectedElement(_.isUndefined(response.output) ? FamilyDefault : response.output);
         if (_.isUndefined(response.output) || _.isEqual(response.output.member, PersonDefault)) {
             navigate('/dashboard');
@@ -36,7 +36,7 @@ const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
 
     useEffect(() => {
         const handleRender = async () => {
-            const response: OutputResponse<RepresentationElement> = await elementToRepresentation(element);
+            const response: OutputResponse<RepresentationElement> = await familyElementToRepresentation(element);
             setRepresentationOutput(response);
         };
         handleRender();

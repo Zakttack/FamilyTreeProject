@@ -18,7 +18,7 @@ const RevertTreeSection: React.FC = () => {
 
     const handleRevertTree = async(e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const response: OutputResponse<MessageResponse> = await revertTree(familyName, selectedFile);
+        const response: OutputResponse<MessageResponse> = await revertTree(selectedFile);
         setRevertTreeResponse(response);
     };
 

@@ -8,7 +8,7 @@ const GetNumberOfGenerationsComponent: React.FC = () => {
     const [numericOutput, setNumericOutput] = useState<OutputResponse<number>>({});
     useEffect(() => {
         const fetchNumberOfGenerations = async () => {
-            const response: OutputResponse<number> = await getNumberOfGenerations(familyName);
+            const response: OutputResponse<number> = await getNumberOfGenerations();
             setNumericOutput(response);
         };
         fetchNumberOfGenerations();

@@ -39,6 +39,14 @@ namespace FamilyTreeLibrary.Service
             }
         }
 
+        public string Name
+        {
+            get
+            {
+                return FamilyTree.Name;
+            }
+        }
+
         public int NumberOfGenerations
         {
             get
