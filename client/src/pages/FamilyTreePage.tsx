@@ -7,8 +7,7 @@ import FamilyTreeDisplayComponent from "../components/FamilyTreeDisplayComponent
 import FileElementProvider from "../providers/FileElementProvider";
 import RevertTreeSection from "../components/RevertTreeSection";
 import Title from "../components/TitleComponent";
-
-const FamilyTreeDashboard: React.FC = () => {
+const FamilyTreePage: React.FC = () => {
     return (
         <div>
             <Title />
@@ -23,4 +22,4 @@ const FamilyTreeDashboard: React.FC = () => {
     );
 }
 
-export default FamilyTreeDashboard;
+export default FamilyTreePage;

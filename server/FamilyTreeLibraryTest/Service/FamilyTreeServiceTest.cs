@@ -91,5 +91,13 @@ namespace FamilyTreeLibraryTest.Service
                 Assert.That(problem, Is.Null);
             }
         }
+
+        [Test]
+        public void TestRetrieveParentOf1()
+        {
+            Family element = new("Lillian Pfingsten (12 Nov 1922 - 9 Oct 1924)");
+            Family expectedParent = new("[August Fred Pfingsten (26 Jun 1896 - 24 Aug 1980)]-[Frieda nee Schobinger (10 Nov 1902 - 13 Jul 1938)]: 14 Sep 1921");
+            Assert.That(service.RetrieveParentOf(element), Is.EqualTo(expectedParent));
+        }
     }
 }

@@ -22,6 +22,17 @@ export async function familyElementToRepresentation(element: FamilyElement): Pro
     return {output: result};
 };
 
+export async function getFamilies(orderOption: string): Promise<OutputResponse<FamilyElement[]>> {
+    const url = `http://localhost:5201/api/familytree/get-families/${orderOption}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+        const result: MessageResponse = await response.json();
+        return {problem: result};
+    }
+    const result: FamilyElement[] = await response.json();
+    return {output: result};
+}
+
 export async function getFilePaths(fileName: string): Promise<OutputResponse<FileElement[]>> {
     const url = `http://localhost:5201/api/utility/get-file-paths/${fileName}`;
     const response = await fetch(url);
