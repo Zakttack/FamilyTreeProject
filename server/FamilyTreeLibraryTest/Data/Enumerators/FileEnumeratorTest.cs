@@ -14,7 +14,7 @@ namespace FamilyTreeLibraryTest.Data.Enumerators
             FamilyTreeUtils.InitializeLogger();
             try
             {
-                fileEnum = new FileEnumerator();
+                fileEnum = new FileEnumerator(true);
             }
             catch (Exception ex)
             {

@@ -38,7 +38,7 @@ namespace FamilyTreeLibraryTest.Data.PDF
             catch (Exception ex)
             {
                 problem = ex;
-                FamilyTreeUtils.WriteError(problem);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Fatal, $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             }
             finally
             {
@@ -62,7 +62,7 @@ namespace FamilyTreeLibraryTest.Data.PDF
             catch (Exception ex)
             {
                 problem = ex;
-                FamilyTreeUtils.WriteError(problem);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Fatal, $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             }
             finally
             {

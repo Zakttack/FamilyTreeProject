@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 //import GetNumberOfFamiliesComponent from "../components/GetNumberOfFamiliesComponent";
 //import GetNumberOfGenerationsComponent from "../components/GetNumberOfGenerationsComponent";
 import OrderTypeProvider from "../providers/orderTypeProvider";
@@ -7,18 +7,23 @@ import FamilyTreeDisplayComponent from "../components/FamilyTreeDisplayComponent
 import FileElementProvider from "../providers/FileElementProvider";
 import RevertTreeSection from "../components/RevertTreeSection";
 import Title from "../components/TitleComponent";
+import ShowTreeProvider from "../providers/ShowTreeProvider";
+import ShowTreeContext from "../models/ShowTreeContext";
 const FamilyTreePage: React.FC = () => {
+    const {treeShown} = useContext(ShowTreeContext);
     return (
-        <div>
+        <ShowTreeProvider>
             <Title />
             <FileElementProvider>
                 <RevertTreeSection />
             </FileElementProvider>
-            <OrderTypeProvider>
-                <SelectOrderTypeComponent />
-                <FamilyTreeDisplayComponent />
-            </OrderTypeProvider>
-        </div>
+            {treeShown && (
+                <OrderTypeProvider>
+                    <SelectOrderTypeComponent />
+                    <FamilyTreeDisplayComponent />
+                </OrderTypeProvider>
+            )}
+        </ShowTreeProvider>
     );
 }
 

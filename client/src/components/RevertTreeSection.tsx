@@ -9,16 +9,20 @@ import FileUpload from "./FileUploadComponent";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import SuccessDisplay from "./SuccessDisplayComponent";
 import './RevertTreeSection.css';
+import ShowTreeContext from "../models/ShowTreeContext";
+import _ from "lodash";
 
 const RevertTreeSection: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
     const {selectedFile} = useContext(FileElementContext);
+    const {showTree} = useContext(ShowTreeContext);
     const [revertTreeResponse, setRevertTreeResponse] = useState<OutputResponse<MessageResponse>>({});
     const [isVisible, setIsVisible] = useState<boolean>(false);
 
     const handleRevertTree = async(e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const response: OutputResponse<MessageResponse> = await revertTree(selectedFile);
+        showTree(!_.isUndefined(response) && !_.isUndefined(response.output));
         setRevertTreeResponse(response);
     };
 

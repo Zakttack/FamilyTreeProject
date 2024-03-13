@@ -1,7 +1,6 @@
 using FamilyTreeLibrary;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.Service;
-using Microsoft.Extensions.Configuration;
 
 namespace FamilyTreeLibraryTest.Service
 {
@@ -21,7 +20,7 @@ namespace FamilyTreeLibraryTest.Service
             }
             catch (Exception ex)
             {
-                FamilyTreeUtils.WriteError(ex);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Fatal, $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
                 problem = ex;
             }
         }
@@ -54,7 +53,7 @@ namespace FamilyTreeLibraryTest.Service
             {
                 if (ex != problem)
                 {
-                    FamilyTreeUtils.WriteError(ex);
+                    FamilyTreeUtils.LogMessage(LoggingLevels.Fatal, $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
                     problem = ex;
                 }
             }
@@ -82,7 +81,7 @@ namespace FamilyTreeLibraryTest.Service
             {
                 if (ex != problem)
                 {
-                    FamilyTreeUtils.WriteError(ex);
+                    FamilyTreeUtils.LogMessage(LoggingLevels.Fatal, $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
                     problem = ex;
                 }
             }

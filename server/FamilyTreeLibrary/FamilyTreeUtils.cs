@@ -1,4 +1,4 @@
-﻿using FamilyTreeLibrary.Data;
+﻿using FamilyTreeLibrary.Data.Enumerators;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 using System.Text.RegularExpressions;
@@ -7,13 +7,6 @@ namespace FamilyTreeLibrary
 {
     public static partial class FamilyTreeUtils
     {
-        public static IEnumerable<string> FilePaths
-        {
-            get
-            {
-                return new FileEnumerable();
-            }
-        }
         public static IConfiguration GetConfiguration(string appSettingsFilePath)
         {
             if (appSettingsFilePath == null || !File.Exists(appSettingsFilePath))
@@ -33,22 +26,32 @@ namespace FamilyTreeLibrary
 
         public static string GetFilePathOf(string relativeFilePath)
         {
+            string filePath = null;
             string[] relativeParts = relativeFilePath.Split('\\');
-            return FilePaths.Where((filePath) => 
+            IEnumerator<string> enumerator = new FileEnumerator(true);
+            while(filePath is null && enumerator.MoveNext())
             {
-                string[] parts = filePath.Split('\\');
-                string[] intersect = parts.Intersect(relativeParts).ToArray();
-                return relativeFilePath == string.Join('\\', intersect);
-            }).FirstOrDefault();
+                string[] parts = enumerator.Current.Split('\\');
+                bool condition = (parts.Length == relativeParts.Length || (parts.Length > relativeParts.Length && parts[^relativeParts.Length] == relativeParts[0])) && parts.Intersect(relativeParts).Count() == relativeParts.Length;
+                filePath = condition ? enumerator.Current : null;
+            }
+            enumerator.Dispose();
+            return filePath;
         }
 
         public static IEnumerable<string> GetFilePathsOf(string fileName)
         {
-            return FilePaths.Where((filePath) => 
+            ICollection<string> filePaths = new List<string>();
+            IEnumerator<string> enumerator = new FileEnumerator(true);
+            while(enumerator.MoveNext())
             {
-                string[] parts = filePath.Split('\\');
-                return fileName == parts[^1];
-            });
+                if (enumerator.Current.Split('\\')[^1] == fileName)
+                {
+                    filePaths.Add(enumerator.Current);
+                }
+            }
+            enumerator.Dispose();
+            return filePaths;
         }
 
         public static void InitializeLogger()
@@ -72,34 +75,20 @@ namespace FamilyTreeLibrary
             }
         }
 
-        public static void WriteError(Exception ex)
-        {
-            Log.Fatal($"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
-        }
-
         [GeneratedRegex(@"^\d+$")]
         internal static partial Regex NumberPattern();
 
         [GeneratedRegex(@"^\d+-\d+$")]
         internal static partial Regex RangePattern();
-        private static string GetRootDirectory()
+        public static string GetRootDirectory()
         {
-            Stack<DirectoryInfo> directories = new();
-            string targetDirectoryName = "FamilyTreeProject";
-            directories.Push(new DirectoryInfo(Directory.GetCurrentDirectory()));
-            while (directories.TryPop(out DirectoryInfo current))
+            IEnumerator<string> enumerator = new FileEnumerator(false);
+            while (enumerator.MoveNext())
             {
-                try
+                FileInfo file = new(enumerator.Current);
+                if (file.Directory.Name == "FamilyTreeProject")
                 {
-                    if (current.Name == targetDirectoryName)
-                    {
-                        return current.FullName;
-                    }
-                    directories.Push(current.Parent);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    continue;
+                    return file.DirectoryName;
                 }
             }
             throw new InvalidOperationException("This isn't the FamilyTreeProject.");

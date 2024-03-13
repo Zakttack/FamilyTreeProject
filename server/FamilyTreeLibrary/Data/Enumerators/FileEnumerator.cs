@@ -7,11 +7,12 @@ namespace FamilyTreeLibrary.Data.Enumerators
     {
         private const string ROOT_DIRECTORY = @"C:\";
         private PriorityQueue<Queue<string>,DirectoryInfo> filePathsCollection;
-
+        private readonly bool loggerInitialized;
         private string currentFilePath;
 
-        public FileEnumerator()
+        public FileEnumerator(bool loggerInitialized)
         {
+            this.loggerInitialized = loggerInitialized;
             Reset();
         }
 
@@ -51,13 +52,15 @@ namespace FamilyTreeLibrary.Data.Enumerators
                     IEnumerable<DirectoryInfo> subDirectories = current.EnumerateDirectories();
                     foreach (DirectoryInfo subDirectory in subDirectories)
                     {
-                        filePathsCollection.Enqueue(GetFilePaths(subDirectory), subDirectory);
+                        filePathsCollection.Enqueue(GetFilePaths(subDirectory, loggerInitialized), subDirectory);
                     }
                 }
                 catch (UnauthorizedAccessException ex)
                 {
-                    FamilyTreeUtils.LogMessage(LoggingLevels.Warning, ex.Message);
-                    continue;
+                    if (loggerInitialized)
+                    {
+                        FamilyTreeUtils.LogMessage(LoggingLevels.Warning, ex.Message);
+                    }
                 }
             }
             return false;
@@ -67,11 +70,11 @@ namespace FamilyTreeLibrary.Data.Enumerators
         {
             filePathsCollection = new(new DirectoryComparer());
             DirectoryInfo root = new(ROOT_DIRECTORY);
-            Queue<string> filePaths = GetFilePaths(root);
+            Queue<string> filePaths = GetFilePaths(root, loggerInitialized);
             filePathsCollection.Enqueue(filePaths, root);
         }
 
-        private static Queue<string> GetFilePaths(DirectoryInfo directory)
+        private static Queue<string> GetFilePaths(DirectoryInfo directory, bool loggerInitialized)
         {
             Queue<string> filePathsQueue = new();
             try
@@ -85,14 +88,19 @@ namespace FamilyTreeLibrary.Data.Enumerators
                     }
                     catch (UnauthorizedAccessException ex)
                     {
-                        FamilyTreeUtils.LogMessage(LoggingLevels.Warning, ex.Message);
-                        continue;
+                        if (loggerInitialized)
+                        {
+                            FamilyTreeUtils.LogMessage(LoggingLevels.Warning, ex.Message);
+                        }
                     }
                 }
             }
             catch (UnauthorizedAccessException ex)
             {
-                FamilyTreeUtils.LogMessage(LoggingLevels.Warning, ex.Message);
+                if (loggerInitialized)
+                {
+                    FamilyTreeUtils.LogMessage(LoggingLevels.Warning, ex.Message);
+                }
             }
             return filePathsQueue;
         }

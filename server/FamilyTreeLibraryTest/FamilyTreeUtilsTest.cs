@@ -57,5 +57,12 @@ namespace FamilyTreeLibraryTest
             }
             Assert.Pass("Logger detected.");
         }
+
+        [Test]
+        public void TestGetRootDirectory()
+        {
+            string expected = @"C:\Users\zakme\Documents\FamilyTreeProject";
+            Assert.That(FamilyTreeUtils.GetRootDirectory(), Is.EqualTo(expected));
+        }
     }
 }
