@@ -49,7 +49,7 @@ namespace FamilyTreeAPI
             {
                 FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"This family element: \"{element}\" is being deserialized.");
                 Person member = DeserializePersonElement(element.Member);
-                Person inLaw = DeserializePersonElement(element.InLaw);
+                Person inLaw = element.InLaw == PersonDefault ? null : DeserializePersonElement(element.InLaw);
                 FamilyTreeDate marriageDate = element.MarriageDate == FamilyDefault.MarriageDate ? new(null) : new(element.MarriageDate);
                 return new(member, inLaw, marriageDate);
             }
@@ -152,7 +152,7 @@ namespace FamilyTreeAPI
                 },
                 InLaw = family.InLaw is null ? PersonDefault : new PersonElement
                 {
-                    Name = family.InLaw.Name is null ? STRING_DEFAULT : family.Member.Name,
+                    Name = family.InLaw.Name is null ? STRING_DEFAULT : family.InLaw.Name,
                     BirthDate = family.InLaw.BirthDate.ToString() is null ? STRING_DEFAULT : family.InLaw.BirthDate.ToString(),
                     DeceasedDate = family.InLaw.DeceasedDate.ToString() is null ? STRING_DEFAULT : family.InLaw.DeceasedDate.ToString()
                 },

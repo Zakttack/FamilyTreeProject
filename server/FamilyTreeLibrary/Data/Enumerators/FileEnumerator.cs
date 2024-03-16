@@ -5,7 +5,7 @@ namespace FamilyTreeLibrary.Data.Enumerators
 {
     public class FileEnumerator : IEnumerator<string>
     {
-        private const string ROOT_DIRECTORY = @"C:\";
+        private const string ROOT_DIRECTORY = @"C:\FamilyTreeProject";
         private PriorityQueue<Queue<string>,DirectoryInfo> filePathsCollection;
         private readonly bool loggerInitialized;
         private string currentFilePath;

@@ -54,7 +54,8 @@ namespace FamilyTreeLibrary.Data
                 return null;
             }
             BsonDocument elementObj = element.Document;
-            FilterDefinition<BsonDocument> elementFilter = Builders<BsonDocument>.Filter.Eq("Element", elementObj);
+            FieldDefinition<BsonDocument,BsonDocument> elementField = new StringFieldDefinition<BsonDocument,BsonDocument>("Element");
+            FilterDefinition<BsonDocument> elementFilter = Builders<BsonDocument>.Filter.Eq(elementField, elementObj);
             using IAsyncCursor<BsonDocument> cursor = collection.Find(elementFilter).ToCursor();
             IReadOnlyList<BsonDocument> elementResults = cursor.ToList();
             return elementResults.Any() ? new(elementResults[0]) : null;

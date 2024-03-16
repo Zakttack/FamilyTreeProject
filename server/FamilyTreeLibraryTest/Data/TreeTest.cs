@@ -49,7 +49,7 @@ namespace FamilyTreeLibraryTest.Data
         [Test]
         public void TestGetParent1()
         {
-            Family child = new("Cade Alan Merrian (29 Oct 2000 - Present)");
+            Family child = new("Cade Alan Merrigan (29 Oct 2000 - Present)");
             Family expectedParent = new("[Brent Alan Merrigan (24 Dec 1970 - Present)]-[Jolene Joyce Rants (12 Jun 1968 - Present)]: 30 Aug 1997");
             Assert.That(familyTree.GetParent(child), Is.EqualTo(expectedParent));
         }

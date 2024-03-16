@@ -4,7 +4,7 @@ namespace FamilyTreeLibraryTest
 {
     public class FamilyTreeUtilsTest
     {
-        internal const string PDF_FILE = @"C:\Users\zakme\Documents\FamilyTreeProject\resources\PfingstenBook2023.pdf";
+        internal const string PDF_FILE = @"C:\FamilyTreeProject\resources\PfingstenBook2023.pdf";
 
         [Test]
         public void TestGetConfiguration()
@@ -27,7 +27,7 @@ namespace FamilyTreeLibraryTest
         public void TestGetFilePathOfConfiguration()
         {
             string actual = FamilyTreeUtils.GetFilePathOf(@"server\FamilyTreeLibrary\appsettings.json");
-            string expected = @"C:\Users\zakme\Documents\FamilyTreeProject\server\FamilyTreeLibrary\appsettings.json";
+            string expected = @"C:\FamilyTreeProject\server\FamilyTreeLibrary\appsettings.json";
             Assert.That(actual, Is.EqualTo(expected));
         }
         
@@ -45,7 +45,7 @@ namespace FamilyTreeLibraryTest
             {
                 FamilyTreeUtils.InitializeLogger();
                 FamilyTreeUtils.LogMessage(LoggingLevels.Information,"Logging Something.");
-                string expectedLogPath = @"C:\Users\zakme\Documents\FamilyTreeProject\resources\Logs\log20240302.txt";
+                string expectedLogPath = @"C:\FamilyTreeProject\resources\Logs\log20240316.txt";
                 if (!File.Exists(expectedLogPath))
                 {
                     throw new FileNotFoundException("The logger was unable to generate a text file.");
@@ -61,7 +61,7 @@ namespace FamilyTreeLibraryTest
         [Test]
         public void TestGetRootDirectory()
         {
-            string expected = @"C:\Users\zakme\Documents\FamilyTreeProject";
+            string expected = @"C:\FamilyTreeProject";
             Assert.That(FamilyTreeUtils.GetRootDirectory(), Is.EqualTo(expected));
         }
     }
