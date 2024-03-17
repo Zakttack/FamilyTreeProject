@@ -1,4 +1,3 @@
-using System.Diagnostics.Eventing.Reader;
 using FamilyTreeLibrary.Exceptions;
 
 namespace FamilyTreeAPI.Models
