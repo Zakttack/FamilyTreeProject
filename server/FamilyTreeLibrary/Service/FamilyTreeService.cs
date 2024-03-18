@@ -18,25 +18,6 @@ namespace FamilyTreeLibrary.Service
             {
                 throw new ClientNotFoundException("The family doesn't exist.", ex);
             }
-            catch (Exception ex)
-            {
-                throw new ServerException(ex);
-            }
-        }
-
-        public IEnumerable<Family> AscendingByName
-        {
-            get
-            {
-                try
-                {
-                    return FamilyTree.Order(new NameAscedendingComparer());
-                }
-                catch (Exception ex)
-                {
-                    throw new ServerException(ex);
-                }
-            }
         }
 
         public string Name
@@ -51,14 +32,7 @@ namespace FamilyTreeLibrary.Service
         {
             get
             {
-                try
-                {
-                    return FamilyTree.Height - 1;
-                }
-                catch (Exception ex)
-                {
-                    throw new ServerException(ex);
-                }
+                return FamilyTree.Height - 1;
             }
         }
 
@@ -66,29 +40,7 @@ namespace FamilyTreeLibrary.Service
         {
             get
             {
-                try
-                {
-                    return FamilyTree.Count - 1;
-                }
-                catch (Exception ex)
-                {
-                    throw new ServerException(ex);
-                }
-            }
-        }
-
-        public IEnumerable<Family> ParentFirstThenChildren
-        {
-            get
-            {
-                try
-                {
-                    return FamilyTree;
-                }
-                catch (Exception ex)
-                {
-                    throw new ServerException(ex);
-                }
+                return FamilyTree.Count - 1;
             }
         }
 
@@ -149,10 +101,6 @@ namespace FamilyTreeLibrary.Service
             catch (IOException ex)
             {
                 throw new ClientNotFoundException("The provided file isn't found in your directory. Try to upload again.", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new ServerException(ex);
             }
         }
 
