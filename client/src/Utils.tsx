@@ -3,7 +3,7 @@ import RepresentationElement from "./models/RepresentationElement";
 import MessageResponse from "./models/MessageResponse";
 import OutputResponse from "./models/outputResponse";
 import PersonElement from "./models/PersonElement";
-import FileElement from "./models/FileElement";
+import { OrderTypeOptions } from "./models/FamilyTreeSettings";
 
 export async function familyElementToRepresentation(element: FamilyElement): Promise<OutputResponse<RepresentationElement>> {
     const url = 'http://localhost:5201/api/utility/family-element-to-representation';
@@ -22,25 +22,14 @@ export async function familyElementToRepresentation(element: FamilyElement): Pro
     return {output: result};
 };
 
-export async function getFamilies(orderOption: string): Promise<OutputResponse<FamilyElement[]>> {
-    const url = `http://localhost:5201/api/familytree/get-families/${orderOption}`;
+export async function getFamilies(orderOption: OrderTypeOptions, memberName: string): Promise<OutputResponse<FamilyElement[]>> {
+    const url = `http://localhost:5201/api/familytree/get-families/${orderOption}/by-member-name?memberName=${memberName}`;
     const response = await fetch(url);
     if (!response.ok) {
         const result: MessageResponse = await response.json();
         return {problem: result};
     }
     const result: FamilyElement[] = await response.json();
-    return {output: result};
-}
-
-export async function getFilePaths(fileName: string): Promise<OutputResponse<FileElement[]>> {
-    const url = `http://localhost:5201/api/utility/get-file-paths/${fileName}`;
-    const response = await fetch(url);
-    if (!response.ok) {
-        const result: MessageResponse = await response.json();
-        return {problem: result};
-    }
-    const result: FileElement[] = await response.json();
     return {output: result};
 }
 
@@ -124,14 +113,13 @@ export async function retrieveParent(element: FamilyElement): Promise<OutputResp
     return {output: result};
 }
 
-export async function revertTree(request: FileElement): Promise<OutputResponse<MessageResponse>> {
+export async function revertTree(request: File): Promise<OutputResponse<MessageResponse>> {
     const url = `http://localhost:5201/api/familytree/revert-tree`;
+    const data = new FormData();
+    data.append('file', request);
     const response = await fetch(url, {
         method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(request)
+        body: data
     });
     const result: MessageResponse = await response.json();
     return result.isSuccess ? {output: result} : {problem: result};

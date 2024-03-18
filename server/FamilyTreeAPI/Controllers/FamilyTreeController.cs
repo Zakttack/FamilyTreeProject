@@ -2,7 +2,6 @@ using FamilyTreeAPI.Models;
 using FamilyTreeLibrary;
 using FamilyTreeLibrary.Exceptions;
 using FamilyTreeLibrary.Models;
-using FamilyTreeLibrary.Service;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FamilyTreeAPI.Controllers
@@ -11,28 +10,28 @@ namespace FamilyTreeAPI.Controllers
     [Route("api/[controller]")]
     public class FamilyTreeController : ControllerBase
     {
-        [HttpGet("get-families/{orderOption}")]
-        public IActionResult GetFamilies([FromRoute]string orderOption)
+        [HttpGet("get-families/{orderOption}/by-member-name")]
+        public IActionResult GetFamilies([FromRoute]string orderOption, [FromQuery]string memberName)
         {
             try
             {
-                IReadOnlySet<string> orderOptions = new HashSet<string>(){"parent first then children", "ascending by name"};
-                LoggingLevels level = orderOptions.Contains(orderOption) ? LoggingLevels.Information : LoggingLevels.Warning;
-                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {APIUtils.Service.Name} tree is being sorted in {orderOption} order.");
-                return orderOption switch
+                SortingOptions option = orderOption switch 
                 {
-                    "parent first then children" => APIUtils.SerializeFamilies(this, orderOption, APIUtils.Service.ParentFirstThenChildren),
-                    "ascending by name" => APIUtils.SerializeFamilies(this, orderOption, APIUtils.Service.AscendingByName),
-                    _ => throw new ClientBadRequestException("There is nothing to show if you don't select an ordering option.")
+                    "parent first then children" => SortingOptions.ParentFirstThenChildren,
+                    "ascending by name" => SortingOptions.AscendingByName,
+                    _ => SortingOptions.Empty
                 };
+                IEnumerable<Family> families = APIUtils.Service.FilterTree(option, memberName);
+                IEnumerable<FamilyElement> response = families.Select(APIUtils.SerializeFamily);
+                return Ok(response);
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeErrorResponse(this, ex);
+                return APIUtils.SerializeAsClinetError(ex);
             }
-            catch (ServerException ex)
+            catch (Exception ex)
             {
-                return APIUtils.SerializeFatalResponse(this, ex);
+                return APIUtils.SerializeAsServerError(ex);
             }
         }
         
@@ -48,11 +47,11 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeErrorResponse(this, ex);
+                return APIUtils.SerializeAsClinetError(ex);
             }
-            catch (ServerException ex)
+            catch (Exception ex)
             {
-                return APIUtils.SerializeFatalResponse(this, ex);
+                return APIUtils.SerializeAsServerError(ex);
             }
         }
 
@@ -68,11 +67,11 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeErrorResponse(this, ex);
+                return APIUtils.SerializeAsClinetError(ex);
             }
-            catch (ServerException ex)
+            catch (Exception ex)
             {
-                return APIUtils.SerializeFatalResponse(this, ex);
+                return APIUtils.SerializeAsServerError(ex);
             }
         }
 
@@ -93,15 +92,15 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeErrorResponse(this, ex);
+                return APIUtils.SerializeAsClinetError(ex);
             }
             catch (NullReferenceException ex)
             {
-                return APIUtils.SerializeErrorResponse(this, new ClientBadRequestException("Family name is unknown.", ex));
+                return APIUtils.SerializeAsClinetError(new ClientBadRequestException("Family name is unknown.", ex));
             }
-            catch (ServerException ex)
+            catch (Exception ex)
             {
-                return APIUtils.SerializeFatalResponse(this, ex);
+                return APIUtils.SerializeAsServerError(ex);
             }
         }
 
@@ -111,7 +110,7 @@ namespace FamilyTreeAPI.Controllers
             try
             {
                 Person member = APIUtils.DeserializePersonElement(request.Member);
-                Person inLaw = APIUtils.DeserializePersonElement(request.InLaw);
+                Person inLaw = request.InLaw == APIUtils.PersonDefault ? null : APIUtils.DeserializePersonElement(request.InLaw);
                 FamilyTreeDate marriageDate = new(request.MarriageDate);
                 FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"A marriage between {request.Member.Name} and {request.InLaw.Name} on {request.MarriageDate} is being reported.");
                 APIUtils.Service.ReportMarried(member, inLaw, marriageDate);
@@ -125,15 +124,15 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeErrorResponse(this, ex);
+                return APIUtils.SerializeAsClinetError(ex);
             }
             catch (NullReferenceException ex)
             {
-                return APIUtils.SerializeErrorResponse(this, new ClientBadRequestException(ex.Message, ex));
+                return APIUtils.SerializeAsClinetError(new ClientBadRequestException("Family Element doesn't exist.", ex));
             }
-            catch (ServerException ex)
+            catch (Exception ex)
             {
-                return APIUtils.SerializeFatalResponse(this, ex);
+                return APIUtils.SerializeAsServerError(ex);
             }
         }
 
@@ -144,25 +143,30 @@ namespace FamilyTreeAPI.Controllers
             {
                 Family family = APIUtils.DeserializeFamilyElement(element);
                 FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"In the {APIUtils.Service.Name} family tree, we are retrieving the parent of {family.Member.Name}");
-                return APIUtils.SerializeFamily(this, APIUtils.Service.RetrieveParentOf(family));
+                Family parent = APIUtils.Service.RetrieveParentOf(family);
+                FamilyElement response = APIUtils.SerializeFamily(parent);
+                return Ok(response);
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeErrorResponse(this, ex);
+                return APIUtils.SerializeAsClinetError(ex);
             }
-            catch (ServerException ex)
+            catch (Exception ex)
             {
-                return APIUtils.SerializeFatalResponse(this, ex);
+                return APIUtils.SerializeAsServerError(ex);
             }
         }
 
         [HttpPut("revert-tree")]
-        public IActionResult RevertTree([FromBody] FileElement request)
+        public IActionResult RevertTree(IFormFile file)
         {
             try
             {
-                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {APIUtils.Service.Name} family tree is being reverted based on the following file path: {request.FilePath}");
-                APIUtils.Service.RevertTree(request.FilePath);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {APIUtils.Service.Name} family tree is being reverted based on the following file named: {file.FileName}");
+                string filePath = Path.Combine(@"C:\FamilyTreeProject\resources\PDFInputs", file.FileName);
+                using Stream stream = new FileStream(filePath, FileMode.Create);
+                file.CopyTo(stream);
+                APIUtils.Service.RevertTree(filePath);
                 MessageResponse response = new()
                 {
                     Message = $"{APIUtils.Service.Name} tree has been reverted successfully.",
@@ -172,11 +176,11 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeErrorResponse(this, ex);
+                return APIUtils.SerializeAsClinetError(ex);
             }
-            catch (ServerException ex)
+            catch (Exception ex)
             {
-                return APIUtils.SerializeFatalResponse(this, ex);
+                return APIUtils.SerializeAsServerError(ex);
             }
         }
     }

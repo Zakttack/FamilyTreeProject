@@ -156,6 +156,24 @@ namespace FamilyTreeLibrary.Service
             }
         }
 
+        public IEnumerable<Family> FilterTree(SortingOptions option, string name)
+        {
+            IEnumerable<Family> families = option switch
+            {
+                SortingOptions.ParentFirstThenChildren => FamilyTree,
+                SortingOptions.AscendingByName => FamilyTree.Order(new NameAscedendingComparer()),
+                _ => throw new ClientBadRequestException("There is nothing to show if you don't select an ordering option."),
+            };
+            if (name is not null && name != "")
+            {
+                return families.Where((family) =>
+                {
+                    return family.Member.Name is not null && name.Intersect(family.Member.Name).Any();
+                });
+            }
+            return families;
+        }
+
         public void ReportChildren(Family parent, Family child)
         {
             if (parent is null)
