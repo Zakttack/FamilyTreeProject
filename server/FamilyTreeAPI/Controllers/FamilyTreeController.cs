@@ -15,6 +15,7 @@ namespace FamilyTreeAPI.Controllers
         {
             try
             {
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Getting the {APIUtils.Service.Name} family tree in {orderOption} order filtered by: memberName = {(memberName is null || memberName == "" ? "unknown" : memberName)}.");
                 SortingOptions option = orderOption switch 
                 {
                     "parent first then children" => SortingOptions.ParentFirstThenChildren,
@@ -22,6 +23,7 @@ namespace FamilyTreeAPI.Controllers
                     _ => SortingOptions.Empty
                 };
                 IEnumerable<Family> families = APIUtils.Service.FilterTree(option, memberName);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {APIUtils.Service.Name} family tree is now being serialized.");
                 IEnumerable<FamilyElement> response = families.Select(APIUtils.SerializeFamily);
                 return Ok(response);
             }

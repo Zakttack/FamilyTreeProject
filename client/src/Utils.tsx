@@ -3,7 +3,6 @@ import RepresentationElement from "./models/RepresentationElement";
 import MessageResponse from "./models/MessageResponse";
 import OutputResponse from "./models/outputResponse";
 import PersonElement from "./models/PersonElement";
-import { OrderTypeOptions } from "./models/FamilyTreeSettings";
 
 export async function familyElementToRepresentation(element: FamilyElement): Promise<OutputResponse<RepresentationElement>> {
     const url = 'http://localhost:5201/api/utility/family-element-to-representation';
@@ -22,8 +21,8 @@ export async function familyElementToRepresentation(element: FamilyElement): Pro
     return {output: result};
 };
 
-export async function getFamilies(orderOption: OrderTypeOptions, memberName: string): Promise<OutputResponse<FamilyElement[]>> {
-    const url = `http://localhost:5201/api/familytree/get-families/${orderOption}/by-member-name?memberName=${memberName}`;
+export async function getFamilies(orderOption: string, memberName: string): Promise<OutputResponse<FamilyElement[]>> {
+    const url = `http://localhost:5201/api/familytree/get-families/${encodeURIComponent(orderOption)}/by-member-name?memberName=${encodeURIComponent(memberName)}`;
     const response = await fetch(url);
     if (!response.ok) {
         const result: MessageResponse = await response.json();
