@@ -168,7 +168,7 @@ namespace FamilyTreeLibrary.Service
             {
                 return families.Where((family) =>
                 {
-                    return family.Member.Name is not null && name.Intersect(family.Member.Name).Any();
+                    return family.Member.Name is not null && family.Member.Name.Contains(name, StringComparison.OrdinalIgnoreCase);
                 });
             }
             return families;
