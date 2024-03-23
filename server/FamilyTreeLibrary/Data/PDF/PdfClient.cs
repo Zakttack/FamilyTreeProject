@@ -1,8 +1,6 @@
 using FamilyTreeLibrary.Data.PDF.OrderingType;
 using FamilyTreeLibrary.Data.PDF.Models;
 using FamilyTreeLibrary.Models;
-using Serilog;
-using FamilyTreeLibrary.Exceptions;
 
 namespace FamilyTreeLibrary.Data.PDF
 {
@@ -10,11 +8,11 @@ namespace FamilyTreeLibrary.Data.PDF
     {
         private readonly ICollection<FamilyNode> nodes;
 
-        public PdfClient(string filePath)
+        public PdfClient(FileInfo file)
         {
             Family root = new(new(null, FamilyTreeDate.DefaultDate, FamilyTreeDate.DefaultDate), null, FamilyTreeDate.DefaultDate);
             FamilyNode rootNode = new(null, root);
-            FilePath = filePath;
+            File = file;
             nodes = new SortedSet<FamilyNode>()
             {
                 rootNode
@@ -23,7 +21,7 @@ namespace FamilyTreeLibrary.Data.PDF
             FamilyNodeCollection = new List<Section>();
         }
 
-        public string FilePath
+        public FileInfo File
         {
             get;
         }
@@ -48,12 +46,12 @@ namespace FamilyTreeLibrary.Data.PDF
 
         public void LoadNodes()
         {
-            FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"Reading {FilePath}.");
+            FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"Reading {File.FullName}.");
             AbstractOrderingType[] currentOrderingType = Array.Empty<AbstractOrderingType>();
             Queue<AbstractOrderingType> previousPossibilities = new();
             string previousLine = "";
             int sectionNumber = 1;
-            IReadOnlyCollection<string> pdfLines = PdfUtils.GetLinesFromDocument(FilePath);
+            IReadOnlyCollection<string> pdfLines = PdfUtils.GetLinesFromDocument(File);
             FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"{pdfLines.Count} lines were detected.");
             foreach (string line in pdfLines)
             {

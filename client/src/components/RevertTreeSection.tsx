@@ -8,6 +8,7 @@ import FileUpload from "./FileUpload";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import './RevertTreeSection.css';
 import SelectedFileContext from "../models/SelectedFileContext";
+import _ from "lodash";
 
 const RevertTreeSection: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
@@ -41,7 +42,8 @@ const RevertTreeSection: React.FC = () => {
             </header>
             {isVisible && (
                 <form onSubmit={handleRevertTree}>
-                    <FileUpload />
+                    <FileUpload /><br/>
+                    {!_.isUndefined(selectedFile) && <><p>{selectedFile.name}</p><br/></>}
                     <button type="submit">Revert {familyName} Tree</button>
                     {revertTreeResponse.problem && <ErrorDisplayComponent message={revertTreeResponse.problem.message}/>}
                 </form>

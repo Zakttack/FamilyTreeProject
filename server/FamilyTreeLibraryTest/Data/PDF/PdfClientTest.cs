@@ -13,8 +13,8 @@ namespace FamilyTreeLibraryTest.Data.PDF
             try
             {
                 FamilyTreeUtils.InitializeLogger();
-                string filePath = FamilyTreeUtils.GetFilePathOf(@"resources\2023PfingstenBookAlternate.pdf");
-                client = new(filePath);
+                FileInfo file = new(@"C:\FamilyTreeProject\resources\PDFInputs\2023PfingstenBookAlternate.pdf");
+                client = new(file);
                 problem = null;
             }
             catch (Exception ex)

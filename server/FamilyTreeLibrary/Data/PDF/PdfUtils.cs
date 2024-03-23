@@ -130,9 +130,9 @@ namespace FamilyTreeLibrary.Data.PDF
             return lines;
         }
 
-        public static IReadOnlyCollection<string> GetLinesFromDocument(string filePath)
+        public static IReadOnlyCollection<string> GetLinesFromDocument(FileInfo file)
         {
-            PdfReader reader = new(filePath);
+            PdfReader reader = new(file);
             PdfDocument document = new(reader);
             IReadOnlyCollection<string> pdfLines = new List<string>();
             string spacePattern = "^ +$";

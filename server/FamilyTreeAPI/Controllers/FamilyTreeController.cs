@@ -168,7 +168,7 @@ namespace FamilyTreeAPI.Controllers
                 string filePath = Path.Combine(@"C:\FamilyTreeProject\resources\PDFInputs", file.FileName);
                 using Stream stream = new FileStream(filePath, FileMode.Create);
                 file.CopyTo(stream);
-                APIUtils.Service.RevertTree(filePath);
+                APIUtils.Service.RevertTree(new(filePath));
                 MessageResponse response = new()
                 {
                     Message = $"{APIUtils.Service.Name} tree has been reverted successfully.",

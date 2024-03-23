@@ -44,11 +44,11 @@ namespace FamilyTreeLibrary.Service
             }
         }
 
-        public void AppendTree(string templateFilePath)
+        public void AppendTree(FileInfo templateFile)
         {
             try
             {
-                PdfClient client = new(templateFilePath);
+                PdfClient client = new(templateFile);
                 client.LoadNodes();
                 client.AttachNodes();
                 if (client.Nodes.Any() && client.Nodes.First().Parent is not null)
@@ -233,13 +233,13 @@ namespace FamilyTreeLibrary.Service
             return parent;
         }
 
-        public void RevertTree(string templateFilePath)
+        public void RevertTree(FileInfo templateFile)
         {
             FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {FamilyTree.Name} family tree is being emptied.");
             FamilyTree.Clear();
             FamilyTreeUtils.LogMessage(LoggingLevels.Debug, $"The {FamilyTree.Name} is now empty.");
-            FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {FamilyTree.Name} family tree is now being reverted based on the template file path: \"{templateFilePath}\".");
-            AppendTree(templateFilePath);
+            FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {FamilyTree.Name} family tree is now being reverted based on the template file path: \"{templateFile.FullName}\".");
+            AppendTree(templateFile);
             FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {FamilyTree.Name} family tree has been reverted successfully.");
         }
 
