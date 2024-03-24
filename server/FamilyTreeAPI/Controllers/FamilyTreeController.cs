@@ -166,8 +166,10 @@ namespace FamilyTreeAPI.Controllers
             {
                 FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The {APIUtils.Service.Name} family tree is being reverted based on the following file named: {file.FileName}");
                 string filePath = Path.Combine(@"C:\FamilyTreeProject\resources\PDFInputs", file.FileName);
-                using Stream stream = new FileStream(filePath, FileMode.Create);
-                file.CopyTo(stream);
+                using (Stream stream = new FileStream(filePath, FileMode.Create))
+                {
+                    file.CopyTo(stream);
+                }
                 APIUtils.Service.RevertTree(new(filePath));
                 MessageResponse response = new()
                 {

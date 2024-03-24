@@ -20,7 +20,6 @@ namespace FamilyTreeLibraryTest.Service
             }
             catch (Exception ex)
             {
-                FamilyTreeUtils.LogMessage(LoggingLevels.Fatal, $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
                 problem = ex;
             }
         }
@@ -51,11 +50,8 @@ namespace FamilyTreeLibraryTest.Service
             }
             catch (Exception ex)
             {
-                if (ex != problem)
-                {
-                    FamilyTreeUtils.LogMessage(LoggingLevels.Fatal, $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
-                    problem = ex;
-                }
+                problem = ex;
+                FamilyTreeUtils.LogMessage(LoggingLevels.Fatal, $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             }
             finally
             {

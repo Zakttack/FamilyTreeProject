@@ -2,7 +2,6 @@ using FamilyTreeLibrary.Data.PDF.Models;
 using FamilyTreeLibrary.Data.PDF.OrderingType;
 using FamilyTreeLibrary.Data.PDF.OrderingType.Comparers;
 using FamilyTreeLibrary.Models;
-using Serilog;
 using System.Text.RegularExpressions;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
@@ -132,8 +131,8 @@ namespace FamilyTreeLibrary.Data.PDF
 
         public static IReadOnlyCollection<string> GetLinesFromDocument(FileInfo file)
         {
-            PdfReader reader = new(file);
-            PdfDocument document = new(reader);
+            using PdfReader reader = new(file);
+            using PdfDocument document = new(reader);
             IReadOnlyCollection<string> pdfLines = new List<string>();
             string spacePattern = "^ +$";
             bool spaceFilter(string value) => !Regex.IsMatch(value, spacePattern);
