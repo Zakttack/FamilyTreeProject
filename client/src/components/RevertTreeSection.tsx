@@ -9,6 +9,7 @@ import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import './RevertTreeSection.css';
 import SelectedFileContext from "../models/SelectedFileContext";
 import _ from "lodash";
+import SuccessDisplay from "./SuccessDisplayComponent";
 
 const RevertTreeSection: React.FC = () => {
     const {familyName} = useContext(FamilyNameContext);
@@ -22,8 +23,7 @@ const RevertTreeSection: React.FC = () => {
             const response: OutputResponse<MessageResponse> = await revertTree(selectedFile);
             setRevertTreeResponse(response);
             if (response.output) {
-                console.log(response.output.message);
-                window.location.reload();
+                setIsVisible(!isVisible);
             }
         }
         else {
@@ -48,6 +48,7 @@ const RevertTreeSection: React.FC = () => {
                     {revertTreeResponse.problem && <ErrorDisplayComponent message={revertTreeResponse.problem.message}/>}
                 </form>
             )}
+            {revertTreeResponse.output && <SuccessDisplay message={revertTreeResponse.output.message}/>}
         </section>
     )
 };
