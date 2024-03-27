@@ -1,0 +1,17 @@
+#report-actions-section {
+    display: flex;
+    flex-direction: column;
+}
+
+#report-action-headers {
+    display: flex;
+    justify-content: start;
+}
+
+.report-action-header {
+    margin-right: 10px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+}

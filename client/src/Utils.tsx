@@ -78,6 +78,19 @@ export async function personElementToRepresentation(element: PersonElement): Pro
     return {output: result};
 }
 
+export async function reportMarriage(family: FamilyElement): Promise<OutputResponse<MessageResponse>> {
+    const url = 'http://localhost:5201/api/familytree/report-marriage';
+    const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(family)
+    });
+    const result: MessageResponse = await response.json();
+    return result.isSuccess ? {output: result} : {problem: result};
+}
+
 export async function representationToFamilyElement(representation: RepresentationElement): Promise<OutputResponse<FamilyElement>> {
     const url = 'http://localhost:5201/api/utility/representation-to-family-element';
     const response = await fetch(url, {
