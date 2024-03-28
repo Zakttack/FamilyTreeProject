@@ -5,7 +5,7 @@
 
 #report-action-headers {
     display: flex;
-    justify-content: start;
+    justify-content: flex-start;
 }
 
 .report-action-header {

@@ -79,7 +79,7 @@ export async function personElementToRepresentation(element: PersonElement): Pro
 }
 
 export async function reportMarriage(family: FamilyElement): Promise<OutputResponse<MessageResponse>> {
-    const url = 'http://localhost:5201/api/familytree/report-marriage';
+    const url = 'http://localhost:5201/api/familytree/report-married';
     const response = await fetch(url, {
         method: 'PATCH',
         headers: {

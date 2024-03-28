@@ -1,4 +1,5 @@
 import React, {useContext, useState} from "react";
+import { useNavigate } from "react-router-dom";
 import {FamilyDefault, FamilyElementContext} from "../models/FamilyElement";
 import OutputResponse from "../models/outputResponse";
 import MessageResponse from "../models/MessageResponse";
@@ -24,6 +25,7 @@ const ReportMarriageForm: React.FC = () => {
     const [inLawBirthDate, setInLawBirthDate] = useState<string>(FamilyDefault.inLaw.birthDate);
     const [inLawDeceasedDate, setInLawDeceasedDate] = useState<string>(FamilyDefault.inLaw.deceasedDate);
     const [marriageDate, setMarriageDate] = useState<string>(FamilyDefault.marriageDate);
+    let navigate = useNavigate();
 
     const handleMemberNameCustomizationOptions = (e: React.ChangeEvent<HTMLInputElement>) => {
         isMemberNameBeingCustomized(stringToBoolean(e.target.value));
@@ -65,19 +67,22 @@ const ReportMarriageForm: React.FC = () => {
             marriageDate: marriageDate
         });
         setResponse(response);
+        if (response.output) {
+            navigate('/family-tree');
+        }
     };
 
     return (
         <form onSubmit={handleReportMarriage}>
             <h3>Member:</h3>
-            <label><input type="radio" checked={!memberNameIsBeingCustomized} value={String(false)} onChange={handleMemberNameCustomizationOptions}/>Use {selectedElement.member.name}</label>
-            <label><input type="radio" checked={memberNameIsBeingCustomized} value={String(true)} onChange={handleMemberNameCustomizationOptions}/><input type="text" disabled={!memberNameIsBeingCustomized} value={memberName} onChange={handleMemberNameChange}/></label>
+            <label><input type="radio" checked={!memberNameIsBeingCustomized} value={String(false)} onChange={handleMemberNameCustomizationOptions}/>Use {selectedElement.member.name}</label><br/>
+            <label><input type="radio" checked={memberNameIsBeingCustomized} value={String(true)} onChange={handleMemberNameCustomizationOptions}/><input type="text" disabled={!memberNameIsBeingCustomized} value={memberName} onChange={handleMemberNameChange}/></label><br/>
             <h3>InLaw:</h3>
-            <label>Name: <input type="text" value={inLawName} onChange={handleInLawNameChange}/></label>
-            <label>Birth Date: <input type="text" value={inLawBirthDate} onChange={handleInLawBirthDateChange}/></label>
-            <label>{'Deceased Date (leave unknown if not deceased): '}<input type="text" value={inLawDeceasedDate} onChange={handleInLawDeceasedDateChange}/></label>
+            <label>Name: <input type="text" value={inLawName} onChange={handleInLawNameChange}/></label><br/>
+            <label>Birth Date: <input type="text" value={inLawBirthDate} onChange={handleInLawBirthDateChange}/></label><br/>
+            <label>{'Deceased Date (leave unknown if not deceased): '}<input type="text" value={inLawDeceasedDate} onChange={handleInLawDeceasedDateChange}/></label><br/>
             <h3>Marriage Date:</h3>
-            <label>Marriage Date: <input type="text" value={marriageDate} onChange={handleMarriageDateChange}/></label>
+            <label>Marriage Date: <input type="text" value={marriageDate} onChange={handleMarriageDateChange}/></label><br/>
             <button type="submit">Report Marriage</button>
         </form>
     )
