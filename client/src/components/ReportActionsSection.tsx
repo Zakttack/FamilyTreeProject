@@ -19,6 +19,7 @@ const ReportActionsSection: React.FC = () => {
 
     return (
         <ReportActionsProvider>
+            <h2>Report Actions:</h2>
             <section id="report-actions-section">
                 <div id="report-action-headers">
                     <header className="report-action-header" onClick={() => changeSelectedSection(Sections.ReportMarriage)} tabIndex={0} role="button">

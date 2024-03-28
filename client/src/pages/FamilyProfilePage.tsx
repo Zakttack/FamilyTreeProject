@@ -4,6 +4,7 @@ import { FamilyElementContext } from "../models/FamilyElement";
 import ParentOfSelectedElement from "../components/ParentOfSelectedElementDisplay";
 import FamilyInfoElement from "../components/FamilyInfoElementComponent";
 import { StringDefault } from "../Utils";
+import ReportActionsSection from "../components/ReportActionsSection";
 
 const FamilyProfilePage: React.FC = () => {
     const {selectedElement} = useContext(FamilyElementContext);
@@ -22,6 +23,7 @@ const FamilyProfilePage: React.FC = () => {
             <h1>{title}</h1>
             <ParentOfSelectedElement/>
             <FamilyInfoElement/>
+            <ReportActionsSection />
         </div>
     );
 };

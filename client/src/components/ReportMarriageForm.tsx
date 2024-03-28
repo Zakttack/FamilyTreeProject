@@ -69,14 +69,14 @@ const ReportMarriageForm: React.FC = () => {
 
     return (
         <form onSubmit={handleReportMarriage}>
-            <h2>Member:</h2>
+            <h3>Member:</h3>
             <label><input type="radio" checked={!memberNameIsBeingCustomized} value={String(false)} onChange={handleMemberNameCustomizationOptions}/>Use {selectedElement.member.name}</label>
             <label><input type="radio" checked={memberNameIsBeingCustomized} value={String(true)} onChange={handleMemberNameCustomizationOptions}/><input type="text" disabled={!memberNameIsBeingCustomized} value={memberName} onChange={handleMemberNameChange}/></label>
-            <h2>InLaw:</h2>
+            <h3>InLaw:</h3>
             <label>Name: <input type="text" value={inLawName} onChange={handleInLawNameChange}/></label>
             <label>Birth Date: <input type="text" value={inLawBirthDate} onChange={handleInLawBirthDateChange}/></label>
             <label>{'Deceased Date (leave unknown if not deceased): '}<input type="text" value={inLawDeceasedDate} onChange={handleInLawDeceasedDateChange}/></label>
-            <h2>Marriage Date:</h2>
+            <h3>Marriage Date:</h3>
             <label>Marriage Date: <input type="text" value={marriageDate} onChange={handleMarriageDateChange}/></label>
             <button type="submit">Report Marriage</button>
         </form>
