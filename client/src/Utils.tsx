@@ -3,6 +3,8 @@ import RepresentationElement from "./models/RepresentationElement";
 import MessageResponse from "./models/MessageResponse";
 import OutputResponse from "./models/outputResponse";
 import PersonElement from "./models/PersonElement";
+import ReportDeceasedRequest from "./models/ReportDeceasedRequest";
+import ReportChildrenRequest from "./models/ReportChildrenRequest";
 
 export async function familyElementToRepresentation(element: FamilyElement): Promise<OutputResponse<RepresentationElement>> {
     const url = 'http://localhost:5201/api/utility/family-element-to-representation';
@@ -76,6 +78,32 @@ export async function personElementToRepresentation(element: PersonElement): Pro
     }
     const result: RepresentationElement = await response.json();
     return {output: result};
+}
+
+export async function reportChildren(request: ReportChildrenRequest): Promise<OutputResponse<MessageResponse>> {
+    const url = 'http://localhost:5201/api/familytree/report-children';
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request)
+    });
+    const result: MessageResponse = await response.json();
+    return result.isSuccess ? {output: result} : {problem: result};
+}
+
+export async function reportDeceased(request: ReportDeceasedRequest): Promise<OutputResponse<MessageResponse>> {
+    const url = 'http://localhost:5201/api/familytree/report-deceased';
+    const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request)
+    });
+    const result: MessageResponse = await response.json();
+    return result.isSuccess ? {output: result} : {problem: result};
 }
 
 export async function reportMarriage(family: FamilyElement): Promise<OutputResponse<MessageResponse>> {

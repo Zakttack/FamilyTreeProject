@@ -4,6 +4,8 @@ import ReportActionsProvider from "../providers/ReportActionsProvider";
 import './ReportActionsSection.css';
 import ReportMarriageForm from "./ReportMarriageForm";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
+import ReportDeceasedForm from "./ReportDeceasedForm";
+import ReportChildrenForm from "./ReportChildrenForm";
 
 enum Sections {
     Default,
@@ -24,9 +26,17 @@ const ReportActionsSection: React.FC = () => {
                     <header className="report-action-header" onClick={() => changeSelectedSection(Sections.ReportMarriage)} tabIndex={0} role="button">
                         Report Marriage
                     </header>
+                    <header className="report-action-header" onClick={() => changeSelectedSection(Sections.ReportDeceased)} tabIndex={0} role="button">
+                        Report Deceased
+                    </header>
+                    <header className="report-action-header" onClick={() => changeSelectedSection(Sections.ReportChildren)} tabIndex={0} role="button">
+                        Report Children
+                    </header>
                 </div>
                 <div id="report-action-form">
                     {selectedSection === Sections.ReportMarriage && <ReportMarriageForm />}
+                    {selectedSection === Sections.ReportDeceased && <ReportDeceasedForm />}
+                    {selectedSection === Sections.ReportChildren && <ReportChildrenForm />}
                 </div>
                 {response.problem && <ErrorDisplayComponent message={response.problem.message}/>}
             </section>
