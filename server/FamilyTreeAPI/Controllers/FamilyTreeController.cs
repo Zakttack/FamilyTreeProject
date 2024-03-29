@@ -106,6 +106,60 @@ namespace FamilyTreeAPI.Controllers
             }
         }
 
+        [HttpPost("report-children")]
+        public IActionResult ReportChildren([FromBody] ReportChildrenRequest request)
+        {
+            try
+            {
+                Family parent = APIUtils.DeserializeFamilyElement(request.Parent);
+                Family child = APIUtils.DeserializeFamilyElement(request.Child);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"The parent-child relationship between {parent.Member.Name} and {child.Member.Name} is being reported.");
+                APIUtils.Service.ReportChildren(parent, child);
+                MessageResponse response = new()
+                {
+                    Message = $"The parent-child relationship between {parent.Member.Name} and {child.Member.Name} has been reported successfully.",
+                    IsSuccess = true
+                };
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, response.Message);
+                return Ok(response);
+            }
+            catch (ClientException ex)
+            {
+                return APIUtils.SerializeAsClinetError(ex);
+            }
+            catch (Exception ex)
+            {
+                return APIUtils.SerializeAsServerError(ex);
+            }
+        }
+
+        [HttpPatch("report-deceased")]
+        public IActionResult ReportDeceased([FromBody] ReportDeceasedRequest request)
+        {
+            try
+            {
+                Person p = request.Element == APIUtils.PersonDefault ? null : APIUtils.DeserializePersonElement(request.Element);
+                FamilyTreeDate deceasedDate = new(request.DeceasedDate);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"{request.Element.Name} being deceased on {request.DeceasedDate} is being reported.");
+                APIUtils.Service.ReportDeceased(p, deceasedDate);
+                MessageResponse response = new()
+                {
+                    Message = $"{request.Element.Name} being deceased on {request.DeceasedDate} has been reported successfully.",
+                    IsSuccess = true
+                };
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, response.Message);
+                return Ok(response);
+            }
+            catch (ClientException ex)
+            {
+                return APIUtils.SerializeAsClinetError(ex);
+            }
+            catch (Exception ex)
+            {
+                return APIUtils.SerializeAsServerError(ex);
+            }
+        }
+
         [HttpPatch("report-married")]
         public IActionResult ReportMarried([FromBody] FamilyElement request)
         {
