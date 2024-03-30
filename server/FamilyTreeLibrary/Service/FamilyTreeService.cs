@@ -228,6 +228,11 @@ namespace FamilyTreeLibrary.Service
             }
         }
 
+        public IEnumerable<Family> RetrieveChildrenOf(Family element)
+        {
+            return FamilyTree.GetChildren(element);
+        }
+
         public Family RetrieveParentOf(Family element)
         {
             Family parent = FamilyTree.GetParent(element);

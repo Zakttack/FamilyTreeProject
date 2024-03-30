@@ -211,6 +211,25 @@ namespace FamilyTreeAPI.Controllers
             }
         }
 
+        [HttpPost("retrieve-children")]
+        public IActionResult RetrieveChildren([FromBody] FamilyElement element)
+        {
+            try
+            {
+                Family family = APIUtils.DeserializeFamilyElement(element);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Retrieving the children of {element.Member.Name}");
+                return Ok(APIUtils.Service.RetrieveChildrenOf(family).Select(APIUtils.SerializeFamily));
+            }
+            catch (ClientException ex)
+            {
+                return APIUtils.SerializeAsClinetError(ex);
+            }
+            catch (Exception ex)
+            {
+                return APIUtils.SerializeAsServerError(ex);
+            }
+        }
+
         [HttpPost("retrieve-parent")]
         public IActionResult RetrieveParent([FromBody] FamilyElement element)
         {
