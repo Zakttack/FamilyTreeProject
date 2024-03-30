@@ -5,10 +5,13 @@ import ParentOfSelectedElement from "../components/ParentOfSelectedElementDispla
 import FamilyInfoElement from "../components/FamilyInfoElementComponent";
 import { StringDefault } from "../Utils";
 import ReportActionsSection from "../components/ReportActionsSection";
+import ChildrenOfSelectedElement from "../components/ChildrenOfSelectedElement";
+import { useNavigate } from "react-router-dom";
 
 const FamilyProfilePage: React.FC = () => {
     const {selectedElement} = useContext(FamilyElementContext);
     const [title,setTitle] = useState<string>('Unable to find selected family element');
+    let navigate = useNavigate();
     useEffect(() => {
         if (!_.isEqual(selectedElement.member.name, StringDefault) && !_.isEqual(selectedElement.inLaw.name, StringDefault)) {
             setTitle(`This is the family of ${selectedElement.member.name} and ${selectedElement.inLaw.name}`);
@@ -24,6 +27,11 @@ const FamilyProfilePage: React.FC = () => {
             <ParentOfSelectedElement/>
             <FamilyInfoElement/>
             <ReportActionsSection />
+            <ChildrenOfSelectedElement />
+            <div id="family-profile-controls">
+                <button type="button" className="family-profile-control" onClick={() => navigate('/family-tree')}>Back To Tree</button>
+                <button type="button" className="family-profile-control">View Subtree</button>
+            </div>
         </div>
     );
 };

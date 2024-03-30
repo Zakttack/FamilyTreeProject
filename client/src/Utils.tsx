@@ -153,6 +153,21 @@ export async function representationToFamilyElement(representation: Representati
     return {output: result};
 }
 
+export async function retrieveChildren(element: FamilyElement): Promise<OutputResponse<FamilyElement[]>> {
+    const url = 'http://localhost:5201/api/familytree/retrieve-children';
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(element)
+    });
+    if (!response.ok) {
+        return {problem: await response.json() as MessageResponse};
+    }
+    return {output: await response.json() as FamilyElement[]};
+}
+
 export async function retrieveParent(element: FamilyElement): Promise<OutputResponse<FamilyElement>> {
     const url = `http://localhost:5201/api/familytree/retrieve-parent`;
     const response = await fetch(url, {
