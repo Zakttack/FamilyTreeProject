@@ -10,6 +10,25 @@ namespace FamilyTreeAPI.Controllers
     [Route("api/[controller]")]
     public class FamilyTreeController : ControllerBase
     {
+        [HttpPost("generation-number-of")]
+        public IActionResult GenerationNumberOf([FromBody] FamilyElement element)
+        {
+            try
+            {
+                Family family = APIUtils.DeserializeFamilyElement(element);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Figuring out the generation level of {element.Member.Name}.");
+                return Ok(APIUtils.Service.GenerationNumberOf(family));
+            }
+            catch (ClientException ex)
+            {
+                return APIUtils.SerializeAsClinetError(ex);
+            }
+            catch (Exception ex)
+            {
+                return APIUtils.SerializeAsServerError(ex);
+            }
+        }
+        
         [HttpGet("get-families/{orderOption}/by-member-name")]
         public IActionResult GetFamilies([FromRoute]string orderOption, [FromQuery]string memberName)
         {

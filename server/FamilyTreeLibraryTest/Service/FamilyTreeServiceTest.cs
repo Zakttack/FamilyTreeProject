@@ -60,6 +60,29 @@ namespace FamilyTreeLibraryTest.Service
         }
 
         [Test]
+        public void TestGenerationNumberOf1()
+        {
+            int result = 0;
+            try
+            {
+                if (problem is not null)
+                {
+                    throw problem;
+                }
+                Family family = new("[Cade Alan Merrigan (29 Oct 2000 - Present)]-[Abigail Faleide (25 Dec 2001 - Present)]: 18 Aug 2023");
+                result = service.GenerationNumberOf(family);
+            }
+            catch (Exception ex)
+            {
+                FamilyTreeUtils.LogMessage(LoggingLevels.Fatal, $"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
+            }
+            finally
+            {
+                Assert.That(result, Is.EqualTo(4));
+            }
+        }
+
+        [Test]
         public void TestReportMarried()
         {
             try

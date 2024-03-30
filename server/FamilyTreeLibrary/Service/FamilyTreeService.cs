@@ -122,6 +122,11 @@ namespace FamilyTreeLibrary.Service
             return families;
         }
 
+        public int GenerationNumberOf(Family family)
+        {
+            return FamilyTree.Depth(family);
+        }
+
         public void ReportChildren(Family parent, Family child)
         {
             if (parent is null)
