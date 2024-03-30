@@ -23,6 +23,23 @@ export async function familyElementToRepresentation(element: FamilyElement): Pro
     return {output: result};
 };
 
+export async function generationNumberOf(element: FamilyElement): Promise<OutputResponse<number>> {
+    const url = 'http://localhost:5201/api/familytree/generation-number-of';
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(element)
+    });
+    if (!response.ok) {
+        const result: MessageResponse = await response.json();
+        return {problem: result};
+    }
+    const result: number = await response.json();
+    return {output: result};
+}
+
 export async function getFamilies(orderOption: string, memberName: string): Promise<OutputResponse<FamilyElement[]>> {
     const url = `http://localhost:5201/api/familytree/get-families/${encodeURIComponent(orderOption)}/by-member-name?memberName=${encodeURIComponent(memberName)}`;
     const response = await fetch(url);
