@@ -279,5 +279,24 @@ namespace FamilyTreeAPI.Controllers
                 return APIUtils.SerializeAsServerError(ex);
             }
         }
+
+        [HttpPost("view-subtree")]
+        public IActionResult ViewSubtree([FromBody] FamilyElement element)
+        {
+            try
+            {
+                Family family = APIUtils.DeserializeFamilyElement(element);
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Retrieving the subtree rooted at {element.Member.Name} and {element.InLaw.Name}.");
+                return Ok(APIUtils.Service.GetSubtree(family).Select(APIUtils.SerializeFamily));
+            }
+            catch (ClientException ex)
+            {
+                return APIUtils.SerializeAsClinetError(ex);
+            }
+            catch (Exception ex)
+            {
+                return APIUtils.SerializeAsServerError(ex);
+            }
+        }
     }
 }

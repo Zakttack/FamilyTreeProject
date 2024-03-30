@@ -127,6 +127,11 @@ namespace FamilyTreeLibrary.Service
             return FamilyTree.Depth(family);
         }
 
+        public IEnumerable<Family> GetSubtree(Family family)
+        {
+            return FamilyTree.Subtree(family);
+        }
+
         public void ReportChildren(Family parent, Family child)
         {
             if (parent is null)
