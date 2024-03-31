@@ -3,6 +3,7 @@ using FamilyTreeLibrary.Data.Comparers;
 using FamilyTreeLibrary.Data.PDF;
 using FamilyTreeLibrary.Exceptions;
 using FamilyTreeLibrary.Models;
+using ZstdSharp.Unsafe;
 
 namespace FamilyTreeLibrary.Service
 {
@@ -127,9 +128,22 @@ namespace FamilyTreeLibrary.Service
             return FamilyTree.Depth(family);
         }
 
-        public IEnumerable<Family> GetSubtree(Family family)
+        public IEnumerable<Family> GetSubtree(SortingOptions orderOption, string memberName, Family family)
         {
-            return FamilyTree.Subtree(family);
+            IEnumerable<Family> initial = orderOption switch
+            {
+                SortingOptions.ParentFirstThenChildren => FamilyTree.Subtree(family),
+                SortingOptions.AscendingByName => FamilyTree.Subtree(family).Order(new NameAscedendingComparer()),
+                _ => throw new ClientBadRequestException("There is nothing to show if you don't select an ordering option.")
+            };
+            if (memberName is not null && memberName != "")
+            {
+                return initial.Where((fam) => 
+                {
+                    return fam.Member.Name is not null && fam.Member.Name.Contains(memberName, StringComparison.OrdinalIgnoreCase);
+                });
+            }
+            return initial;
         }
 
         public void ReportChildren(Family parent, Family child)

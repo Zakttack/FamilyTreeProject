@@ -280,14 +280,20 @@ namespace FamilyTreeAPI.Controllers
             }
         }
 
-        [HttpPost("view-subtree")]
-        public IActionResult ViewSubtree([FromBody] FamilyElement element)
+        [HttpPost("view-subtree/{orderOption}/by-member-name")]
+        public IActionResult ViewSubtree([FromRoute] string orderOption, [FromQuery] string memberName, [FromBody] FamilyElement element)
         {
             try
             {
+                SortingOptions option = orderOption switch
+                {
+                    "parent first then children" => SortingOptions.ParentFirstThenChildren,
+                    "ascending by name" => SortingOptions.AscendingByName,
+                    _ => SortingOptions.Empty
+                };
                 Family family = APIUtils.DeserializeFamilyElement(element);
                 FamilyTreeUtils.LogMessage(LoggingLevels.Information, $"Retrieving the subtree rooted at {element.Member.Name} and {element.InLaw.Name}.");
-                return Ok(APIUtils.Service.GetSubtree(family).Select(APIUtils.SerializeFamily));
+                return Ok(APIUtils.Service.GetSubtree(option, memberName, family).Select(APIUtils.SerializeFamily));
             }
             catch (ClientException ex)
             {

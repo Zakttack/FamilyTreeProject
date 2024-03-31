@@ -7,6 +7,7 @@ import FamilyProfilePage from './pages/FamilyProfilePage';
 import FamilyElementProvider from './providers/FamilyElementProvider';
 import FamilyTreePage from './pages/FamilyTreePage';
 import TitleProvider from './providers/TitleProvider';
+import FamilySubTreePage from './pages/FamilySubTreePage';
 
 const App: React.FC = () => {
   return (
@@ -18,6 +19,7 @@ const App: React.FC = () => {
                 <Route path='/' element={<ChooseFamilyNamePage />}/>
                 <Route path='/family-tree' element={<FamilyTreePage/>}/>
                 <Route path='/family-profile' element={<FamilyProfilePage/>}/>
+                <Route path='/sub-tree' element={<FamilySubTreePage />}/>
               </Routes>
           </Router>
         </FamilyElementProvider>

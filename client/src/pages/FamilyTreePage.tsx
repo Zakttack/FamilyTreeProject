@@ -15,7 +15,7 @@ const FamilyTreePage: React.FC = () => {
                 <RevertTreeSection />
             </SelectedFileProvider>
             <FamilyTreeProvider>
-                <FamilyTreeInput />
+                <FamilyTreeInput includesEntireTree={true}/>
                 <FamilyTreeDisplay />
             </FamilyTreeProvider>
         </div>

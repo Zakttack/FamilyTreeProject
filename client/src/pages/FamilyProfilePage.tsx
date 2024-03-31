@@ -1,16 +1,19 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect} from "react";
 import _ from "lodash";
 import { FamilyElementContext } from "../models/FamilyElement";
 import ParentOfSelectedElement from "../components/ParentOfSelectedElementDisplay";
 import FamilyInfoElement from "../components/FamilyInfoElementComponent";
-import { StringDefault } from "../Utils";
+import { StringDefault, createURL } from "../Utils";
 import ReportActionsSection from "../components/ReportActionsSection";
 import ChildrenOfSelectedElement from "../components/ChildrenOfSelectedElement";
 import { useNavigate } from "react-router-dom";
+import TitleContext from "../models/TitleContext";
+import Title from "../components/TitleComponent";
+import './FamilyProfilePage.css';
 
 const FamilyProfilePage: React.FC = () => {
     const {selectedElement} = useContext(FamilyElementContext);
-    const [title,setTitle] = useState<string>('Unable to find selected family element');
+    const {setTitle} = useContext(TitleContext);
     let navigate = useNavigate();
     useEffect(() => {
         if (!_.isEqual(selectedElement.member.name, StringDefault) && !_.isEqual(selectedElement.inLaw.name, StringDefault)) {
@@ -19,18 +22,26 @@ const FamilyProfilePage: React.FC = () => {
         else if (!_.isEqual(selectedElement.member.name, StringDefault)) {
             setTitle(`This is the family of ${selectedElement.member.name}`);
         }
-    }, [selectedElement]);
+        else {
+            setTitle('Unknown Family Element');
+        }
+    }, [selectedElement, setTitle]);
+
+    const handleViewSubtree = () => {
+        setTitle(`This is the subtree of ${selectedElement.member.name}`);
+        navigate(createURL('/sub-tree', {memberName: selectedElement.member.name}));
+    }
 
     return (
         <div>
-            <h1>{title}</h1>
+            <Title />
             <ParentOfSelectedElement/>
             <FamilyInfoElement/>
             <ReportActionsSection />
             <ChildrenOfSelectedElement />
             <div id="family-profile-controls">
                 <button type="button" className="family-profile-control" onClick={() => navigate('/family-tree')}>Back To Tree</button>
-                <button type="button" className="family-profile-control">View Subtree</button>
+                <button type="button" className="family-profile-control" onClick={handleViewSubtree}>View Subtree</button>
             </div>
         </div>
     );

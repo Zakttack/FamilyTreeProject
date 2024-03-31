@@ -6,6 +6,11 @@ import PersonElement from "./models/PersonElement";
 import ReportDeceasedRequest from "./models/ReportDeceasedRequest";
 import ReportChildrenRequest from "./models/ReportChildrenRequest";
 
+export function createURL(path: string, queryParams = {}): string {
+    const queryString = new URLSearchParams(queryParams).toString();
+    return `${path}?${queryString}`;
+}
+
 export async function familyElementToRepresentation(element: FamilyElement): Promise<OutputResponse<RepresentationElement>> {
     const url = 'http://localhost:5201/api/utility/family-element-to-representation';
     const response = await fetch(url, {
@@ -41,7 +46,7 @@ export async function generationNumberOf(element: FamilyElement): Promise<Output
 }
 
 export async function getFamilies(orderOption: string, memberName: string): Promise<OutputResponse<FamilyElement[]>> {
-    const url = `http://localhost:5201/api/familytree/get-families/${encodeURIComponent(orderOption)}/by-member-name?memberName=${encodeURIComponent(memberName)}`;
+    const url = createURL(`http://localhost:5201/api/familytree/get-families/${encodeURIComponent(orderOption)}/by-member-name`, {memberName: memberName});
     const response = await fetch(url);
     if (!response.ok) {
         const result: MessageResponse = await response.json();
@@ -195,6 +200,18 @@ export async function revertTree(request: File): Promise<OutputResponse<MessageR
     });
     const result: MessageResponse = await response.json();
     return result.isSuccess ? {output: result} : {problem: result};
+}
+
+export async function viewSubtree(orderOption: string, memberName: string, family: FamilyElement): Promise<OutputResponse<FamilyElement[]>> {
+    const url = createURL(`http://localhost:5201/api/familytree/view-subtree/${encodeURIComponent(orderOption)}/by-member-name`, {memberName: memberName});
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(family)
+    });
+    return !response.ok ? {problem: await response.json() as MessageResponse} : {output: await response.json() as FamilyElement[]};
 }
 
 export const StringDefault = 'unknown';

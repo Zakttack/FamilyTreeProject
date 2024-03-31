@@ -6,18 +6,13 @@ import RepresentationElement from "../models/RepresentationElement";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import "./FamilyElementDisplay.css"
 import OutputResponse from "../models/outputResponse";
-import { StringDefault, familyElementToRepresentation, representationToFamilyElement } from "../Utils";
+import { createURL, StringDefault, familyElementToRepresentation, representationToFamilyElement } from "../Utils";
 import { PersonDefault } from "../models/PersonElement";
 
 const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
     const {changeSelectedElement} = useContext(FamilyElementContext);
     const [representationOutput, setRepresentationOutput] = useState<OutputResponse<RepresentationElement>>({});
     let navigate = useNavigate();
-
-    const createURL = (path: string, queryParams = {}) => {
-        const queryString = new URLSearchParams(queryParams).toString();
-        return `${path}?${queryString}`;
-    }
 
     const handleClick = async(e: React.MouseEvent<HTMLParagraphElement>) => {
         const input = _.isNull(e.currentTarget.textContent) ? StringDefault : e.currentTarget.textContent;

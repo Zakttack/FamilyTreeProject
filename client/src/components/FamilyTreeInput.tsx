@@ -1,19 +1,26 @@
 import React, {FormEvent, useContext, useState} from "react";
 import FamilyTreeSettingsContext from "../models/FamilyTreeSettings";
 import OutputResponse from "../models/outputResponse";
-import FamilyElement from "../models/FamilyElement";
-import { getFamilies } from "../Utils";
+import FamilyElement, { FamilyElementContext } from "../models/FamilyElement";
+import { getFamilies, viewSubtree } from "../Utils";
 
-const FamilyTreeInput: React.FC = () => {
+const FamilyTreeInput: React.FC<{includesEntireTree: boolean}> = ({includesEntireTree}) => {
     const orderOptions: string[] = ['unknown', 'parent first then children', 'ascending by name'];
     const [orderOption, changeOrderOption] = useState<string>(orderOptions[0]);
     const [memberName, setMemberName] = useState<string>('');
+    const {selectedElement} = useContext(FamilyElementContext);
     const {setFamilyTreeResponse} = useContext(FamilyTreeSettingsContext);
 
     const getFamilyTree = async(e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const response: OutputResponse<FamilyElement[]> = await getFamilies(orderOption, memberName);
-        setFamilyTreeResponse(response);
+        if (includesEntireTree) {
+            const response: OutputResponse<FamilyElement[]> = await getFamilies(orderOption, memberName);
+            setFamilyTreeResponse(response);
+        }
+        else {
+            const response: OutputResponse<FamilyElement[]> = await viewSubtree(orderOption, memberName, selectedElement);
+            setFamilyTreeResponse(response);
+        }
     }
     return (
         <form onSubmit={getFamilyTree}>
