@@ -1,5 +1,4 @@
 ﻿using FamilyTreeLibrary;
-string fileName = "appsettings.json";
-string relativeFilePath = $@"FamilyTreeLibrary\{fileName}";
-string filePath = FamilyTreeUtils.GetFilePathOf(relativeFilePath);
+
+string filePath = FamilyTreeUtils.GetRootDirectory();
 Console.WriteLine(filePath);

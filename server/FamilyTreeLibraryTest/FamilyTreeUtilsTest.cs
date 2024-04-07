@@ -1,4 +1,6 @@
 using FamilyTreeLibrary;
+using FamilyTreeLibrary.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace FamilyTreeLibraryTest
 {
@@ -9,11 +11,11 @@ namespace FamilyTreeLibraryTest
         [Test]
         public void TestGetConfiguration()
         {
-            object result;
+            FamilyTreeDbSettings result;
             try
             {
-                string appSettingsFilePath = FamilyTreeUtils.GetFilePathOf(@"server\FamilyTreeLibrary\appsettings.json");
-                result = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
+                IConfigurationRoot configuration = FamilyTreeUtils.GetConfiguration();
+                result = configuration.GetSection("FamilyTreeDb").Get<FamilyTreeDbSettings>();
             }
             catch (Exception ex)
             {
@@ -21,21 +23,6 @@ namespace FamilyTreeLibraryTest
                 Assert.Fail($"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             }
             Assert.Pass(result.ToString());
-        }
-        
-        [Test]
-        public void TestGetFilePathOfConfiguration()
-        {
-            string actual = FamilyTreeUtils.GetFilePathOf(@"server\FamilyTreeLibrary\appsettings.json");
-            string expected = @"C:\FamilyTreeProject\server\FamilyTreeLibrary\appsettings.json";
-            Assert.That(actual, Is.EqualTo(expected));
-        }
-        
-        [Test]
-        public void TestGetFilePathOfPfingstenBook()
-        {
-            string actaul = FamilyTreeUtils.GetFilePathOf(@"resources\PfingstenBook2023.pdf");
-            Assert.That(actaul, Is.EqualTo(PDF_FILE));
         }
 
         [Test]

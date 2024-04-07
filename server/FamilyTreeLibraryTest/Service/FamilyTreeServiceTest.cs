@@ -45,7 +45,7 @@ namespace FamilyTreeLibraryTest.Service
                 {
                     throw problem;
                 }
-                FileInfo templateFile = new(FamilyTreeUtils.GetFilePathOf(@"resources\2023PfingstenBookAlternate.pdf"));
+                FileInfo templateFile = new(Path.Combine(FamilyTreeUtils.GetRootDirectory(), @"resources\2023PfingstenBookAlternate.pdf"));
                 service.AppendTree(templateFile);
             }
             catch (Exception ex)

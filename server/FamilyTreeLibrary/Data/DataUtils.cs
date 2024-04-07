@@ -8,16 +8,12 @@ namespace FamilyTreeLibrary.Data
 {
     public static class DataUtils
     {
-        private const string APP_SETTINGS_RELATIVE_FILE_PATH = @"server\FamilyTreeLibrary\appsettings.json";
-
         public static IMongoCollection<BsonDocument> GetCollection(string familyName)
         {
-            string appSettingsFilePath = FamilyTreeUtils.GetFilePathOf(APP_SETTINGS_RELATIVE_FILE_PATH);
-            IConfiguration configuration = FamilyTreeUtils.GetConfiguration(appSettingsFilePath);
-            string connectionString = configuration.GetSection("FamilyTreeDb:ConnectionString").Value;
-            IMongoClient client = new MongoClient(connectionString);
-            string databaseName = configuration.GetSection("FamilyTreeDb:DatabaseName").Value;
-            IMongoDatabase database = client.GetDatabase(databaseName);
+            IConfigurationRoot configuration = FamilyTreeUtils.GetConfiguration();
+            FamilyTreeDbSettings settings = configuration.GetSection("FamilyTreeDb").Get<FamilyTreeDbSettings>();
+            IMongoClient client = new MongoClient(settings.ConnectionString);
+            IMongoDatabase database = client.GetDatabase(settings.DatabaseName);
             ListCollectionNamesOptions options = new()
             {
                 Filter = new BsonDocument("name", familyName)

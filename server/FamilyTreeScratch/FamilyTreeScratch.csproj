@@ -9,10 +9,12 @@
 
   <ItemGroup>
     <PackageReference Include="itext7" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../FamilyTreeLibrary/FamilyTreeLibrary.csproj"/>
+    <ProjectReference Include="../FamilyTreeLibrary/FamilyTreeLibrary.csproj" />
   </ItemGroup>
 
 </Project>
