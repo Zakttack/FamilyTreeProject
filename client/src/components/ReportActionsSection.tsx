@@ -6,6 +6,7 @@ import ReportMarriageForm from "./ReportMarriageForm";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import ReportDeceasedForm from "./ReportDeceasedForm";
 import ReportChildrenForm from "./ReportChildrenForm";
+import SuccessDisplay from "./SuccessDisplayComponent";
 
 enum Sections {
     Default,
@@ -39,6 +40,7 @@ const ReportActionsSection: React.FC = () => {
                     {selectedSection === Sections.ReportChildren && <ReportChildrenForm />}
                 </div>
                 {response.problem && <ErrorDisplayComponent message={response.problem.message}/>}
+                {response.output && <SuccessDisplay message={response.output.message}/>}
             </section>
         </ReportActionsProvider>
     );

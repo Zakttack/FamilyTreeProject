@@ -1,5 +1,4 @@
 import React, { FormEvent, useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import ReportChildrenRequest from "../models/ReportChildrenRequest";
 import { FamilyElementContext } from "../models/FamilyElement";
 import ReportActionsContext from "../models/ReportActionsContext";
@@ -14,7 +13,6 @@ const ReportChildrenForm: React.FC = () => {
     const [name, setName] = useState<string>(StringDefault);
     const [birthDate, setBirthDate] = useState<string>(StringDefault);
     const [deceasedDate, setDeceasedDate] = useState<string>(StringDefault);
-    let navigate = useNavigate();
 
     const handleReportChildren = async(e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -32,9 +30,6 @@ const ReportChildrenForm: React.FC = () => {
         };
         const response: OutputResponse<MessageResponse> = await reportChildren(request);
         setResponse(response);
-        if (response.output) {
-            navigate('/family-tree');
-        }
     };
 
     return (

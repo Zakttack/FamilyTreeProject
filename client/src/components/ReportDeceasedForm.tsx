@@ -6,7 +6,6 @@ import PersonElement from "../models/PersonElement";
 import { StringDefault, reportDeceased } from "../Utils";
 import OutputResponse from "../models/outputResponse";
 import MessageResponse from "../models/MessageResponse";
-import { useNavigate } from "react-router-dom";
 import _ from "lodash";
 
 const ReportDeceasedForm: React.FC = () => {
@@ -14,7 +13,6 @@ const ReportDeceasedForm: React.FC = () => {
     const {setResponse} = useContext(ReportActionsContext);
     const [person,setPerson] = useState<PersonElement>(selectedElement.member);
     const [deceasedDate, setDeceasedDate] = useState<string>(StringDefault);
-    let navigate = useNavigate();
 
     const handleChoosenPerson = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
@@ -36,9 +34,6 @@ const ReportDeceasedForm: React.FC = () => {
         };
         const response: OutputResponse<MessageResponse> = await reportDeceased(request);
         setResponse(response);
-        if (response.output) {
-            navigate('/family-tree');
-        }
     };
 
     return (

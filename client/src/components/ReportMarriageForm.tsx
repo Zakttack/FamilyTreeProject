@@ -1,5 +1,4 @@
 import React, {useContext, useState} from "react";
-import { useNavigate } from "react-router-dom";
 import {FamilyDefault, FamilyElementContext} from "../models/FamilyElement";
 import OutputResponse from "../models/outputResponse";
 import MessageResponse from "../models/MessageResponse";
@@ -25,7 +24,6 @@ const ReportMarriageForm: React.FC = () => {
     const [inLawBirthDate, setInLawBirthDate] = useState<string>(FamilyDefault.inLaw.birthDate);
     const [inLawDeceasedDate, setInLawDeceasedDate] = useState<string>(FamilyDefault.inLaw.deceasedDate);
     const [marriageDate, setMarriageDate] = useState<string>(FamilyDefault.marriageDate);
-    let navigate = useNavigate();
 
     const handleMemberNameCustomizationOptions = (e: React.ChangeEvent<HTMLInputElement>) => {
         isMemberNameBeingCustomized(stringToBoolean(e.target.value));
@@ -67,9 +65,6 @@ const ReportMarriageForm: React.FC = () => {
             marriageDate: marriageDate
         });
         setResponse(response);
-        if (response.output) {
-            navigate('/family-tree');
-        }
     };
 
     return (
