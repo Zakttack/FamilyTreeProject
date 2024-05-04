@@ -11,6 +11,29 @@ namespace FamilyTreeAPI
     public static class APIUtils
     {
         private const string STRING_DEFAULT = "unknown";
+
+        public static ClientFamilyNameElement ClientFamilyName
+        {
+            get;
+            set;
+        }
+        
+        public static ClientFamilyTreeElement ClientFamilyTree
+        {
+            get;
+            set;
+        }
+        public static ClientPageTitleElement ClientPageTitle
+        {
+            get;
+            set;
+        }
+
+        public static ClientSelectedFamilyElement ClientSelectedFamily
+        {
+            get;
+            set;
+        }
         public static FamilyTreeService Service
         {
             get;

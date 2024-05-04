@@ -1,14 +1,12 @@
-import React, {useState} from "react";
+import React from "react";
 import { ProviderProps } from "../models/providerProps";
 import FamilyTreeContext from "../models/FamilyTreeSettings";
-import OutputResponse from "../models/outputResponse";
-import FamilyElement from "../models/FamilyElement";
+import { getClientFamilyTree, setClientFamilyTree } from "../Utils";
 
 const FamilyTreeProvider: React.FC<ProviderProps> = ({children}) => {
-    const [familyTreeResponse, setFamilyTreeResponse] = useState<OutputResponse<FamilyElement[]>>({});
 
     return (
-        <FamilyTreeContext.Provider value={{familyTreeResponse: familyTreeResponse, setFamilyTreeResponse: setFamilyTreeResponse}}>
+        <FamilyTreeContext.Provider value={{familyTreeResponse: getClientFamilyTree(), setFamilyTreeResponse: setClientFamilyTree}}>
                 {children}
         </FamilyTreeContext.Provider>
     )

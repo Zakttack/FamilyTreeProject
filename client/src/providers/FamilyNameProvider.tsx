@@ -1,11 +1,11 @@
-import React, {useState} from "react";
+import React from "react";
 import FamilyNameContext from "../models/familyNameContext";
 import { ProviderProps } from "../models/providerProps";
+import { getClientFamilyName, setClientFamilyName } from "../Utils";
 
 const FamilyNameProvider: React.FC<ProviderProps> = ({children}) => {
-    const [familyName, setFamilyName] = useState<string>('');
     return (
-        <FamilyNameContext.Provider value={{familyName, setFamilyName}}>
+        <FamilyNameContext.Provider value={{familyName: getClientFamilyName(), setFamilyName: setClientFamilyName}}>
             {children}
         </FamilyNameContext.Provider>
     );

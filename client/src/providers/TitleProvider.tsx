@@ -1,12 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import TitleContext from "../models/TitleContext";
 import { ProviderProps } from "../models/providerProps";
+import { getClientPageTitle, setClientPageTitle } from "../Utils";
 
 const TitleProvider: React.FC<ProviderProps> = ({children}) => {
-    const [title, setTitle] = useState<string>('');
-
     return (
-        <TitleContext.Provider value={{title: title, setTitle: setTitle}}>
+        <TitleContext.Provider value={{title: getClientPageTitle(), setTitle: setClientPageTitle}}>
             {children}
         </TitleContext.Provider>
     );
