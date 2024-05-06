@@ -173,7 +173,7 @@ namespace FamilyTreeAPI.Controllers
             }
         }
 
-        [HttpPut("set-client-family-tree")]
+        [HttpPut("set-client-page-title")]
         public IActionResult SetClientPageTitle([FromBody] ClientPageTitleElement clientPageTitle)
         {
             try
@@ -188,7 +188,7 @@ namespace FamilyTreeAPI.Controllers
             }
         }
 
-        [HttpPut("set-client-family-tree")]
+        [HttpPut("set-client-selected-family")]
         public IActionResult SetClientSelectedFamily([FromBody] ClientSelectedFamilyElement clientSelectedFamily)
         {
             try
