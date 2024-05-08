@@ -1,13 +1,13 @@
 import React from "react";
-import { FamilyElementContext } from "../models/FamilyElement";
-import { ProviderProps } from "../models/providerProps";
+import SelectedFamilyContext from "../context/SelectedFamilyContext";
+import { ProviderProps } from "../models/ProviderProps";
 import { getClientSelectedFamily, setClientSelectedFamily } from "../Utils";
 
 const FamilyElementProvider: React.FC<ProviderProps> = ({children}) => {
     return (
-        <FamilyElementContext.Provider value={{selectedElement: getClientSelectedFamily(), changeSelectedElement: setClientSelectedFamily}}>
+        <SelectedFamilyContext.Provider value={{selectedFamily: getClientSelectedFamily(), changeSelectedFamily: setClientSelectedFamily}}>
             {children}
-        </FamilyElementContext.Provider>
+        </SelectedFamilyContext.Provider>
     )
 }
 

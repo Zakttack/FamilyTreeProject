@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from "react";
-import FamilyNameContext from "../models/familyNameContext";
-import OutputResponse from "../models/outputResponse";
+import FamilyNameContext from "../context/FamilyNameContext";
+import OutputResponse from "../models/OutputResponse";
 import { NumberDefault, getNumberOfGenerations } from "../Utils";
 
 const GetNumberOfGenerationsComponent: React.FC = () => {

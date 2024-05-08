@@ -1,6 +1,6 @@
 import React from "react";
-import TitleContext from "../models/TitleContext";
-import { ProviderProps } from "../models/providerProps";
+import TitleContext from "../context/TitleContext";
+import { ProviderProps } from "../models/ProviderProps";
 import { getClientPageTitle, setClientPageTitle } from "../Utils";
 
 const TitleProvider: React.FC<ProviderProps> = ({children}) => {

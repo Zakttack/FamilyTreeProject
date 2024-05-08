@@ -1,21 +1,22 @@
 import React, { useContext, useEffect, useState } from "react";
 import _ from "lodash";
-import FamilyElement, { FamilyElementContext } from "../models/FamilyElement";
-import OutputResponse from "../models/outputResponse";
+import SelectedFamilyContext from "../context/SelectedFamilyContext";
+import FamilyElement from "../models/FamilyElement";
+import OutputResponse from "../models/OutputResponse";
 import { retrieveParent } from "../Utils";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import FamilyElementDisplay from "./FamilyElementDisplay";
 
 const ParentOfSelectedElement: React.FC = () => {
-    const {selectedElement} = useContext(FamilyElementContext);
+    const {selectedFamily} = useContext(SelectedFamilyContext);
     const [parentResult,setParentResult] = useState<OutputResponse<FamilyElement>>({});
     useEffect(() => {
         const getParentElement = async () => {
-            const response: OutputResponse<FamilyElement> = await retrieveParent(selectedElement);
+            const response: OutputResponse<FamilyElement> = await retrieveParent(selectedFamily);
             setParentResult(response);
         }
         getParentElement();
-    }, [selectedElement]);
+    }, [selectedFamily]);
 
     return (
         <div>

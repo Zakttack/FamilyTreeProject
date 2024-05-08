@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import _ from "lodash";
-import OutputResponse from "../models/outputResponse";
+import OutputResponse from "../models/OutputResponse";
 import { personElementToRepresentation } from "../Utils";
 import FamilyRepresentationElement from "../models/RepresentationElement";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
-import PersonInfoInput from "../models/personInfoInput";
+import PersonInfoInput from "../models/PersonInfoInput";
 import './PersonInfoElementComponent.css';
 
 

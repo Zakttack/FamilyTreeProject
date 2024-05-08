@@ -1,6 +1,6 @@
 import React from "react";
-import FamilyNameContext from "../models/familyNameContext";
-import { ProviderProps } from "../models/providerProps";
+import FamilyNameContext from "../context/FamilyNameContext";
+import { ProviderProps } from "../models/ProviderProps";
 import { getClientFamilyName, setClientFamilyName } from "../Utils";
 
 const FamilyNameProvider: React.FC<ProviderProps> = ({children}) => {

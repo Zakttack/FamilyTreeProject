@@ -1,13 +1,26 @@
-import FamilyElement, { FamilyDefault } from "./models/FamilyElement";
+import FamilyElement from "./models/FamilyElement";
 import RepresentationElement from "./models/RepresentationElement";
 import MessageResponse from "./models/MessageResponse";
-import OutputResponse from "./models/outputResponse";
+import OutputResponse from "./models/OutputResponse";
 import PersonElement from "./models/PersonElement";
 import ReportDeceasedRequest from "./models/ReportDeceasedRequest";
 import ReportChildrenRequest from "./models/ReportChildrenRequest";
 import ClientFamilyNameElement from "./models/ClientFamilyNameElement";
 import ClientPageTitleElement from "./models/ClientPageTitleElement";
 import ClientSelectedFamilyElement from "./models/ClientSelectedFamilyElement";
+
+export const StringDefault = 'unknown';
+export const PersonDefault: PersonElement = {
+    name: StringDefault,
+    birthDate: StringDefault,
+    deceasedDate: StringDefault
+};
+export const FamilyDefault: FamilyElement = {
+    member: PersonDefault,
+    inLaw: PersonDefault,
+    marriageDate: StringDefault
+};
+export const NumberDefault = 0;
 
 export function createURL(path: string, queryParams = {}): string {
     const queryString = new URLSearchParams(queryParams).toString();
@@ -324,6 +337,3 @@ export async function viewSubtree(orderOption: string, memberName: string, famil
     });
     return !response.ok ? {problem: await response.json() as MessageResponse} : {output: await response.json() as FamilyElement[]};
 }
-
-export const StringDefault = 'unknown';
-export const NumberDefault = 0;

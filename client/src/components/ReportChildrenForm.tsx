@@ -1,14 +1,13 @@
 import React, { FormEvent, useContext, useState } from "react";
+import SelectedFamilyContext from "../context/SelectedFamilyContext";
 import ReportChildrenRequest from "../models/ReportChildrenRequest";
-import { FamilyElementContext } from "../models/FamilyElement";
-import ReportActionsContext from "../models/ReportActionsContext";
-import { StringDefault, reportChildren } from "../Utils";
-import { PersonDefault } from "../models/PersonElement";
-import OutputResponse from "../models/outputResponse";
+import ReportActionsContext from "../context/ReportActionsContext";
+import { StringDefault, PersonDefault, reportChildren } from "../Utils";
+import OutputResponse from "../models/OutputResponse";
 import MessageResponse from "../models/MessageResponse";
 
 const ReportChildrenForm: React.FC = () => {
-    const {selectedElement} = useContext(FamilyElementContext);
+    const {selectedFamily} = useContext(SelectedFamilyContext);
     const {setResponse} = useContext(ReportActionsContext);
     const [name, setName] = useState<string>(StringDefault);
     const [birthDate, setBirthDate] = useState<string>(StringDefault);
@@ -17,7 +16,7 @@ const ReportChildrenForm: React.FC = () => {
     const handleReportChildren = async(e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const request: ReportChildrenRequest = {
-            parent: selectedElement,
+            parent: selectedFamily,
             child: {
                 member: {
                     name: name,

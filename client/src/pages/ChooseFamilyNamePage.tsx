@@ -1,10 +1,10 @@
 import React, { FormEvent, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import TitleContext from "../models/TitleContext";
-import OutputResponse from "../models/outputResponse";
+import TitleContext from "../context/TitleContext";
+import OutputResponse from "../models/OutputResponse";
 import MessageResponse from "../models/MessageResponse";
 import { initializeService } from "../Utils";
-import FamilyNameContext from "../models/familyNameContext";
+import FamilyNameContext from "../context/FamilyNameContext";
 import _ from "lodash";
 import ErrorDisplayComponent from "../components/ErrorDisplayComponent";
 

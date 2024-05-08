@@ -1,23 +1,24 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import _ from "lodash";
-import FamilyElement, { FamilyDefault, FamilyElementContext } from "../models/FamilyElement";
+import SelectedFamilyContext from "../context/SelectedFamilyContext";
+import FamilyElement from "../models/FamilyElement";
 import RepresentationElement from "../models/RepresentationElement";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import "./FamilyElementDisplay.css"
-import OutputResponse from "../models/outputResponse";
+import OutputResponse from "../models/OutputResponse";
 import { createURL, StringDefault, familyElementToRepresentation, representationToFamilyElement } from "../Utils";
-import { PersonDefault } from "../models/PersonElement";
+import { FamilyDefault, PersonDefault } from "../Utils";
 
 const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
-    const {changeSelectedElement} = useContext(FamilyElementContext);
+    const {changeSelectedFamily} = useContext(SelectedFamilyContext);
     const [representationOutput, setRepresentationOutput] = useState<OutputResponse<RepresentationElement>>({});
     let navigate = useNavigate();
 
     const handleClick = async(e: React.MouseEvent<HTMLParagraphElement>) => {
         const input = _.isNull(e.currentTarget.textContent) ? StringDefault : e.currentTarget.textContent;
         const response: OutputResponse<FamilyElement> = await representationToFamilyElement({representation: input});
-        changeSelectedElement(_.isUndefined(response.output) ? FamilyDefault : response.output);
+        changeSelectedFamily(_.isUndefined(response.output) ? FamilyDefault : response.output);
         if (_.isUndefined(response.output) || _.isEqual(response.output.member, PersonDefault)) {
             navigate('/dashboard');
         }

@@ -1,8 +1,5 @@
 import PersonElement from "./PersonElement";
-export enum PersonType {
-    Member = 'Member',
-    InLaw = 'InLaw'
-};
+import { PersonType } from "../enums/PersonType";
 
 export default interface PersonInfoInput {
     type: PersonType;

@@ -1,6 +1,6 @@
 import React from "react";
-import { ProviderProps } from "../models/providerProps";
-import FamilyTreeContext from "../models/FamilyTreeSettings";
+import { ProviderProps } from "../models/ProviderProps";
+import FamilyTreeContext from "../context/FamilyTreeContext";
 import { getClientFamilyTree, setClientFamilyTree } from "../Utils";
 
 const FamilyTreeProvider: React.FC<ProviderProps> = ({children}) => {

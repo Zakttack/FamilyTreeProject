@@ -1,27 +1,27 @@
 import React, { ChangeEvent, FormEvent, useContext, useState } from "react";
+import SelectedFamilyContext from "../context/SelectedFamilyContext";
 import ReportDeceasedRequest from "../models/ReportDeceasedRequest";
-import { FamilyElementContext } from "../models/FamilyElement";
-import ReportActionsContext from "../models/ReportActionsContext";
+import ReportActionsContext from "../context/ReportActionsContext";
 import PersonElement from "../models/PersonElement";
 import { StringDefault, reportDeceased } from "../Utils";
-import OutputResponse from "../models/outputResponse";
+import OutputResponse from "../models/OutputResponse";
 import MessageResponse from "../models/MessageResponse";
 import _ from "lodash";
 
 const ReportDeceasedForm: React.FC = () => {
-    const {selectedElement} = useContext(FamilyElementContext);
+    const {selectedFamily} = useContext(SelectedFamilyContext);
     const {setResponse} = useContext(ReportActionsContext);
-    const [person,setPerson] = useState<PersonElement>(selectedElement.member);
+    const [person,setPerson] = useState<PersonElement>(selectedFamily.member);
     const [deceasedDate, setDeceasedDate] = useState<string>(StringDefault);
 
     const handleChoosenPerson = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
             const name = e.target.value;
-            if (selectedElement.member.name === name) {
-                setPerson(selectedElement.member);
+            if (selectedFamily.member.name === name) {
+                setPerson(selectedFamily.member);
             }
-            else if (selectedElement.inLaw.name === name) {
-                setPerson(selectedElement.inLaw);
+            else if (selectedFamily.inLaw.name === name) {
+                setPerson(selectedFamily.inLaw);
             }
         }
     };
@@ -39,8 +39,8 @@ const ReportDeceasedForm: React.FC = () => {
     return (
         <form onSubmit={handleReportDeceased}>
             <h3>Person To Report:</h3>
-            <label><input type="radio" checked={_.isEqual(selectedElement.member, person)} value={selectedElement.member.name} onChange={handleChoosenPerson}/>{selectedElement.member.name}</label><br/>
-            <label><input type="radio" checked={_.isEqual(selectedElement.inLaw, person)} value={selectedElement.inLaw.name} onChange={handleChoosenPerson}/>{selectedElement.inLaw.name}</label><br/>
+            <label><input type="radio" checked={_.isEqual(selectedFamily.member, person)} value={selectedFamily.member.name} onChange={handleChoosenPerson}/>{selectedFamily.member.name}</label><br/>
+            <label><input type="radio" checked={_.isEqual(selectedFamily.inLaw, person)} value={selectedFamily.inLaw.name} onChange={handleChoosenPerson}/>{selectedFamily.inLaw.name}</label><br/>
             <h3>Deceased Date To Report:</h3>
             <label>Deceased Date: <input type="text" value={deceasedDate} onChange={(e) => setDeceasedDate(e.target.value)}/></label><br/>
             <button type="submit">Report Deceased</button>

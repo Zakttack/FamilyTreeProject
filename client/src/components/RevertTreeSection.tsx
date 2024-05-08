@@ -1,13 +1,13 @@
 import React, { FormEvent, useContext, useState } from "react";
-import FamilyNameContext from "../models/familyNameContext";
-import OutputResponse from "../models/outputResponse";
+import FamilyNameContext from "../context/FamilyNameContext";
+import OutputResponse from "../models/OutputResponse";
 import MessageResponse from "../models/MessageResponse";
 import { revertTree } from "../Utils";
 import ArrowComponent from "./ArrowComponent";
 import FileUpload from "./FileUpload";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import './RevertTreeSection.css';
-import SelectedFileContext from "../models/SelectedFileContext";
+import SelectedFileContext from "../context/SelectedFileContext";
 import _ from "lodash";
 import SuccessDisplay from "./SuccessDisplayComponent";
 

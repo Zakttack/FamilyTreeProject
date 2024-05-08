@@ -1,35 +1,35 @@
 import React, { useContext, useEffect} from "react";
 import _ from "lodash";
-import { FamilyElementContext } from "../models/FamilyElement";
+import SelectedFamilyContext from "../context/SelectedFamilyContext";
 import ParentOfSelectedElement from "../components/ParentOfSelectedElementDisplay";
 import FamilyInfoElement from "../components/FamilyInfoElementComponent";
 import { StringDefault, createURL } from "../Utils";
 import ReportActionsSection from "../components/ReportActionsSection";
 import ChildrenOfSelectedElement from "../components/ChildrenOfSelectedElement";
 import { useNavigate } from "react-router-dom";
-import TitleContext from "../models/TitleContext";
+import TitleContext from "../context/TitleContext";
 import Title from "../components/TitleComponent";
 import './FamilyProfilePage.css';
 
 const FamilyProfilePage: React.FC = () => {
-    const {selectedElement} = useContext(FamilyElementContext);
+    const {selectedFamily} = useContext(SelectedFamilyContext);
     const {setTitle} = useContext(TitleContext);
     let navigate = useNavigate();
     useEffect(() => {
-        if (!_.isEqual(selectedElement.member.name, StringDefault) && !_.isEqual(selectedElement.inLaw.name, StringDefault)) {
-            setTitle(`This is the family of ${selectedElement.member.name} and ${selectedElement.inLaw.name}`);
+        if (!_.isEqual(selectedFamily.member.name, StringDefault) && !_.isEqual(selectedFamily.inLaw.name, StringDefault)) {
+            setTitle(`This is the family of ${selectedFamily.member.name} and ${selectedFamily.inLaw.name}`);
         }
-        else if (!_.isEqual(selectedElement.member.name, StringDefault)) {
-            setTitle(`This is the family of ${selectedElement.member.name}`);
+        else if (!_.isEqual(selectedFamily.member.name, StringDefault)) {
+            setTitle(`This is the family of ${selectedFamily.member.name}`);
         }
         else {
             setTitle('Unknown Family Element');
         }
-    }, [selectedElement, setTitle]);
+    }, [selectedFamily, setTitle]);
 
     const handleViewSubtree = () => {
-        setTitle(`This is the subtree of ${selectedElement.member.name}`);
-        navigate(createURL('/sub-tree', {memberName: selectedElement.member.name}));
+        setTitle(`This is the subtree of ${selectedFamily.member.name}`);
+        navigate(createURL('/sub-tree', {memberName: selectedFamily.member.name}));
     }
 
     return (

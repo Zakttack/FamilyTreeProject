@@ -1,9 +1,9 @@
 import React, {useContext, useState} from "react";
-import {FamilyDefault, FamilyElementContext} from "../models/FamilyElement";
-import OutputResponse from "../models/outputResponse";
+import SelectedFamilyContext from "../context/SelectedFamilyContext";
+import OutputResponse from "../models/OutputResponse";
 import MessageResponse from "../models/MessageResponse";
-import { reportMarriage } from "../Utils";
-import ReportActionsContext from "../models/ReportActionsContext";
+import { FamilyDefault, reportMarriage } from "../Utils";
+import ReportActionsContext from "../context/ReportActionsContext";
 
 function stringToBoolean(value: string): boolean {
     if (value.toLowerCase() === 'true') {
@@ -16,9 +16,9 @@ function stringToBoolean(value: string): boolean {
 }
 
 const ReportMarriageForm: React.FC = () => {
-    const {selectedElement} = useContext(FamilyElementContext);
+    const {selectedFamily} = useContext(SelectedFamilyContext);
     const {setResponse} = useContext(ReportActionsContext);
-    const [memberName, setMemberName] = useState<string>(selectedElement.member.name);
+    const [memberName, setMemberName] = useState<string>(selectedFamily.member.name);
     const [memberNameIsBeingCustomized, isMemberNameBeingCustomized] = useState<boolean>(false);
     const [inLawName, setInLawName] = useState<string>(FamilyDefault.inLaw.name);
     const [inLawBirthDate, setInLawBirthDate] = useState<string>(FamilyDefault.inLaw.birthDate);
@@ -54,8 +54,8 @@ const ReportMarriageForm: React.FC = () => {
         const response: OutputResponse<MessageResponse> = await reportMarriage({
             member: {
                 name: memberName,
-                birthDate: selectedElement.member.birthDate,
-                deceasedDate: selectedElement.member.deceasedDate
+                birthDate: selectedFamily.member.birthDate,
+                deceasedDate: selectedFamily.member.deceasedDate
             },
             inLaw: {
                 name: inLawName,
@@ -70,7 +70,7 @@ const ReportMarriageForm: React.FC = () => {
     return (
         <form onSubmit={handleReportMarriage}>
             <h3>Member:</h3>
-            <label><input type="radio" checked={!memberNameIsBeingCustomized} value={String(false)} onChange={handleMemberNameCustomizationOptions}/>Use {selectedElement.member.name}</label><br/>
+            <label><input type="radio" checked={!memberNameIsBeingCustomized} value={String(false)} onChange={handleMemberNameCustomizationOptions}/>Use {selectedFamily.member.name}</label><br/>
             <label><input type="radio" checked={memberNameIsBeingCustomized} value={String(true)} onChange={handleMemberNameCustomizationOptions}/><input type="text" disabled={!memberNameIsBeingCustomized} value={memberName} onChange={handleMemberNameChange}/></label><br/>
             <h3>InLaw:</h3>
             <label>Name: <input type="text" value={inLawName} onChange={handleInLawNameChange}/></label><br/>

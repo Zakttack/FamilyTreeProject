@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import ReportActionsContext from "../models/ReportActionsContext";
+import ReportActionsContext from "../context/ReportActionsContext";
 import ReportActionsProvider from "../providers/ReportActionsProvider";
 import './ReportActionsSection.css';
 import ReportMarriageForm from "./ReportMarriageForm";
