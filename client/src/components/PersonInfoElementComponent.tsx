@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from "react";
 import _ from "lodash";
 import OutputResponse from "../models/OutputResponse";
+import PersonElement from "../models/PersonElement";
+import { PersonType } from "../enums/PersonType";
 import { personElementToRepresentation } from "../Utils";
 import FamilyRepresentationElement from "../models/RepresentationElement";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
-import PersonInfoInput from "../models/PersonInfoInput";
 import './PersonInfoElementComponent.css';
 
+interface PersonInfoInput {
+    type: PersonType;
+    element: PersonElement;
+}
 
 const PersonInfoElement: React.FC<PersonInfoInput> = (input) => {
     const [personInfoResult, setPersonInfoResult] = useState<OutputResponse<FamilyRepresentationElement>>({});

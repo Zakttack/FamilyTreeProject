@@ -1,22 +1,21 @@
-import React, { useContext, useEffect, useState } from "react";
-import SelectedFamilyContext from "../context/SelectedFamilyContext";
+import React, { useEffect, useState } from "react";
 import FamilyElement from "../models/FamilyElement";
 import OutputResponse from "../models/OutputResponse";
-import { retrieveChildren } from "../Utils";
+import {retrieveChildren } from "../Utils";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import FamilyElementDisplay from "./FamilyElementDisplay";
+import ClientSelectedFamilyElement from "../models/ClientSelectedFamilyElement";
 
-const ChildrenOfSelectedElement: React.FC = () => {
-    const {selectedFamily} = useContext(SelectedFamilyContext);
+const ChildrenOfSelectedElement: React.FC<ClientSelectedFamilyElement> = (params) => {
     const [childrenResponse, setChildrenResponse] = useState<OutputResponse<FamilyElement[]>>({});
 
     useEffect(() => {
         const fetchChildren = async() => {
-            const response: OutputResponse<FamilyElement[]> = await retrieveChildren(selectedFamily);
+            const response: OutputResponse<FamilyElement[]> = await retrieveChildren(params.selectedFamily);
             setChildrenResponse(response);
         };
         fetchChildren();
-    }, [selectedFamily]);
+    }, [params.selectedFamily]);
 
     return (
         <div>

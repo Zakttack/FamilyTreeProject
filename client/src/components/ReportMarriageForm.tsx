@@ -1,9 +1,9 @@
 import React, {useContext, useState} from "react";
-import SelectedFamilyContext from "../context/SelectedFamilyContext";
 import OutputResponse from "../models/OutputResponse";
 import MessageResponse from "../models/MessageResponse";
 import { FamilyDefault, reportMarriage } from "../Utils";
 import ReportActionsContext from "../context/ReportActionsContext";
+import ClientSelectedFamilyElement from "../models/ClientSelectedFamilyElement";
 
 function stringToBoolean(value: string): boolean {
     if (value.toLowerCase() === 'true') {
@@ -15,10 +15,9 @@ function stringToBoolean(value: string): boolean {
     throw new Error(`"${value}" can't be converted to a boolean.`);
 }
 
-const ReportMarriageForm: React.FC = () => {
-    const {selectedFamily} = useContext(SelectedFamilyContext);
+const ReportMarriageForm: React.FC<ClientSelectedFamilyElement> = (params) => {
     const {setResponse} = useContext(ReportActionsContext);
-    const [memberName, setMemberName] = useState<string>(selectedFamily.member.name);
+    const [memberName, setMemberName] = useState<string>(params.selectedFamily.member.name);
     const [memberNameIsBeingCustomized, isMemberNameBeingCustomized] = useState<boolean>(false);
     const [inLawName, setInLawName] = useState<string>(FamilyDefault.inLaw.name);
     const [inLawBirthDate, setInLawBirthDate] = useState<string>(FamilyDefault.inLaw.birthDate);
@@ -54,8 +53,8 @@ const ReportMarriageForm: React.FC = () => {
         const response: OutputResponse<MessageResponse> = await reportMarriage({
             member: {
                 name: memberName,
-                birthDate: selectedFamily.member.birthDate,
-                deceasedDate: selectedFamily.member.deceasedDate
+                birthDate: params.selectedFamily.member.birthDate,
+                deceasedDate: params.selectedFamily.member.deceasedDate
             },
             inLaw: {
                 name: inLawName,
@@ -70,7 +69,7 @@ const ReportMarriageForm: React.FC = () => {
     return (
         <form onSubmit={handleReportMarriage}>
             <h3>Member:</h3>
-            <label><input type="radio" checked={!memberNameIsBeingCustomized} value={String(false)} onChange={handleMemberNameCustomizationOptions}/>Use {selectedFamily.member.name}</label><br/>
+            <label><input type="radio" checked={!memberNameIsBeingCustomized} value={String(false)} onChange={handleMemberNameCustomizationOptions}/>Use {params.selectedFamily.member.name}</label><br/>
             <label><input type="radio" checked={memberNameIsBeingCustomized} value={String(true)} onChange={handleMemberNameCustomizationOptions}/><input type="text" disabled={!memberNameIsBeingCustomized} value={memberName} onChange={handleMemberNameChange}/></label><br/>
             <h3>InLaw:</h3>
             <label>Name: <input type="text" value={inLawName} onChange={handleInLawNameChange}/></label><br/>

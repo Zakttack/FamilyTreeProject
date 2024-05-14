@@ -1,23 +1,22 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import _ from "lodash";
-import SelectedFamilyContext from "../context/SelectedFamilyContext";
 import PersonInfoElement from "./PersonInfoElementComponent";
 import { PersonType } from "../enums/PersonType";
 import OutputResponse from "../models/OutputResponse";
 import { StringDefault, generationNumberOf } from "../Utils";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
+import ClientSelectedFamilyElement from "../models/ClientSelectedFamilyElement";
 
-const FamilyInfoElement: React.FC = () => {
-    const {selectedFamily} = useContext(SelectedFamilyContext);
+const FamilyInfoElement: React.FC<ClientSelectedFamilyElement> = (params) => {
     const [generationNumberResponse, setGenerationNumberResponse] = useState<OutputResponse<number>>({});
 
     useEffect(() => {
         const handleGenerationNumberOf = async() => {
-            const response: OutputResponse<number> = await generationNumberOf(selectedFamily);
+            const response: OutputResponse<number> = await generationNumberOf(params.selectedFamily);
             setGenerationNumberResponse(response);
         };
         handleGenerationNumberOf();
-    }, [selectedFamily]);
+    }, [params.selectedFamily]);
     if (generationNumberResponse.problem) {
         return (
             <ErrorDisplayComponent message={generationNumberResponse.problem.message}/>
@@ -28,9 +27,9 @@ const FamilyInfoElement: React.FC = () => {
             <div>
                 <h2>Info:</h2>
                 <h3>Generation Number: {generationNumberResponse.output}</h3>
-                <PersonInfoElement type={PersonType.Member} element={selectedFamily.member}/>
-                <PersonInfoElement type={PersonType.InLaw} element={selectedFamily.inLaw}/>
-                <h3>Marriage Date: {_.isNull(selectedFamily.marriageDate) ? StringDefault : selectedFamily.marriageDate}</h3>
+                <PersonInfoElement type={PersonType.Member} element={params.selectedFamily.member}/>
+                <PersonInfoElement type={PersonType.InLaw} element={params.selectedFamily.inLaw}/>
+                <h3>Marriage Date: {_.isNull(params.selectedFamily.marriageDate) ? StringDefault : params.selectedFamily.marriageDate}</h3>
             </div>
         );
     }

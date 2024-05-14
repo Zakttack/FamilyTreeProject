@@ -1,5 +1,4 @@
 import React, { FormEvent, useContext, useState } from "react";
-import FamilyNameContext from "../context/FamilyNameContext";
 import OutputResponse from "../models/OutputResponse";
 import MessageResponse from "../models/MessageResponse";
 import { revertTree } from "../Utils";
@@ -10,9 +9,9 @@ import './RevertTreeSection.css';
 import SelectedFileContext from "../context/SelectedFileContext";
 import _ from "lodash";
 import SuccessDisplay from "./SuccessDisplayComponent";
+import ClientFamilyNameElement from "../models/ClientFamilyNameElement";
 
-const RevertTreeSection: React.FC = () => {
-    const {familyName} = useContext(FamilyNameContext);
+const RevertTreeSection: React.FC<ClientFamilyNameElement> = (params) => {
     const {selectedFile} = useContext(SelectedFileContext);
     const [revertTreeResponse, setRevertTreeResponse] = useState<OutputResponse<MessageResponse>>({});
     const [isVisible, setIsVisible] = useState<boolean>(false);
@@ -44,7 +43,7 @@ const RevertTreeSection: React.FC = () => {
                 <form onSubmit={handleRevertTree}>
                     <FileUpload /><br/>
                     {!_.isUndefined(selectedFile) && <><p>{selectedFile.name}</p><br/></>}
-                    <button type="submit">Revert {familyName} Tree</button>
+                    <button type="submit">Revert {params.familyName} Tree</button>
                     {revertTreeResponse.problem && <ErrorDisplayComponent message={revertTreeResponse.problem.message}/>}
                 </form>
             )}

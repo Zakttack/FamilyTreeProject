@@ -1,10 +1,9 @@
-import React, {useContext, useEffect, useState} from "react";
-import FamilyNameContext from "../context/FamilyNameContext";
+import React, {useEffect, useState} from "react";
 import OutputResponse from "../models/OutputResponse";
 import { NumberDefault, getNumberOfGenerations } from "../Utils";
+import ClientFamilyNameElement from "../models/ClientFamilyNameElement";
 
-const GetNumberOfGenerationsComponent: React.FC = () => {
-    const {familyName} = useContext(FamilyNameContext);
+const GetNumberOfGenerationsComponent: React.FC<ClientFamilyNameElement> = (params) => {
     const [numericOutput, setNumericOutput] = useState<OutputResponse<number>>({});
     useEffect(() => {
         const fetchNumberOfGenerations = async () => {
@@ -12,9 +11,9 @@ const GetNumberOfGenerationsComponent: React.FC = () => {
             setNumericOutput(response);
         };
         fetchNumberOfGenerations();
-    }, [familyName]);
+    }, [params.familyName]);
     return (
-        <p>There are {numericOutput.output ? NumberDefault : numericOutput.output} generations in the {familyName} family tree.</p>
+        <p>There are {numericOutput.output ? NumberDefault : numericOutput.output} generations in the {params.familyName} family tree.</p>
     )
 }
 

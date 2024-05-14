@@ -61,40 +61,47 @@ export async function generationNumberOf(element: FamilyElement): Promise<Output
     return {output: result};
 }
 
-export function getClientFamilyName(): string {
+export async function getClientFamilyName(): Promise<string> {
     const url = 'http://localhost:5201/api/utility/get-client-family-name';
-    let familyNameResponse: ClientFamilyNameElement = {familyName: ''};
-    fetch(url).then(response => response.json()).then((output: ClientFamilyNameElement) => {
-        familyNameResponse = output;
-    });
-    return familyNameResponse.familyName;
+    const familyNameResponse = await fetch(url);
+    if (!familyNameResponse.ok) {
+        const result: MessageResponse = await familyNameResponse.json();
+        throw new Error(result.message);
+    }
+    const result: ClientFamilyNameElement = await familyNameResponse.json();
+    return result.familyName;
 }
 
-export function getClientFamilyTree(): OutputResponse<FamilyElement[]> {
+export async function getClientFamilyTree(): Promise<OutputResponse<FamilyElement[]>> {
     const url = 'http://localhost:5201/api/utility/get-client-family-tree';
-    let familyTreeResponse: OutputResponse<FamilyElement[]> = {output: []};
-    fetch(url).then(response => response.json()).then((output: OutputResponse<FamilyElement[]>) => {
-        familyTreeResponse = output;
-    });
-    return familyTreeResponse;
+    const familyTreeResponse = await fetch(url);
+    if (!familyTreeResponse.ok) {
+        const result: MessageResponse = await familyTreeResponse.json();
+        throw new Error(result.message);
+    }
+    return await familyTreeResponse.json();
 }
 
-export function getClientPageTitle(): string {
+export async function getClientPageTitle(): Promise<string> {
     const url = 'http://localhost:5201/api/utility/get-client-page-title';
-    let pageTitleResponse: ClientPageTitleElement = {title: ''};
-    fetch(url).then(response => response.json()).then((output: ClientPageTitleElement) => {
-        pageTitleResponse = output;
-    });
-    return pageTitleResponse.title;
+    const pageTitleResponse = await fetch(url);
+    if (!pageTitleResponse.ok) {
+        const result: MessageResponse = await pageTitleResponse.json();
+        throw new Error(result.message);
+    }
+    const result: ClientPageTitleElement = await pageTitleResponse.json();
+    return result.title;
 }
 
-export function getClientSelectedFamily(): FamilyElement {
+export async function getClientSelectedFamily(): Promise<FamilyElement> {
     const url = 'http://localhost:5201/api/utility/get-client-selected-family';
-    let selectedFamilyResponse: ClientSelectedFamilyElement = {selectedFamily: FamilyDefault};
-    fetch(url).then(response => response.json()).then((output: ClientSelectedFamilyElement) => {
-        selectedFamilyResponse = output;
-    });
-    return selectedFamilyResponse.selectedFamily;
+    const selectedFamilyResponse = await fetch(url);
+    if (!selectedFamilyResponse.ok) {
+        const result: MessageResponse = await selectedFamilyResponse.json();
+        throw new Error(result.message);
+    }
+    const result: ClientSelectedFamilyElement = await selectedFamilyResponse.json();
+    return result.selectedFamily;
 }
 
 export async function getFamilies(orderOption: string, memberName: string): Promise<OutputResponse<FamilyElement[]>> {
@@ -254,75 +261,79 @@ export async function revertTree(request: File): Promise<OutputResponse<MessageR
     return result.isSuccess ? {output: result} : {problem: result};
 }
 
-export function setClientFamilyName(familyName: string) {
-    const url = 'http://localhost:5021/api/utility/set-client-family-name';
-    const request: ClientFamilyNameElement = {familyName};
-    let familyNameResponse: MessageResponse = {message: 'Something went wrong.', isSuccess: false};
-    fetch(url, {
+export async function setClientFamilyName(familyName: string) {
+    const url = 'http://localhost:5201/api/utility/set-client-family-name';
+    const requestBody: ClientFamilyNameElement = {familyName};
+    const familyNameResponse = await fetch(url, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(request)
-    }).then(response => response.json()).then((output: MessageResponse) => {
-        familyNameResponse = output;
+        body: JSON.stringify(requestBody)
     });
-    if (!familyNameResponse.isSuccess) {
-        throw new Error(familyNameResponse.message);
+    const result: MessageResponse = await familyNameResponse.json();
+    if (result) {
+        if (!result.isSuccess) {
+            throw new Error(result.message);
+        }
+        console.log(result.message);
     }
 }
 
-export function setClientFamilyTree(familyTreeResponse: OutputResponse<FamilyElement[]>) {
-    const url = 'http://localhost:5021/api/utility/set-client-family-tree';
+export async function setClientFamilyTree(familyTreeResponse: OutputResponse<FamilyElement[]>) {
+    const url = 'http://localhost:5201/api/utility/set-client-family-tree';
     const request: OutputResponse<FamilyElement[]> = familyTreeResponse;
-    let result: MessageResponse = {message: 'Something Went Wrong', isSuccess: false};
-    fetch(url, {
+    const response = await fetch(url, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(request)
-    }).then(response => response.json()).then((output: MessageResponse) => {
-        result = output;
     });
-    if (!result.isSuccess) {
-        throw new Error(result.message);
+    const result: MessageResponse = await response.json();
+    if (result) {
+        if (!result.isSuccess) {
+            throw new Error(result.message);
+        }
+        console.log(result.message);
     }
 }
 
-export function setClientPageTitle(title: string) {
-    const url = 'http://localhost:5021/api/utility/set-client-page-title';
+export async function setClientPageTitle(title: string) {
+    const url = 'http://localhost:5201/api/utility/set-client-page-title';
     const request: ClientPageTitleElement = {title};
-    let pageTitleResponse: MessageResponse = {message: 'Something went wrong.', isSuccess: false};
-    fetch(url, {
+    const response = await fetch(url, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(request)
-    }).then(response => response.json()).then((output: MessageResponse) => {
-        pageTitleResponse = output;
     });
-    if (!pageTitleResponse.isSuccess) {
-        throw new Error(pageTitleResponse.message);
+    const result: MessageResponse = await response.json();
+    if (result) {
+        if (!result.isSuccess) {
+            throw new Error(result.message);
+        }
+        console.log(result.message);
     }
 }
 
-export function setClientSelectedFamily(selectedFamily: FamilyElement) {
-    const url = 'http://localhost:5021/api/utility/set-client-selected-family';
+export async function setClientSelectedFamily(selectedFamily: FamilyElement) {
+    const url = 'http://localhost:5201/api/utility/set-client-selected-family';
     const request: ClientSelectedFamilyElement = {selectedFamily};
-    let selectedFamilyResponse: MessageResponse = {message: 'Something went wrong.', isSuccess: false};
-    fetch(url, {
+    const response = await fetch(url, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(request)
-    }).then(response => response.json()).then((output: MessageResponse) => {
-        selectedFamilyResponse = output;
     });
-    if (!selectedFamilyResponse.isSuccess) {
-        throw new Error(selectedFamilyResponse.message);
+    const result: MessageResponse = await response.json();
+    if (result) {
+        if (!result.isSuccess) {
+            throw new Error(result.message);
+        }
+        console.log(result.message);
     }
 }
 

@@ -7,6 +7,7 @@ import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import ReportDeceasedForm from "./ReportDeceasedForm";
 import ReportChildrenForm from "./ReportChildrenForm";
 import SuccessDisplay from "./SuccessDisplayComponent";
+import ClientSelectedFamilyElement from "../models/ClientSelectedFamilyElement";
 
 enum Sections {
     Default,
@@ -15,7 +16,7 @@ enum Sections {
     ReportChildren
 };
 
-const ReportActionsSection: React.FC = () => {
+const ReportActionsSection: React.FC<ClientSelectedFamilyElement> = (params) => {
     const [selectedSection, changeSelectedSection] = useState<Sections>(Sections.Default);
     const {response} = useContext(ReportActionsContext);
 
@@ -35,9 +36,9 @@ const ReportActionsSection: React.FC = () => {
                     </header>
                 </div>
                 <div id="report-action-form">
-                    {selectedSection === Sections.ReportMarriage && <ReportMarriageForm />}
-                    {selectedSection === Sections.ReportDeceased && <ReportDeceasedForm />}
-                    {selectedSection === Sections.ReportChildren && <ReportChildrenForm />}
+                    {selectedSection === Sections.ReportMarriage && <ReportMarriageForm selectedFamily={params.selectedFamily}/>}
+                    {selectedSection === Sections.ReportDeceased && <ReportDeceasedForm selectedFamily={params.selectedFamily}/>}
+                    {selectedSection === Sections.ReportChildren && <ReportChildrenForm selectedFamily={params.selectedFamily}/>}
                 </div>
                 {response.problem && <ErrorDisplayComponent message={response.problem.message}/>}
                 {response.output && <SuccessDisplay message={response.output.message}/>}

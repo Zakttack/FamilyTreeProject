@@ -1,32 +1,44 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import _ from "lodash";
-import SelectedFamilyContext from "../context/SelectedFamilyContext";
 import FamilyElement from "../models/FamilyElement";
 import RepresentationElement from "../models/RepresentationElement";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import "./FamilyElementDisplay.css"
 import OutputResponse from "../models/OutputResponse";
-import { createURL, StringDefault, familyElementToRepresentation, representationToFamilyElement } from "../Utils";
-import { FamilyDefault, PersonDefault } from "../Utils";
+import { createURL, StringDefault, PersonDefault, familyElementToRepresentation, representationToFamilyElement, setClientSelectedFamily, setClientPageTitle } from "../Utils";
 
 const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
-    const {changeSelectedFamily} = useContext(SelectedFamilyContext);
     const [representationOutput, setRepresentationOutput] = useState<OutputResponse<RepresentationElement>>({});
     let navigate = useNavigate();
 
     const handleClick = async(e: React.MouseEvent<HTMLParagraphElement>) => {
         const input = _.isNull(e.currentTarget.textContent) ? StringDefault : e.currentTarget.textContent;
         const response: OutputResponse<FamilyElement> = await representationToFamilyElement({representation: input});
-        changeSelectedFamily(_.isUndefined(response.output) ? FamilyDefault : response.output);
-        if (_.isUndefined(response.output) || _.isEqual(response.output.member, PersonDefault)) {
-            navigate('/dashboard');
+        if (response.problem) {
+            throw new Error(response.problem.message);
         }
-        else if (_.isEqual(response.output.inLaw, PersonDefault)) {
-            navigate(createURL('/family-profile', {member: response.output.member.name}));
-        }
-        else {
-            navigate(createURL('/family-profile', {member: response.output.member.name, inLaw: response.output.inLaw.name}));
+        else if (response.output) {
+            const selectedFamilyAdjustmentTask: Promise<void> = setClientSelectedFamily(response.output);
+            if (_.isEqual(response.output.member, PersonDefault)) {
+                await selectedFamilyAdjustmentTask.then(() => {
+                    window.location.reload();
+                });
+            }
+            else if (_.isEqual(response.output.inLaw, PersonDefault)) {
+                await selectedFamilyAdjustmentTask.then(() => {
+                    setClientPageTitle(`This is the family of ${response.output?.member.name}`);
+                }).then(() => {
+                    navigate(createURL('/family-profile', {member: response.output?.member.name}));
+                });
+            }
+            else {
+                await selectedFamilyAdjustmentTask.then(() => {
+                    setClientPageTitle(`This is the family of ${response.output?.member.name} and ${response.output?.inLaw.name}`);
+                }).then(() => {
+                    navigate(createURL('/family-profile', {member: response.output?.member.name, inLaw: response.output?.inLaw.name}));
+                });
+            }
         }
     };
 

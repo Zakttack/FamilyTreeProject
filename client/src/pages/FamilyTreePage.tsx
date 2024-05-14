@@ -1,23 +1,28 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 //import GetNumberOfFamiliesComponent from "../components/GetNumberOfFamiliesComponent";
 //import GetNumberOfGenerationsComponent from "../components/GetNumberOfGenerationsComponent";
-import FamilyTreeProvider from "../providers/FamilyTreeSettingsProvider";
 import FamilyTreeInput from "../components/FamilyTreeInput";
 import FamilyTreeDisplay from "../components/FamilyTreeDisplay";
 import SelectedFileProvider from "../providers/SelectedFileProvider";
 import RevertTreeSection from "../components/RevertTreeSection";
 import Title from "../components/TitleComponent";
+import { getClientFamilyName } from "../Utils";
 const FamilyTreePage: React.FC = () => {
+    const [familyName, setFamilyName] = useState<string>('');
+    useEffect(() => {
+        const fetchFamilyName = async() => {
+            setFamilyName(await getClientFamilyName());
+        };
+        fetchFamilyName();
+    }, [familyName])
     return (
         <div>
             <Title />
             <SelectedFileProvider>
-                <RevertTreeSection />
+                <RevertTreeSection familyName={familyName}/>
             </SelectedFileProvider>
-            <FamilyTreeProvider>
-                <FamilyTreeInput includesEntireTree={true}/>
-                <FamilyTreeDisplay />
-            </FamilyTreeProvider>
+            <FamilyTreeInput includesEntireTree={true}/>
+            <FamilyTreeDisplay />
         </div>
     );
 }
