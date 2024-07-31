@@ -67,6 +67,7 @@ namespace FamilyTreeAPI.Controllers
         {
             try
             {
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, "The family name is being returned.");
                 return APIUtils.ClientFamilyName is null ? Ok(new ClientFamilyNameElement() {FamilyName = APIUtils.STRING_DEFAULT}) : Ok(APIUtils.ClientFamilyName);
             }
             catch (Exception ex)
@@ -80,6 +81,7 @@ namespace FamilyTreeAPI.Controllers
         {
             try
             {
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, "The family tree is being returned.");
                 return APIUtils.ClientFamilyTree is null ? Ok(new ClientFamilyTreeElement()) : Ok(APIUtils.ClientFamilyTree);
             }
             catch (Exception ex)
@@ -93,6 +95,7 @@ namespace FamilyTreeAPI.Controllers
         {
             try
             {
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, "The page title is being returned.");
                 return APIUtils.ClientPageTitle is null ? Ok(new ClientPageTitleElement(){Title = APIUtils.STRING_DEFAULT}) : Ok(APIUtils.ClientPageTitle);
             }
             catch (Exception ex)
@@ -106,6 +109,7 @@ namespace FamilyTreeAPI.Controllers
         {
             try
             {
+                FamilyTreeUtils.LogMessage(LoggingLevels.Information, "The selected family is being returned.");
                 return APIUtils.ClientSelectedFamily is null ? Ok(new ClientSelectedFamilyElement() {SelectedFamily = APIUtils.FamilyDefault}) : Ok(APIUtils.ClientSelectedFamily);
             }
             catch (Exception ex)
