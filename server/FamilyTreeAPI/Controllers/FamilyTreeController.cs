@@ -21,7 +21,7 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (Exception ex)
             {
@@ -48,7 +48,7 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (Exception ex)
             {
@@ -68,7 +68,7 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (Exception ex)
             {
@@ -88,7 +88,7 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (Exception ex)
             {
@@ -113,11 +113,11 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (NullReferenceException ex)
             {
-                return APIUtils.SerializeAsClinetError(new ClientBadRequestException("Family name is unknown.", ex));
+                return APIUtils.SerializeAsClientError(new ClientBadRequestException("Family name is unknown.", ex));
             }
             catch (Exception ex)
             {
@@ -144,7 +144,7 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (Exception ex)
             {
@@ -171,7 +171,7 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (Exception ex)
             {
@@ -199,11 +199,11 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (NullReferenceException ex)
             {
-                return APIUtils.SerializeAsClinetError(new ClientBadRequestException("Family Element doesn't exist.", ex));
+                return APIUtils.SerializeAsClientError(new ClientBadRequestException("Family Element doesn't exist.", ex));
             }
             catch (Exception ex)
             {
@@ -222,7 +222,7 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (Exception ex)
             {
@@ -243,7 +243,7 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (Exception ex)
             {
@@ -272,7 +272,7 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (Exception ex)
             {
@@ -297,7 +297,7 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (Exception ex)
             {
