@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import _ from "lodash";
 import FamilyElement from "../models/FamilyElement";
@@ -7,9 +7,13 @@ import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import "./FamilyElementDisplay.css"
 import OutputResponse from "../models/OutputResponse";
 import { createURL, StringDefault, PersonDefault, familyElementToRepresentation, representationToFamilyElement, setClientSelectedFamily, setClientPageTitle } from "../Utils";
+import SelectedFamilyElementContext from "../context/SelectedFamilyElementContext";
+import TitleContext from "../context/TitleContext";
 
 const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
     const [representationOutput, setRepresentationOutput] = useState<OutputResponse<RepresentationElement>>({});
+    const {selectedFamilyElement, changeFamilyElement} = useContext(SelectedFamilyElementContext);
+    const {title, setTitle} = useContext(TitleContext);
     let navigate = useNavigate();
 
     const handleClick = async(e: React.MouseEvent<HTMLParagraphElement>) => {
@@ -19,25 +23,17 @@ const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
             throw new Error(response.problem.message);
         }
         else if (response.output) {
-            const selectedFamilyAdjustmentTask: Promise<void> = setClientSelectedFamily(response.output);
-            if (_.isEqual(response.output.member, PersonDefault)) {
-                await selectedFamilyAdjustmentTask.then(() => {
-                    window.location.reload();
-                });
+            changeFamilyElement(response.output);
+            await setClientSelectedFamily(selectedFamilyElement);
+            if (_.isEqual(selectedFamilyElement.inLaw, PersonDefault)) {
+                setTitle(`This is the family of ${selectedFamilyElement.member.name}`);
+                await setClientPageTitle(title);
+                navigate(createURL('/family-profile', {member: selectedFamilyElement.member.name}));
             }
-            else if (_.isEqual(response.output.inLaw, PersonDefault)) {
-                await selectedFamilyAdjustmentTask.then(() => {
-                    setClientPageTitle(`This is the family of ${response.output?.member.name}`);
-                }).then(() => {
-                    navigate(createURL('/family-profile', {member: response.output?.member.name}));
-                });
-            }
-            else {
-                await selectedFamilyAdjustmentTask.then(() => {
-                    setClientPageTitle(`This is the family of ${response.output?.member.name} and ${response.output?.inLaw.name}`);
-                }).then(() => {
-                    navigate(createURL('/family-profile', {member: response.output?.member.name, inLaw: response.output?.inLaw.name}));
-                });
+            else if (!_.isEqual(selectedFamilyElement.member, PersonDefault) && !_.isEqual(selectedFamilyElement.inLaw, PersonDefault)) {
+                setTitle(`This is the family of ${selectedFamilyElement.member.name} and ${selectedFamilyElement.inLaw.name}`)
+                await setClientPageTitle(title);
+                navigate(createURL('/family-profile', {member: selectedFamilyElement.member.name, inLaw: selectedFamilyElement.inLaw.name}));
             }
         }
     };

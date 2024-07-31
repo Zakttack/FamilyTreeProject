@@ -7,7 +7,7 @@ namespace FamilyTreeAPI.Models
             get;
             set;
         }
-        public IEnumerable<FamilyElement> Output
+        public IEnumerable<FamilyElement> Success
         {
             get;
             set;

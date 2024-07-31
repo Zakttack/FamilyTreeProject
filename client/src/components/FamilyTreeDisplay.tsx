@@ -1,30 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import _ from "lodash";
 import FamilyElementDisplay from "./FamilyElementDisplay";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
-import OutputResponse from "../models/OutputResponse";
-import FamilyElement from "../models/FamilyElement";
 import { getClientFamilyTree } from "../Utils";
+import FamilyTreeContext from "../context/FamilyTreeContext";
+import SelectedFamilyElementProvider from "../providers/SelectedFamilyElementProvider";
 
 const FamilyTreeDisplay: React.FC = () => {
-    const [familyTreeResponse, setFamilyTreeResponse] = useState<OutputResponse<FamilyElement[]>>({});
+    const {familyTreeResponse, setFamilyTreeResponse} = useContext(FamilyTreeContext);
     useEffect(() => {
         const fetchFamilyTree = async() => {
-            setFamilyTreeResponse(await getClientFamilyTree());
+            if (_.isEqual(familyTreeResponse, {})) {
+                setFamilyTreeResponse(await getClientFamilyTree());
+            }
         }
         fetchFamilyTree();
-    }, [familyTreeResponse])
+    }, [familyTreeResponse, setFamilyTreeResponse])
     return (
         <>
             {!_.isUndefined(familyTreeResponse.problem) && (
                 <ErrorDisplayComponent message={familyTreeResponse.problem.message}/>
             )}
             {!_.isUndefined(familyTreeResponse.output) && (
-                <div>
+                <SelectedFamilyElementProvider>
                     {familyTreeResponse.output.map((family) => (
                         <FamilyElementDisplay member={family.member} inLaw={family.inLaw} marriageDate={family.marriageDate} />
                     ))}
-                </div>
+                </SelectedFamilyElementProvider>
             )}
         </>
     );

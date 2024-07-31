@@ -10,7 +10,7 @@ namespace FamilyTreeAPI
 {
     public static class APIUtils
     {
-        private const string STRING_DEFAULT = "unknown";
+        public const string STRING_DEFAULT = "unknown";
 
         public static ClientFamilyNameElement ClientFamilyName
         {
@@ -106,7 +106,7 @@ namespace FamilyTreeAPI
             }
         }
 
-        public static IActionResult SerializeAsClinetError(ClientException ex)
+        public static IActionResult SerializeAsClientError(ClientException ex)
         {
             MessageResponse response = new()
             {

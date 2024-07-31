@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from "react";
+import React, { useContext, useEffect} from "react";
 import ParentOfSelectedElement from "../components/ParentOfSelectedElementDisplay";
 import FamilyInfoElement from "../components/FamilyInfoElementComponent";
 import { FamilyDefault, createURL, getClientSelectedFamily, setClientPageTitle } from "../Utils";
@@ -7,36 +7,42 @@ import ChildrenOfSelectedElement from "../components/ChildrenOfSelectedElement";
 import { useNavigate } from "react-router-dom";
 import Title from "../components/TitleComponent";
 import './FamilyProfilePage.css';
-import FamilyElement from "../models/FamilyElement";
+import SelectedFamilyElementContext from "../context/SelectedFamilyElementContext";
+import _ from "lodash";
+import TitleContext from "../context/TitleContext";
+import SelectedFamilyElementProvider from "../providers/SelectedFamilyElementProvider";
 
 const FamilyProfilePage: React.FC = () => {
-    const [selectedFamily, setSelectedFamily] = useState<FamilyElement>(FamilyDefault);
+    const {selectedFamilyElement, changeFamilyElement} = useContext(SelectedFamilyElementContext);
+    const {title, setTitle} = useContext(TitleContext);
     let navigate = useNavigate();
     useEffect(() => {
         const fetchSelectedFamily = async() => {
-            setSelectedFamily(await getClientSelectedFamily());
+            if (_.isEqual(selectedFamilyElement, FamilyDefault)) {
+                changeFamilyElement(await getClientSelectedFamily());
+            }
         }
         fetchSelectedFamily();
-    }, [selectedFamily]);
+    }, [selectedFamilyElement, changeFamilyElement]);
 
     const handleViewSubtree = async() => {
-        await setClientPageTitle(`This is the subtree of ${selectedFamily.member.name}`).then(() => {
-            navigate(createURL('/sub-tree', {memberName: selectedFamily.member.name}));
-        });
+        setTitle(`This is the subtree of ${selectedFamilyElement.member.name}`);
+        await setClientPageTitle(title);
+        navigate(createURL('/sub-tree', {memberName: selectedFamilyElement.member.name}));
     }
 
     return (
-        <div>
+        <SelectedFamilyElementProvider>
             <Title />
-            <ParentOfSelectedElement selectedFamily={selectedFamily}/>
-            <FamilyInfoElement selectedFamily={selectedFamily}/>
-            <ReportActionsSection selectedFamily={selectedFamily}/>
-            <ChildrenOfSelectedElement selectedFamily={selectedFamily}/>
+            <ParentOfSelectedElement selectedFamily={selectedFamilyElement}/>
+            <FamilyInfoElement selectedFamily={selectedFamilyElement}/>
+            <ReportActionsSection selectedFamily={selectedFamilyElement}/>
+            <ChildrenOfSelectedElement selectedFamily={selectedFamilyElement}/>
             <div id="family-profile-controls">
                 <button type="button" className="family-profile-control" onClick={() => navigate('/family-tree')}>Back To Tree</button>
                 <button type="button" className="family-profile-control" onClick={handleViewSubtree}>View Subtree</button>
             </div>
-        </div>
+        </SelectedFamilyElementProvider>
     );
 };
 

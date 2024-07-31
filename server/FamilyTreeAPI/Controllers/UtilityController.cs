@@ -22,11 +22,11 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (FormatException ex)
             {
-                return APIUtils.SerializeAsClinetError(new ClientBadRequestException(ex.Message, ex));
+                return APIUtils.SerializeAsClientError(new ClientBadRequestException(ex.Message, ex));
             }
             catch (NullReferenceException ex)
             {
-                return APIUtils.SerializeAsClinetError(new ClientNotFoundException(ex.Message, ex));
+                return APIUtils.SerializeAsClientError(new ClientNotFoundException(ex.Message, ex));
             }
             catch (Exception ex)
             {
@@ -35,7 +35,7 @@ namespace FamilyTreeAPI.Controllers
         }
 
         [HttpPost("family-element-to-representation")]
-        public IActionResult FamilyElementToRepresenation([FromBody] FamilyElement element)
+        public IActionResult FamilyElementToRepresentation([FromBody] FamilyElement element)
         {
             try
             {
@@ -50,11 +50,11 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (NullReferenceException ex)
             {
-                return APIUtils.SerializeAsClinetError(new ClientNotFoundException(ex.Message, ex));
+                return APIUtils.SerializeAsClientError(new ClientNotFoundException(ex.Message, ex));
             }
             catch (Exception ex)
             {
@@ -67,7 +67,7 @@ namespace FamilyTreeAPI.Controllers
         {
             try
             {
-                return APIUtils.ClientFamilyName is null ? Ok(new ClientFamilyNameElement() {FamilyName = string.Empty}) : Ok(APIUtils.ClientFamilyName);
+                return APIUtils.ClientFamilyName is null ? Ok(new ClientFamilyNameElement() {FamilyName = APIUtils.STRING_DEFAULT}) : Ok(APIUtils.ClientFamilyName);
             }
             catch (Exception ex)
             {
@@ -80,7 +80,7 @@ namespace FamilyTreeAPI.Controllers
         {
             try
             {
-                return APIUtils.ClientFamilyTree is null ? Ok(new ClientFamilyTreeElement() {Output = Array.Empty<FamilyElement>()}) : Ok(APIUtils.ClientFamilyTree);
+                return APIUtils.ClientFamilyTree is null ? Ok(new ClientFamilyTreeElement()) : Ok(APIUtils.ClientFamilyTree);
             }
             catch (Exception ex)
             {
@@ -93,7 +93,7 @@ namespace FamilyTreeAPI.Controllers
         {
             try
             {
-                return APIUtils.ClientPageTitle is null ? Ok(new ClientPageTitleElement(){Title = string.Empty}) : Ok(APIUtils.ClientPageTitle);
+                return APIUtils.ClientPageTitle is null ? Ok(new ClientPageTitleElement(){Title = APIUtils.STRING_DEFAULT}) : Ok(APIUtils.ClientPageTitle);
             }
             catch (Exception ex)
             {
@@ -130,11 +130,11 @@ namespace FamilyTreeAPI.Controllers
             }
             catch (ClientException ex)
             {
-                return APIUtils.SerializeAsClinetError(ex);
+                return APIUtils.SerializeAsClientError(ex);
             }
             catch (NullReferenceException ex)
             {
-                return APIUtils.SerializeAsClinetError(new ClientNotFoundException(ex.Message, ex));
+                return APIUtils.SerializeAsClientError(new ClientNotFoundException(ex.Message, ex));
             }
             catch (Exception ex)
             {

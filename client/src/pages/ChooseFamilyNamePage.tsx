@@ -6,11 +6,13 @@ import {initializeService, setClientFamilyName, setClientPageTitle, StringDefaul
 import _ from "lodash";
 import ErrorDisplayComponent from "../components/ErrorDisplayComponent";
 import FamilyNameContext from "../context/FamilyNameContext";
+import TitleContext from "../context/TitleContext";
 
 
 const ChooseFamilyNamePage: React.FC = () => {
     let navigate = useNavigate();
     const {name, setName} = useContext(FamilyNameContext);
+    const {title, setTitle} = useContext(TitleContext);
     const [familyNameResponse, setFamilyNameResponse] = useState<OutputResponse<MessageResponse>>({});
     const handleSubmitFamilyName = async(e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -18,7 +20,8 @@ const ChooseFamilyNamePage: React.FC = () => {
         if (!_.isEqual(name, StringDefault)) {
             const response: OutputResponse<MessageResponse> = await initializeService(name);
             if (response.output) {
-                await setClientPageTitle(response.output.message);
+                setTitle(response.output.message);
+                await setClientPageTitle(title);
                 navigate('/family-tree');
             }
         }

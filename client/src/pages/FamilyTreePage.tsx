@@ -9,6 +9,7 @@ import RevertTreeSection from "../components/RevertTreeSection";
 import Title from "../components/TitleComponent";
 import { getClientFamilyName, StringDefault } from "../Utils";
 import FamilyNameContext from "../context/FamilyNameContext";
+import FamilyTreeProvider from "../providers/FamilyTreeProvider";
 const FamilyTreePage: React.FC = () => {
     const {name, setName} = useContext(FamilyNameContext);
     useEffect(() => {
@@ -21,14 +22,14 @@ const FamilyTreePage: React.FC = () => {
         fetchFamilyName();
     }, [name, setName])
     return (
-        <div>
+        <FamilyTreeProvider>
             <Title />
             <SelectedFileProvider>
                 <RevertTreeSection familyName={name}/>
             </SelectedFileProvider>
             <FamilyTreeInput includesEntireTree={true}/>
             <FamilyTreeDisplay />
-        </div>
+        </FamilyTreeProvider>
     );
 }
 
