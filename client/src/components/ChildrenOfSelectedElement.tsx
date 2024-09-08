@@ -1,34 +1,44 @@
 import React, { useContext, useEffect, useState } from "react";
-import FamilyElement, { FamilyElementContext } from "../models/FamilyElement";
-import OutputResponse from "../models/outputResponse";
-import { retrieveChildren } from "../Utils";
+import FamilyElementContext from "../contexts/FamilyElementContext";
+import FamilyElement from "../models/FamilyElement";
+import FamilyTreeApiResponse from "../models/FamilyTreeApiResponse";
+import { retrieveChildren } from "../ApiCalls";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import FamilyElementDisplay from "./FamilyElementDisplay";
+import { EmptyResponse } from "../Constants";
+import { isProcessing, isSuccess } from "../Utils";
+import useLoadingContext from "../hooks/useLoadingContext";
+import { LoadingContext } from "../Enums";
+import LoadingComponent from "./LoadingComponent";
 
 const ChildrenOfSelectedElement: React.FC = () => {
     const {selectedElement} = useContext(FamilyElementContext);
-    const [childrenResponse, setChildrenResponse] = useState<OutputResponse<FamilyElement[]>>({});
+    const {addLoadingContext, removeLoadingContext} = useLoadingContext();
+    const [childrenResponse, setChildrenResponse] = useState<FamilyTreeApiResponse>(EmptyResponse);
 
     useEffect(() => {
         const fetchChildren = async() => {
-            const response: OutputResponse<FamilyElement[]> = await retrieveChildren(selectedElement);
-            setChildrenResponse(response);
+            addLoadingContext(LoadingContext.RetrieveChildren);
+            setChildrenResponse(await retrieveChildren(selectedElement));
+            if (!isProcessing(childrenResponse)) {
+                removeLoadingContext(LoadingContext.ReportChildren);
+            }
         };
         fetchChildren();
-    }, [selectedElement]);
+    }, [selectedElement, addLoadingContext, removeLoadingContext, childrenResponse]);
 
     return (
         <div>
             <h2>Children:</h2>
-            {childrenResponse.problem && <ErrorDisplayComponent message={childrenResponse.problem.message} />}
-            {childrenResponse.output && (
+            <LoadingComponent context={LoadingContext.RetrieveChildren} response={childrenResponse} />
+            <ErrorDisplayComponent response={childrenResponse} />
+            {isSuccess(childrenResponse) && (
                 <>
-                {childrenResponse.output.map((element: FamilyElement) => (
+                {(childrenResponse.result as FamilyElement[]).map((element: FamilyElement) => (
                     <FamilyElementDisplay member={element.member} inLaw={element.inLaw} marriageDate={element.marriageDate}/>
                 ))}
                 </>
             )}
-            {(!childrenResponse.problem && !childrenResponse.output) && <h3>Loading Children...</h3>}
         </div>
     );
 };

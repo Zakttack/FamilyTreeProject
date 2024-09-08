@@ -1,27 +1,37 @@
 import React, { useContext, useEffect, useState } from "react";
-import _ from "lodash";
-import FamilyElement, { FamilyElementContext } from "../models/FamilyElement";
-import OutputResponse from "../models/outputResponse";
-import { retrieveParent } from "../Utils";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import FamilyElementDisplay from "./FamilyElementDisplay";
+import LoadingComponent from "./LoadingComponent";
+import FamilyElementContext from "../contexts/FamilyElementContext";
+import useLoadingContext from "../hooks/useLoadingContext";
+import FamilyElement from "../models/FamilyElement";
+import FamilyTreeApiResponse from "../models/FamilyTreeApiResponse";
+import { retrieveParent } from "../ApiCalls";
+import { EmptyResponse } from "../Constants";
+import { LoadingContext } from "../Enums";
+import { isProcessing, isSuccess } from "../Utils";
 
 const ParentOfSelectedElement: React.FC = () => {
     const {selectedElement} = useContext(FamilyElementContext);
-    const [parentResult,setParentResult] = useState<OutputResponse<FamilyElement>>({});
+    const {addLoadingContext, removeLoadingContext} = useLoadingContext();
+    const [parentResult,setParentResult] = useState<FamilyTreeApiResponse>(EmptyResponse);
     useEffect(() => {
         const getParentElement = async () => {
-            const response: OutputResponse<FamilyElement> = await retrieveParent(selectedElement);
-            setParentResult(response);
+            addLoadingContext(LoadingContext.RetrieveParent);
+            setParentResult(await retrieveParent(selectedElement));
+            if (!isProcessing(parentResult)) {
+                removeLoadingContext(LoadingContext.RetrieveParent);
+            }
         }
         getParentElement();
-    }, [selectedElement]);
+    }, [selectedElement, addLoadingContext, removeLoadingContext, parentResult]);
 
     return (
         <div>
             <h2>Parent:</h2>
-            {!_.isUndefined(parentResult.problem) && <ErrorDisplayComponent message={parentResult.problem.message}/>}
-            {!_.isUndefined(parentResult.output) && <FamilyElementDisplay member={parentResult.output.member} inLaw={parentResult.output.inLaw} marriageDate={parentResult.output.marriageDate}/>}
+            <LoadingComponent context={LoadingContext.RetrieveParent} response={parentResult} />
+            <ErrorDisplayComponent response={parentResult} />
+            {isSuccess(parentResult) && <FamilyElementDisplay member={(parentResult.result as FamilyElement).member} inLaw={(parentResult.result as FamilyElement).inLaw} marriageDate={(parentResult.result as FamilyElement).marriageDate}/>}
         </div>
     );
 };

@@ -1,44 +1,38 @@
-import React, { useContext, useState } from "react";
-import ReportActionsContext from "../models/ReportActionsContext";
-import ReportActionsProvider from "../providers/ReportActionsProvider";
-import './ReportActionsSection.css';
-import ReportMarriageForm from "./ReportMarriageForm";
-import ErrorDisplayComponent from "./ErrorDisplayComponent";
-import ReportDeceasedForm from "./ReportDeceasedForm";
+import React, { useState } from "react";
+import ReportActionsOutput from "./ReportActionsOutput";
 import ReportChildrenForm from "./ReportChildrenForm";
+import ReportDeceasedForm from "./ReportDeceasedForm";
+import ReportMarriageForm from "./ReportMarriageForm";
+import ReportActionsProvider from "../providers/ReportActionsProvider";
+import { ReportSections } from "../Enums";
+import './ReportActionsSection.css';
 
-enum Sections {
-    Default,
-    ReportMarriage,
-    ReportDeceased,
-    ReportChildren
-};
+
 
 const ReportActionsSection: React.FC = () => {
-    const [selectedSection, changeSelectedSection] = useState<Sections>(Sections.Default);
-    const {response} = useContext(ReportActionsContext);
+    const [selectedSection, changeSelectedSection] = useState<ReportSections>(ReportSections.Default);
 
     return (
         <ReportActionsProvider>
             <h2>Report Actions:</h2>
             <section id="report-actions-section">
                 <div id="report-action-headers">
-                    <header className="report-action-header" onClick={() => changeSelectedSection(Sections.ReportMarriage)} tabIndex={0} role="button">
+                    <header className="report-action-header" onClick={() => changeSelectedSection(ReportSections.ReportMarriage)} tabIndex={0} role="button">
                         Report Marriage
                     </header>
-                    <header className="report-action-header" onClick={() => changeSelectedSection(Sections.ReportDeceased)} tabIndex={0} role="button">
+                    <header className="report-action-header" onClick={() => changeSelectedSection(ReportSections.ReportDeceased)} tabIndex={0} role="button">
                         Report Deceased
                     </header>
-                    <header className="report-action-header" onClick={() => changeSelectedSection(Sections.ReportChildren)} tabIndex={0} role="button">
+                    <header className="report-action-header" onClick={() => changeSelectedSection(ReportSections.ReportChildren)} tabIndex={0} role="button">
                         Report Children
                     </header>
                 </div>
                 <div id="report-action-form">
-                    {selectedSection === Sections.ReportMarriage && <ReportMarriageForm />}
-                    {selectedSection === Sections.ReportDeceased && <ReportDeceasedForm />}
-                    {selectedSection === Sections.ReportChildren && <ReportChildrenForm />}
+                    {selectedSection === ReportSections.ReportMarriage && <ReportMarriageForm />}
+                    {selectedSection === ReportSections.ReportDeceased && <ReportDeceasedForm />}
+                    {selectedSection === ReportSections.ReportChildren && <ReportChildrenForm />}
                 </div>
-                {response.problem && <ErrorDisplayComponent message={response.problem.message}/>}
+                <ReportActionsOutput section={selectedSection} />
             </section>
         </ReportActionsProvider>
     );

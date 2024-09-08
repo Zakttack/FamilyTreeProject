@@ -1,42 +1,47 @@
 import React, { useContext, useEffect, useState } from "react";
 import _ from "lodash";
-import { FamilyElementContext } from "../models/FamilyElement";
+import FamilyElementContext from "../contexts/FamilyElementContext";
 import PersonInfoElement from "./PersonInfoElementComponent";
-import { PersonType } from "../models/personInfoInput";
-import OutputResponse from "../models/outputResponse";
-import { generationNumberOf } from "../Utils";
+import FamilyTreeApiResponse from "../models/FamilyTreeApiResponse";
+import { generationNumberOf } from "../ApiCalls";
+import { LoadingContext, PersonType } from "../Enums";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
+import { EmptyResponse, StringDefault } from "../Constants";
+import useLoadingContext from "../hooks/useLoadingContext";
+import { isProcessing, isSuccess } from "../Utils";
+import LoadingComponent from "./LoadingComponent";
 
 const FamilyInfoElement: React.FC = () => {
     const {selectedElement} = useContext(FamilyElementContext);
-    const [generationNumberResponse, setGenerationNumberResponse] = useState<OutputResponse<number>>({});
+    const {addLoadingContext, removeLoadingContext} = useLoadingContext();
+    const [generationNumberResponse, setGenerationNumberResponse] = useState<FamilyTreeApiResponse>(EmptyResponse);
 
     useEffect(() => {
         const handleGenerationNumberOf = async() => {
-            const response: OutputResponse<number> = await generationNumberOf(selectedElement);
+            addLoadingContext(LoadingContext.GenerationNumber);
+            const response = await generationNumberOf(selectedElement);
             setGenerationNumberResponse(response);
+            if (!isProcessing(generationNumberResponse)) {
+                removeLoadingContext(LoadingContext.GenerationNumber);
+            }
         };
         handleGenerationNumberOf();
-    }, [selectedElement]);
-    if (generationNumberResponse.problem) {
-        return (
-            <ErrorDisplayComponent message={generationNumberResponse.problem.message}/>
-        );
-    }
-    else if (generationNumberResponse.output) {
-        return (
-            <div>
-                <h2>Info:</h2>
-                <h3>Generation Number: {generationNumberResponse.output}</h3>
-                <PersonInfoElement type={PersonType.Member} element={selectedElement.member}/>
-                <PersonInfoElement type={PersonType.InLaw} element={selectedElement.inLaw}/>
-                <h3>Marriage Date: {_.isNull(selectedElement.marriageDate) ? 'unknown' : selectedElement.marriageDate}</h3>
-            </div>
-        );
-    }
+    }, [selectedElement, addLoadingContext, removeLoadingContext, generationNumberResponse]);
     return (
-        <h2>Loading Element...</h2>
-    )
+        <div>
+            <h2>Info:</h2>
+            <LoadingComponent context={LoadingContext.GenerationNumber} response={generationNumberResponse} />
+            <ErrorDisplayComponent response={generationNumberResponse}/>
+            {isSuccess(generationNumberResponse) && (
+                <>
+                    <h3>Generation Number: {generationNumberResponse.result as number}</h3>
+                    <PersonInfoElement type={PersonType.Member} element={selectedElement.member}/>
+                    <PersonInfoElement type={PersonType.InLaw} element={selectedElement.inLaw}/>
+                    <h3>Marriage Date: {_.isNull(selectedElement.marriageDate) ? StringDefault : selectedElement.marriageDate}</h3>
+                </>
+            )}
+        </div>
+    );
 };
 
 export default FamilyInfoElement;

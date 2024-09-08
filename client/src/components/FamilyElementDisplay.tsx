@@ -1,55 +1,64 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import _ from "lodash";
-import FamilyElement, { FamilyDefault, FamilyElementContext } from "../models/FamilyElement";
+import FamilyElement from "../models/FamilyElement";
+import { FamilyDefault, StringDefault, PersonDefault, EmptyResponse } from "../Constants";
+import FamilyElementContext from "../contexts/FamilyElementContext";
 import RepresentationElement from "../models/RepresentationElement";
 import ErrorDisplayComponent from "./ErrorDisplayComponent";
 import "./FamilyElementDisplay.css"
-import OutputResponse from "../models/outputResponse";
-import { createURL, StringDefault, familyElementToRepresentation, representationToFamilyElement } from "../Utils";
-import { PersonDefault } from "../models/PersonElement";
+import FamilyTreeApiResponse from "../models/FamilyTreeApiResponse";
+import { familyElementToRepresentation, representationToFamilyElement } from "../ApiCalls";
+import { createURL, isProcessing, isSuccess } from "../Utils";
+import useLoadingContext from "../hooks/useLoadingContext";
+import { LoadingContext } from "../Enums";
+import LoadingComponent from "./LoadingComponent";
 
 const FamilyElementDisplay: React.FC<FamilyElement> = (element) => {
-    const {changeSelectedElement} = useContext(FamilyElementContext);
-    const [representationOutput, setRepresentationOutput] = useState<OutputResponse<RepresentationElement>>({});
+    const {selectedElement, changeSelectedElement} = useContext(FamilyElementContext);
+    const {addLoadingContext, removeLoadingContext, isLoading} = useLoadingContext();
+    const [representationOutput, setRepresentationOutput] = useState<FamilyTreeApiResponse>(EmptyResponse);
     let navigate = useNavigate();
 
     const handleClick = async(e: React.MouseEvent<HTMLParagraphElement>) => {
-        const input = _.isNull(e.currentTarget.textContent) ? StringDefault : e.currentTarget.textContent;
-        const response: OutputResponse<FamilyElement> = await representationToFamilyElement({representation: input});
-        changeSelectedElement(_.isUndefined(response.output) ? FamilyDefault : response.output);
-        if (_.isUndefined(response.output) || _.isEqual(response.output.member, PersonDefault)) {
-            navigate('/dashboard');
-        }
-        else if (_.isEqual(response.output.inLaw, PersonDefault)) {
-            navigate(createURL('/family-profile', {member: response.output.member.name}));
-        }
-        else {
-            navigate(createURL('/family-profile', {member: response.output.member.name, inLaw: response.output.inLaw.name}));
+        if (!isLoading()) {
+            const input = _.isNull(e.currentTarget.textContent) ? StringDefault : e.currentTarget.textContent;
+            addLoadingContext(LoadingContext.RepresentationToFamilyElement);
+            const response = await representationToFamilyElement({representation: input});
+            if (!isProcessing(response)) {
+                removeLoadingContext(LoadingContext.RepresentationToFamilyElement);
+                changeSelectedElement(isSuccess(response) && response.result ? response.result as FamilyElement : FamilyDefault);
+                if (!isSuccess(response) || _.isEqual(selectedElement.member, PersonDefault)) {
+                    navigate('/dashboard');
+                }
+                else if (_.isEqual(selectedElement.inLaw, PersonDefault)) {
+                    navigate(createURL('/family-profile', {member: selectedElement.member.name}));
+                }
+                else {
+                    navigate(createURL('/family-profile', {member: selectedElement.member.name, inLaw: selectedElement.inLaw.name}));
+                }
+            }
         }
     };
 
     useEffect(() => {
         const handleRender = async () => {
-            const response: OutputResponse<RepresentationElement> = await familyElementToRepresentation(element);
+            addLoadingContext(LoadingContext.FamilyElementToRepresentation);
+            const response = await familyElementToRepresentation(element);
             setRepresentationOutput(response);
+            if (!isProcessing(representationOutput)) {
+                removeLoadingContext(LoadingContext.FamilyElementToRepresentation);
+            }
         };
         handleRender();
-    }, [element]);
-
-    if (!_.isUndefined(representationOutput.problem)) {
-        return (
-            <ErrorDisplayComponent message={representationOutput.problem.message}/>
-        );
-    }
-    else if (!_.isUndefined(representationOutput.output)) {
-        return (
-            <p className="familyElement" onClick={handleClick}>{representationOutput.output.representation}</p>
-        );
-    }
+    }, [element, addLoadingContext, removeLoadingContext, representationOutput]);
     return (
-        <ErrorDisplayComponent message="Something Went Wrong"/>
-    );
+        <>
+            <LoadingComponent context={LoadingContext.FamilyElementToRepresentation} response={representationOutput}/>
+            <ErrorDisplayComponent response={representationOutput} />
+            {isSuccess(representationOutput) && <p className="familyElement" onClick={handleClick}>{(representationOutput.result as RepresentationElement).representation}</p>}
+        </>
+    )
 };
 
 export default FamilyElementDisplay;

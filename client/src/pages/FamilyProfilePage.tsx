@@ -1,14 +1,15 @@
 import React, { useContext, useEffect} from "react";
-import _ from "lodash";
-import { FamilyElementContext } from "../models/FamilyElement";
-import ParentOfSelectedElement from "../components/ParentOfSelectedElementDisplay";
-import FamilyInfoElement from "../components/FamilyInfoElementComponent";
-import { StringDefault, createURL } from "../Utils";
-import ReportActionsSection from "../components/ReportActionsSection";
-import ChildrenOfSelectedElement from "../components/ChildrenOfSelectedElement";
 import { useNavigate } from "react-router-dom";
-import TitleContext from "../models/TitleContext";
+import _ from "lodash";
+import ChildrenOfSelectedElement from "../components/ChildrenOfSelectedElement";
+import FamilyInfoElement from "../components/FamilyInfoElementComponent";
+import ParentOfSelectedElement from "../components/ParentOfSelectedElementDisplay";
 import Title from "../components/TitleComponent";
+import ReportActionsSection from "../components/ReportActionsSection";
+import FamilyElementContext from "../contexts/FamilyElementContext";
+import TitleContext from "../contexts/TitleContext";
+import { StringDefault } from "../Constants";
+import { createURL } from "../Utils";
 import './FamilyProfilePage.css';
 
 const FamilyProfilePage: React.FC = () => {

@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import ReportActionsContext from "../models/ReportActionsContext";
-import { ProviderProps } from "../models/providerProps";
-import OutputResponse from "../models/outputResponse";
-import MessageResponse from "../models/MessageResponse";
+import ReportActionsContext from "../contexts/ReportActionsContext";
+import ProviderProps from "../models/ProviderProps";
+import FamilyTreeApiResponse from "../models/FamilyTreeApiResponse";
+import { EmptyResponse } from "../Constants";
 
 const ReportActionsProvider: React.FC<ProviderProps> = ({children}) => {
-    const [response, setResponse] = useState<OutputResponse<MessageResponse>>({});
+    const [response, setResponse] = useState<FamilyTreeApiResponse>(EmptyResponse);
+    const [reportMade, isReportMade] = useState<boolean>(false);
     return (
-        <ReportActionsContext.Provider value={{response: response, setResponse: setResponse}}>
+        <ReportActionsContext.Provider value={{response, reportMade, isReportMade, setResponse}}>
             {children}
         </ReportActionsContext.Provider>
     );

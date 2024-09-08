@@ -1,12 +1,15 @@
-import React, {useContext, useState} from "react";
-import { useNavigate } from "react-router-dom";
-import {FamilyDefault, FamilyElementContext} from "../models/FamilyElement";
-import OutputResponse from "../models/outputResponse";
-import MessageResponse from "../models/MessageResponse";
-import { reportMarriage } from "../Utils";
-import ReportActionsContext from "../models/ReportActionsContext";
+import React, {ChangeEvent, FormEvent, useContext, useState} from "react";
+import _ from "lodash";
+import FamilyElementContext from "../contexts/FamilyElementContext";
+import ReportActionsContext from "../contexts/ReportActionsContext";
+import useLoadingContext from "../hooks/useLoadingContext";
+import ReportMarriageRequest from "../models/ReportMarriageRequest";
+import { reportMarriage } from "../ApiCalls";
+import { StringDefault } from "../Constants";
+import { LoadingContext } from "../Enums";
+import { isProcessing } from "../Utils";
 
-function stringToBoolean(value: string): boolean {
+function stringToBoolean(value: string) {
     if (value.toLowerCase() === 'true') {
         return true;
     }
@@ -18,57 +21,81 @@ function stringToBoolean(value: string): boolean {
 
 const ReportMarriageForm: React.FC = () => {
     const {selectedElement} = useContext(FamilyElementContext);
-    const {setResponse} = useContext(ReportActionsContext);
+    const {response, isReportMade, setResponse} = useContext(ReportActionsContext);
+    const {addLoadingContext, isLoading, removeLoadingContext} = useLoadingContext();
     const [memberName, setMemberName] = useState<string>(selectedElement.member.name);
     const [memberNameIsBeingCustomized, isMemberNameBeingCustomized] = useState<boolean>(false);
-    const [inLawName, setInLawName] = useState<string>(FamilyDefault.inLaw.name);
-    const [inLawBirthDate, setInLawBirthDate] = useState<string>(FamilyDefault.inLaw.birthDate);
-    const [inLawDeceasedDate, setInLawDeceasedDate] = useState<string>(FamilyDefault.inLaw.deceasedDate);
-    const [marriageDate, setMarriageDate] = useState<string>(FamilyDefault.marriageDate);
-    let navigate = useNavigate();
+    const [inLawName, setInLawName] = useState<string>('');
+    const [inLawBirthDate, setInLawBirthDate] = useState<string>('');
+    const [inLawDeceasedDate, setInLawDeceasedDate] = useState<string>('');
+    const [marriageDate, setMarriageDate] = useState<string>('');
 
     const handleMemberNameCustomizationOptions = (e: React.ChangeEvent<HTMLInputElement>) => {
         isMemberNameBeingCustomized(stringToBoolean(e.target.value));
     };
 
-    const handleMemberNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleMemberNameChange = (e: ChangeEvent<HTMLInputElement>) => {
         setMemberName(e.target.value);
     };
 
-    const handleInLawNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInLawNameChange = (e: ChangeEvent<HTMLInputElement>) => {
         setInLawName(e.target.value);
     };
 
-    const handleInLawBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInLawBirthDateChange = (e: ChangeEvent<HTMLInputElement>) => {
         setInLawBirthDate(e.target.value);
     };
 
-    const handleInLawDeceasedDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInLawDeceasedDateChange = (e: ChangeEvent<HTMLInputElement>) => {
         setInLawDeceasedDate(e.target.value);
     };
 
-    const handleMarriageDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleMarriageDateChange = (e: ChangeEvent<HTMLInputElement>) => {
         setMarriageDate(e.target.value);
     };
 
-    const handleReportMarriage = async(e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const response: OutputResponse<MessageResponse> = await reportMarriage({
-            member: {
-                name: memberName,
-                birthDate: selectedElement.member.birthDate,
-                deceasedDate: selectedElement.member.deceasedDate
-            },
-            inLaw: {
-                name: inLawName,
-                birthDate: inLawBirthDate,
-                deceasedDate: inLawDeceasedDate
-            },
-            marriageDate: marriageDate
-        });
-        setResponse(response);
-        if (response.output) {
-            navigate('/family-tree');
+    const handleReportMarriage = async(e: FormEvent<HTMLFormElement>) => {
+        if (!isLoading()) {
+            e.preventDefault();
+            isReportMade(true);
+            if (_.isEqual(memberName, '')) {
+                setMemberName(StringDefault);
+            }
+            if (_.isEqual(inLawName, '')) {
+                setInLawName(StringDefault);
+            }
+            if (_.isEqual(inLawBirthDate, '')) {
+                setInLawBirthDate(StringDefault);
+            }
+            if (_.isEqual(inLawDeceasedDate, '')) {
+                setInLawDeceasedDate(StringDefault);
+            }
+            const request: ReportMarriageRequest = {
+                initialMember: selectedElement.member,
+                family: {
+                    member: {
+                        name: memberName,
+                        birthDate: selectedElement.member.birthDate,
+                        deceasedDate: selectedElement.member.deceasedDate
+                    },
+                    inLaw: {
+                        name: inLawName,
+                        birthDate: inLawBirthDate,
+                        deceasedDate: inLawDeceasedDate
+                    },
+                    marriageDate: marriageDate
+                }
+            };
+            addLoadingContext(LoadingContext.ReportMarriage);
+            setResponse(await reportMarriage(request));
+            if (!isProcessing(response)) {
+                removeLoadingContext(LoadingContext.ReportMarriage);
+                isReportMade(false);
+                setMemberName('');
+                setInLawName('');
+                setInLawBirthDate('');
+                setInLawDeceasedDate('');
+            }
         }
     };
 
