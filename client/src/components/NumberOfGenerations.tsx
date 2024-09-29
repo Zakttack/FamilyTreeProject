@@ -1,16 +1,16 @@
-import React, {useContext, useEffect, useState} from "react";
-import ErrorDisplayComponent from "./ErrorDisplayComponent";
-import LoadingComponent from "./LoadingComponent";
-import FamilyNameContext from "../contexts/FamilyNameContext";
+import React, {useEffect, useState} from "react";
+import ErrorDisplayComponent from "./ErrorDisplay";
+import LoadingComponent from "./LoadingDisplay";
+import useCriticalAttributes from "../hooks/useCriticalAttributes";
 import useLoadingContext from "../hooks/useLoadingContext";
-import FamilyTreeApiResponse from "../models/FamilyTreeApiResponse";
 import { getNumberOfGenerations } from "../ApiCalls";
 import { EmptyResponse } from "../Constants";
 import { LoadingContext } from "../Enums";
+import { FamilyTreeApiResponse } from "../Types";
 import { isProcessing, isSuccess } from "../Utils";
 
-const GetNumberOfGenerationsComponent: React.FC = () => {
-    const {familyName} = useContext(FamilyNameContext);
+const NumberOfGenerations: React.FC = () => {
+    const {familyName} = useCriticalAttributes();
     const {addLoadingContext, removeLoadingContext} = useLoadingContext();
     const [numericOutput, setNumericOutput] = useState<FamilyTreeApiResponse>(EmptyResponse);
     useEffect(() => {
@@ -32,4 +32,4 @@ const GetNumberOfGenerationsComponent: React.FC = () => {
     )
 }
 
-export default GetNumberOfGenerationsComponent;
+export default NumberOfGenerations;

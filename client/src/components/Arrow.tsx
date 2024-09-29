@@ -6,7 +6,7 @@ interface ArrowComponentParams {
     isVisible: boolean;
 }
 
-const ArrowComponent: React.FC<ArrowComponentParams> = (params) => {
+const Arrow: React.FC<ArrowComponentParams> = (params) => {
     if (params.isVisible) {
         return (
             <FontAwesomeIcon icon={faArrowUp}/>
@@ -17,4 +17,4 @@ const ArrowComponent: React.FC<ArrowComponentParams> = (params) => {
     );
 };
 
-export default ArrowComponent;
+export default Arrow;

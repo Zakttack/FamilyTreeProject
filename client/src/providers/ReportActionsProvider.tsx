@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import ReportActionsContext from "../contexts/ReportActionsContext";
-import ProviderProps from "../models/ProviderProps";
-import FamilyTreeApiResponse from "../models/FamilyTreeApiResponse";
 import { EmptyResponse } from "../Constants";
+import { FamilyTreeApiResponse, ProviderProps } from "../Types";
 
 const ReportActionsProvider: React.FC<ProviderProps> = ({children}) => {
     const [response, setResponse] = useState<FamilyTreeApiResponse>(EmptyResponse);

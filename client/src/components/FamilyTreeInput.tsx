@@ -1,25 +1,22 @@
-import React, {FormEvent, useContext, useState} from "react";
-import ErrorDisplayComponent from "./ErrorDisplayComponent";
-import LoadingComponent from "./LoadingComponent";
-import FamilyElementContext from "../contexts/FamilyElementContext";
-import FamilyTreeContext from "../contexts/FamilyTreeContext";
+import React, {FormEvent, useState} from "react";
+import ErrorDisplay from "./ErrorDisplay";
+import LoadingDisplay from "./LoadingDisplay";
+import useCriticalAttributes from "../hooks/useCriticalAttributes";
 import useLoadingContext from "../hooks/useLoadingContext";
-import FamilyElement from "../models/FamilyElement";
-import FamilyTreeApiResponse from "../models/FamilyTreeApiResponse";
-import { getFamilies, viewSubtree } from "../ApiCalls";
+import { getPartnerships, viewSubtree } from "../ApiCalls";
 import { EmptyResponse } from "../Constants";
 import { LoadingContext } from "../Enums";
+import { FamilyTreeApiResponse, Partnership } from "../Types";
 import { isProcessing, isSuccess } from "../Utils";
 
 const FamilyTreeInput: React.FC<{includesEntireTree: boolean}> = (params) => {
-    const orderOptions: string[] = ['unknown', 'parent first then children', 'ascending by name'];
+    const orderOptions: string[] = ['parent first then children', 'ascending by name'];
+    const {selectedPartnership, familyTreeSetter, updateFamilyTree} = useCriticalAttributes()
+    const {addLoadingContext, removeLoadingContext, isLoading} = useLoadingContext();
     const [familyTreeResponse, setFamilyTreeResponse] = useState<FamilyTreeApiResponse>(EmptyResponse)
     const [orderOption, changeOrderOption] = useState<string>(orderOptions[0]);
     const [isClicked, setIsClicked] = useState<boolean>(false);
     const [memberName, setMemberName] = useState<string>('');
-    const {addLoadingContext, removeLoadingContext, isLoading} = useLoadingContext();
-    const {selectedElement} = useContext(FamilyElementContext);
-    const {setFamilyTree} = useContext(FamilyTreeContext);
 
     const getFamilyTree = async(e: FormEvent<HTMLFormElement>) => {
         if (!isLoading()) {
@@ -28,19 +25,19 @@ const FamilyTreeInput: React.FC<{includesEntireTree: boolean}> = (params) => {
             e.preventDefault();
             if (params.includesEntireTree) {
                 addLoadingContext(LoadingContext.RetrieveFamilyTree);
-                setFamilyTreeResponse(await getFamilies(orderOption, memberName));
+                setFamilyTreeResponse(await getPartnerships(orderOption, memberName));
                 if (!isProcessing(familyTreeResponse)) {
                     removeLoadingContext(LoadingContext.ViewSubtree);
-                    setFamilyTree(isSuccess(familyTreeResponse) ? familyTreeResponse.result as FamilyElement[] : []);
+                    await updateFamilyTree(isSuccess(familyTreeResponse) ? familyTreeResponse.result as Partnership[] : []);
                     setIsClicked(false);
                 }
             }
             else {
                 addLoadingContext(LoadingContext.ViewSubtree);
-                setFamilyTreeResponse(await viewSubtree(orderOption, memberName, selectedElement));
+                setFamilyTreeResponse(await viewSubtree(orderOption, memberName, selectedPartnership));
                 if (!isProcessing(familyTreeResponse)) {
                     removeLoadingContext(LoadingContext.ViewSubtree);
-                    setFamilyTree(isSuccess(familyTreeResponse) ? familyTreeResponse.result as FamilyElement[] : []);
+                    await updateFamilyTree(isSuccess(familyTreeResponse) ? familyTreeResponse.result as Partnership[] : []);
                     setIsClicked(false);
                 }
             }
@@ -55,8 +52,10 @@ const FamilyTreeInput: React.FC<{includesEntireTree: boolean}> = (params) => {
             </select></label>
             <label>Filter By Member Name:&nbsp;<input type="text" value={memberName} onChange={e => setMemberName(e.target.value)}/></label>
             <button type="submit">Get Family Tree</button>
-            {isClicked && <LoadingComponent context={params.includesEntireTree ? LoadingContext.RetrieveFamilyTree : LoadingContext.ViewSubtree} response={familyTreeResponse} />}
-            <ErrorDisplayComponent response={familyTreeResponse} />
+            {isClicked && <LoadingDisplay context={params.includesEntireTree ? LoadingContext.RetrieveFamilyTree : LoadingContext.ViewSubtree} response={familyTreeResponse} />}
+            <ErrorDisplay response={familyTreeResponse} />
+            {isClicked && <LoadingDisplay context={LoadingContext.UpdateClientFamilyTree} response={familyTreeSetter} />}
+            <ErrorDisplay response={familyTreeSetter} />
         </form>
     );
 };

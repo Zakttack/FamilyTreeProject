@@ -1,18 +1,24 @@
 import React, { useEffect, useState } from "react";
-import ErrorDisplayComponent from "./ErrorDisplayComponent";
-import LoadingComponent from "./LoadingComponent";
+import _ from "lodash";
+import ErrorDisplayComponent from "./ErrorDisplay";
+import LoadingComponent from "./LoadingDisplay";
 import useLoadingContext from "../hooks/useLoadingContext";
-import FamilyTreeApiResponse from "../models/FamilyTreeApiResponse";
-import RepresentationElement from "../models/RepresentationElement";
-import PersonInfoInput from "../models/PersonInfoInput";
-import { personElementToRepresentation } from "../ApiCalls";
+import '../styles/PersonInfo.css';
+import { personToRepresentation } from "../ApiCalls";
 import { EmptyResponse } from "../Constants";
-import { LoadingContext } from "../Enums";
+import { LoadingContext, PersonType } from "../Enums";
+import { FamilyTreeApiResponse, Person, RepresentationElement } from "../Types";
 import { isProcessing, isSuccess } from "../Utils";
-import './PersonInfoElementComponent.css';
 
+/**
+ * Represents input for person information, including their type (Member or InLaw).
+ */
+interface PersonInfoInput {
+    type: PersonType;      // The type of the person (Member or InLaw)
+    element: Person | null; // The person's data, or null if not available
+}
 
-const PersonInfoElement: React.FC<PersonInfoInput> = (input) => {
+const PersonInfo: React.FC<PersonInfoInput> = (input) => {
     const [personInfoResult, setPersonInfoResult] = useState<FamilyTreeApiResponse>(EmptyResponse);
     const {addLoadingContext, removeLoadingContext} = useLoadingContext();
     const [personInfoShown, showPersonInfo] = useState<boolean>(false);
@@ -21,15 +27,18 @@ const PersonInfoElement: React.FC<PersonInfoInput> = (input) => {
     };
     useEffect(() => {
         const handleRender = async() => {
-            addLoadingContext(LoadingContext.PersonElementToRepresentation);
-            setPersonInfoResult(await personElementToRepresentation(input.element));
-            if (!isProcessing(personInfoResult)) {
-                removeLoadingContext(LoadingContext.PersonElementToRepresentation);
+            if (!_.isNull(input.element)) {
+                addLoadingContext(LoadingContext.PersonElementToRepresentation);
+                setPersonInfoResult(await personToRepresentation(input.element));
+                if (!isProcessing(personInfoResult)) {
+                    removeLoadingContext(LoadingContext.PersonElementToRepresentation);
+                }
             }
         };
         handleRender();
     }, [input, addLoadingContext, removeLoadingContext, personInfoResult]);
-    return (
+    
+    return _.isNull(input.element) ? null : (
         <div>
             <h3>{input.type}:</h3>
             <LoadingComponent context={LoadingContext.PersonElementToRepresentation} response={personInfoResult} />
@@ -41,11 +50,11 @@ const PersonInfoElement: React.FC<PersonInfoInput> = (input) => {
                 <div>
                     <p>Name: {input.element.name}</p>
                     <p>Birth Date: {input.element.birthDate}</p>
-                    <p>Deceased Date: {input.element.deceasedDate}</p>
+                    {input.element.deceasedDate && <p>Deceased Date: {input.element.deceasedDate}</p>}
                 </div>
             )}
         </div>
     )
 };
 
-export default PersonInfoElement;
+export default PersonInfo;

@@ -1,6 +1,6 @@
 import React from "react";
-import FamilyTreeApiResponse from "../models/FamilyTreeApiResponse";
 import { EmptyResponse } from "../Constants";
+import { FamilyTreeApiResponse } from "../Types";
 
 interface ReportActionsContextType {
     reportMade: boolean;

@@ -1,23 +1,23 @@
 import React, { FormEvent, useContext, useState } from "react";
 import _ from "lodash";
-import ArrowComponent from "./ArrowComponent";
-import ErrorDisplayComponent from "./ErrorDisplayComponent";
+import Arrow from "./Arrow";
+import ErrorDisplay from "./ErrorDisplay";
 import FileUpload from "./FileUpload";
-import LoadingComponent from "./LoadingComponent";
+import LoadingDisplay from "./LoadingDisplay";
 import SuccessDisplay from "./SuccessDisplayComponent";
-import FamilyNameContext from "../contexts/FamilyNameContext";
 import SelectedFileContext from "../contexts/SelectedFileContext";
+import useCriticalAttributes from "../hooks/useCriticalAttributes";
 import useLoadingContext from "../hooks/useLoadingContext";
-import FamilyTreeApiResponse from "../models/FamilyTreeApiResponse";
 import { revertTree } from "../ApiCalls";
 import { EmptyResponse } from "../Constants";
 import { FamilyTreeApiResponseStatus, LoadingContext } from "../Enums";
+import { FamilyTreeApiResponse } from "../Types";
 import { isProcessing, isSuccess } from "../Utils";
-import './RevertTreeSection.css';
+import '../styles/RevertTreeSection.css';
 
 const RevertTreeSection: React.FC = () => {
-    const {familyName} = useContext(FamilyNameContext);
     const {selectedFile} = useContext(SelectedFileContext);
+    const {familyName} = useCriticalAttributes();
     const {addLoadingContext, isLoading, removeLoadingContext} = useLoadingContext();
     const [revertTreeResponse, setRevertTreeResponse] = useState<FamilyTreeApiResponse>(EmptyResponse);
     const [clicked, isClicked] = useState<boolean>(false);
@@ -50,15 +50,15 @@ const RevertTreeSection: React.FC = () => {
     return (
         <section id="revert-tree-section">
             <header id="revert-tree-header" onClick={handleVisibility}>
-                <h2>Revert Tree&nbsp;&nbsp;<ArrowComponent isVisible={isVisible}/></h2>
+                <h2>Revert Tree&nbsp;&nbsp;<Arrow isVisible={isVisible}/></h2>
             </header>
             {isVisible && (
                 <form onSubmit={handleRevertTree}>
                     <FileUpload /><br/>
                     {!_.isUndefined(selectedFile) && <><p>{selectedFile.name}</p><br/></>}
                     <button type="submit">Revert {familyName} Tree</button>
-                    {clicked && <LoadingComponent context={LoadingContext.RevertTree} response={revertTreeResponse}/>}
-                    <ErrorDisplayComponent response={revertTreeResponse}/>
+                    {clicked && <LoadingDisplay context={LoadingContext.RevertTree} response={revertTreeResponse}/>}
+                    <ErrorDisplay response={revertTreeResponse}/>
                     {isSuccess(revertTreeResponse) && <SuccessDisplay response={revertTreeResponse} />}
                 </form>
             )}

@@ -1,56 +1,52 @@
 import React, { FormEvent, useContext, useState } from "react";
 import _ from "lodash";
-import FamilyElementContext from "../contexts/FamilyElementContext";
 import ReportActionsContext from "../contexts/ReportActionsContext";
+import useCriticalAttributes from "../hooks/useCriticalAttributes";
 import useLoadingContext from "../hooks/useLoadingContext";
-import ReportChildrenRequest from "../models/ReportChildrenRequest";
 import { reportChildren } from "../ApiCalls";
-import { PersonDefault, StringDefault } from "../Constants";
-import { LoadingContext } from "../Enums";
+import { FamilyTreeApiResponseStatus, LoadingContext } from "../Enums";
+import { ReportChildrenRequest } from "../Types";
 import { isProcessing } from "../Utils";
 
 const ReportChildrenForm: React.FC = () => {
-    const {selectedElement} = useContext(FamilyElementContext);
     const {response, isReportMade, setResponse} = useContext(ReportActionsContext);
+    const {selectedPartnership} = useCriticalAttributes();
     const {addLoadingContext, isLoading, removeLoadingContext} = useLoadingContext();
     const [name, setName] = useState<string>('');
     const [birthDate, setBirthDate] = useState<string>('');
-    const [deceasedDate, setDeceasedDate] = useState<string>('');
 
     const handleReportChildren = async(e: FormEvent<HTMLFormElement>) => {
         if (!isLoading()) {
             e.preventDefault();
             isReportMade(true);
             if (_.isEqual(name, '')) {
-                setName(StringDefault);
+                setResponse({status: FamilyTreeApiResponseStatus.Failure, message: 'No child name provided.'});
             }
-            if (_.isEqual(birthDate, '')) {
-                setBirthDate(StringDefault);
+            else if (_.isEqual(birthDate, '')) {
+                setResponse({status: FamilyTreeApiResponseStatus.Failure, message: 'No child birth date provided.'});
             }
-            if (_.isEqual(deceasedDate, '')) {
-                setDeceasedDate(StringDefault);
-            }
-            const request: ReportChildrenRequest = {
-                parent: selectedElement,
-                child: {
-                    member: {
-                        name: name,
-                        birthDate: birthDate,
-                        deceasedDate: deceasedDate
-                    },
-                    inLaw: PersonDefault,
-                    marriageDate: StringDefault
+            else {
+                const request: ReportChildrenRequest = {
+                    parent: selectedPartnership,
+                    child: {
+                        member: {
+                            name: name,
+                            birthDate: birthDate,
+                            deceasedDate: null
+                        },
+                        inLaw: null,
+                        partnershipDate: null
+                    }
+                };
+                addLoadingContext(LoadingContext.ReportChildren);
+                setResponse(await reportChildren(request));
+                if (!isProcessing(response)) {
+                    removeLoadingContext(LoadingContext.ReportChildren);
+                    setName('');
+                    setBirthDate('');
                 }
-            };
-            addLoadingContext(LoadingContext.ReportChildren);
-            setResponse(await reportChildren(request));
-            if (!isProcessing(response)) {
-                removeLoadingContext(LoadingContext.ReportChildren);
-                setName('');
-                setBirthDate('');
-                setDeceasedDate('');
-                isReportMade(false);
             }
+            isReportMade(false);
         }
     };
 
@@ -58,8 +54,7 @@ const ReportChildrenForm: React.FC = () => {
         <form onSubmit={handleReportChildren}>
             <label>Child Name: <input type="text" value={name} onChange={(e) => setName(e.target.value)}/></label><br/>
             <label>Child Birth Date: <input type="text" value={birthDate} onChange={(e) => setBirthDate(e.target.value)}/></label><br/>
-            <label>Child Deceased Date: <input type="text" value={deceasedDate} onChange={(e) => setDeceasedDate(e.target.value)}/></label><br/>
-            <button type="submit">Report Children</button>
+            <button type="submit">Report Child</button>
         </form>
     );
 };
