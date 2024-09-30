@@ -25,6 +25,11 @@ namespace FamilyTreeLibrary
                 .CreateLogger();
         }
 
+        public static bool IsDefault(FamilyTreeDate date)
+        {
+            return date.Day == 0 && date.Month is null && date.Year is null && date.Months is null;
+        }
+
         public static void LogMessage(LoggingLevels level, string message)
         {
             switch (level)

@@ -1,6 +1,9 @@
+using System.Text.Json.Serialization;
 using FamilyTreeLibrary.Data.Comparers;
 using FamilyTreeLibrary.Exceptions;
+using FamilyTreeLibrary.Serializers;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace FamilyTreeLibrary.Models
 {
@@ -15,39 +18,36 @@ namespace FamilyTreeLibrary.Models
             DeceasedDate = deceasedDate;
         }
 
-        public Person(BsonDocument document)
-        {
-            Name = document[nameof(Name)].IsBsonNull ? null : document[nameof(Name)].AsString;
-            BirthDate = document[nameof(BirthDate)].IsBsonNull ? FamilyTreeDate.DefaultDate : new(document[nameof(BirthDate)].AsString);
-            DeceasedDate = document[nameof(DeceasedDate)].IsBsonNull ? FamilyTreeDate.DefaultDate : new(document[nameof(DeceasedDate)].AsString);
-        }
-
         public Person(string representation)
         {
             if (representation is null || representation == "")
             {
                 Name = null;
-                BirthDate = FamilyTreeDate.DefaultDate;
-                DeceasedDate = FamilyTreeDate.DefaultDate;
+                BirthDate = Constants.DefaultDate;
+                DeceasedDate = Constants.DefaultDate;
             }
             else
             {
                 string[] delimiters = {" (", " - ", ")"};
                 string[] parts = representation.Split(delimiters, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 Name = parts[0];
-                BirthDate = parts.Length == 3 ? new FamilyTreeDate(parts[1]) : FamilyTreeDate.DefaultDate;
-                DeceasedDate = parts.Length == 3 && parts[2] != "Present" ? new FamilyTreeDate(parts[2]) : FamilyTreeDate.DefaultDate;
+                BirthDate = parts.Length == 3 ? new FamilyTreeDate(parts[1]) : Constants.DefaultDate;
+                DeceasedDate = parts.Length == 3 && parts[2] != "Present" ? new FamilyTreeDate(parts[2]) : Constants.DefaultDate;
             }
         }
         public string Name
         {
             get;
         }
+        [BsonSerializer(typeof(FamilyTreeDateSerializer))]
+        [JsonConverter(typeof(FamilyTreeDateSerializer))]
         public FamilyTreeDate BirthDate
         {
             get;
             set;
         }
+        [BsonSerializer(typeof(FamilyTreeDateSerializer))]
+        [JsonConverter(typeof(FamilyTreeDateSerializer))]
         public FamilyTreeDate DeceasedDate
         {
             get
@@ -56,7 +56,7 @@ namespace FamilyTreeLibrary.Models
             }
             set
             {
-                if (value.CompareTo(FamilyTreeDate.DefaultDate) != 0 && value.CompareTo(BirthDate) < 0)
+                if (value.CompareTo(Constants.DefaultDate) != 0 && value.CompareTo(BirthDate) < 0)
                 {
                     throw new DeceasedDateException(this, value);
                 }
@@ -64,33 +64,9 @@ namespace FamilyTreeLibrary.Models
             }
         }
 
-        public BsonDocument Document
-        {
-            get
-            {
-                Dictionary<string,object> doc = new()
-                {
-                    {nameof(Name), Name is null ? BsonNull.Value : Name},
-                    {nameof(BirthDate), BirthDate == default || BirthDate == FamilyTreeDate.DefaultDate ? 
-                        BsonNull.Value : BirthDate.ToString()},
-                    {nameof(DeceasedDate), DeceasedDate == default || DeceasedDate == FamilyTreeDate.DefaultDate ? 
-                        BsonNull.Value : DeceasedDate.ToString()}
-                };
-                return new(doc);
-            }
-        }
-
-        public static Person EmptyPerson
-        {
-            get
-            {
-                return new(null, FamilyTreeDate.DefaultDate, FamilyTreeDate.DefaultDate);
-            }
-        }
-
         public object Clone()
         {
-            return new Person(Document);
+            return new Person(ToString());
         }
 
         public int CompareTo(Person other)
@@ -136,11 +112,11 @@ namespace FamilyTreeLibrary.Models
 
         public override string ToString()
         {
-            if (Name is not null && BirthDate > FamilyTreeDate.DefaultDate && DeceasedDate > BirthDate)
+            if (Name is not null && BirthDate > Constants.DefaultDate && DeceasedDate > BirthDate)
             {
                 return $"{Name} ({BirthDate} - {DeceasedDate})";
             }
-            else if (Name is not null && BirthDate > FamilyTreeDate.DefaultDate)
+            else if (Name is not null && BirthDate > Constants.DefaultDate)
             {
                 return $"{Name} ({BirthDate} - Present)";
             }

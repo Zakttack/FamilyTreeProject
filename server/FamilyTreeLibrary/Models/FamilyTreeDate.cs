@@ -11,9 +11,9 @@ namespace FamilyTreeLibrary.Models
         public FamilyTreeDate(){}
         public FamilyTreeDate(string input)
         {
-            month = DefaultDate.Month;
-            day = DefaultDate.Day;
-            year = DefaultDate.Year;
+            month = Constants.DefaultDate.Month;
+            day = Constants.DefaultDate.Day;
+            year = Constants.DefaultDate.Year;
             if (input is not null)
             {
                 string[] values = input.Split(' ');
@@ -39,19 +39,6 @@ namespace FamilyTreeLibrary.Models
             Year = year;
             Month = month;
             Day = day;
-        }
-
-        public static FamilyTreeDate DefaultDate
-        {
-            get
-            {
-                return new()
-                {
-                    Year = "",
-                    Month = "",
-                    Day = 0
-                };
-            }
         }
 
         public int Day
@@ -111,7 +98,7 @@ namespace FamilyTreeLibrary.Models
 
         public readonly int CompareTo(FamilyTreeDate other)
         {
-            if (IsDefault(other))
+            if (FamilyTreeUtils.IsDefault(other))
             {
                 return 1;
             }
@@ -158,36 +145,31 @@ namespace FamilyTreeLibrary.Models
             return result == "" ? null : result;
         }
 
-        public static bool IsDefault(FamilyTreeDate date)
-        {
-            return date.Day == 0 && date.Month is null && date.Year is null && date.Months is null;
-        }
-
         public static bool operator==(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
-            bool dateAIsDefault = IsDefault(dateA);
-            bool dateBIsDefault = IsDefault(dateB);
+            bool dateAIsDefault = FamilyTreeUtils.IsDefault(dateA);
+            bool dateBIsDefault = FamilyTreeUtils.IsDefault(dateB);
             return (dateAIsDefault && dateBIsDefault) || (!dateAIsDefault && dateA.Equals(dateB));
         }
 
         public static bool operator!=(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
-            bool dateAIsDefault = IsDefault(dateA);
-            bool dateBIsDefault = IsDefault(dateB);
+            bool dateAIsDefault = FamilyTreeUtils.IsDefault(dateA);
+            bool dateBIsDefault = FamilyTreeUtils.IsDefault(dateB);
             return (!dateAIsDefault || !dateBIsDefault) && (dateAIsDefault || !dateA.Equals(dateB));
         }
 
         public static bool operator<(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
-            bool dateAIsDefault = IsDefault(dateA);
-            bool dateBIsDefault = IsDefault(dateB);
+            bool dateAIsDefault = FamilyTreeUtils.IsDefault(dateA);
+            bool dateBIsDefault = FamilyTreeUtils.IsDefault(dateB);
             return (dateAIsDefault && !dateBIsDefault) || (!dateBIsDefault && dateA.CompareTo(dateB) < 0);
         }
 
         public static bool operator>(FamilyTreeDate dateA, FamilyTreeDate dateB)
         {
-            bool dateAIsDefault = IsDefault(dateA);
-            bool dateBIsDefault = IsDefault(dateB);
+            bool dateAIsDefault = FamilyTreeUtils.IsDefault(dateA);
+            bool dateBIsDefault = FamilyTreeUtils.IsDefault(dateB);
             return (!dateAIsDefault && dateBIsDefault) || (!dateAIsDefault && dateA.CompareTo(dateB) > 0);
         }
 
