@@ -1,17 +1,11 @@
 using Azure.Data.AppConfiguration;
 using Azure.Identity;
 
-namespace FamilyTreeLibrary.Data
+namespace FamilyTreeLibrary.Infrastructure.Resource
 {
-    public class FamilyTreeConfiguration
+    public class FamilyTreeConfiguration(string apiConfigurationUri)
     {
-        private const string API_CONFIGURATION_URI = "https://familytreeconfiguration.azconfig.io";
-        private readonly ConfigurationClient client;
-
-        public FamilyTreeConfiguration()
-        {
-            client = new(new Uri(API_CONFIGURATION_URI), new DefaultAzureCredential());
-        }
+        private readonly ConfigurationClient client = new(new Uri(apiConfigurationUri), new DefaultAzureCredential());
 
         public string this[string key]
         {

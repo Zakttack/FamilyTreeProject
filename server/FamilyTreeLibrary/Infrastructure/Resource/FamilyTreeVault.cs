@@ -2,15 +2,15 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using FamilyTreeLibrary.Serialization;
 using System.Text.Json;
-namespace FamilyTreeLibrary.Data
+namespace FamilyTreeLibrary.Infrastructure.Resource
 {
     public class FamilyTreeVault
     {
         private readonly IReadOnlyDictionary<string,BridgeInstance> secretValuePairs;
 
-        public FamilyTreeVault(string familyTreeVaultUri)
+        public FamilyTreeVault(FamilyTreeConfiguration configuration)
         {
-            secretValuePairs = LoadSecrets(familyTreeVaultUri);
+            secretValuePairs = LoadSecrets(configuration);
         }
 
         public BridgeInstance this[string secretName]
@@ -21,10 +21,10 @@ namespace FamilyTreeLibrary.Data
             }
         }
         
-        private IReadOnlyDictionary<string,BridgeInstance> LoadSecrets(string familyTreeVaultUri)
+        private IReadOnlyDictionary<string,BridgeInstance> LoadSecrets(FamilyTreeConfiguration configuration)
         {
             Dictionary<string,BridgeInstance> pairs = [];
-            SecretClient client = new(new Uri(familyTreeVaultUri), new DefaultAzureCredential());
+            SecretClient client = new(new Uri(configuration["KeyVault:Uri"]), new DefaultAzureCredential());
             JsonSerializerOptions options = new()
             {
                 Converters =
