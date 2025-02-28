@@ -1,204 +1,163 @@
-using FamilyTreeLibrary.Exceptions;
+using FamilyTreeLibrary.Serialization;
+using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary.Models
 {
-    public partial struct FamilyTreeDate : ICloneable, IComparable<FamilyTreeDate>, IEquatable<FamilyTreeDate>
+    public partial class FamilyTreeDate : AbstractComparableBridge
     {
-        private int day;
-        private string month;
-        private string year;
-        private IReadOnlyDictionary<string,int> months;
-        public FamilyTreeDate(){}
+        private readonly string day;
+        private readonly string month;
+        private readonly string year;
+        private readonly static IReadOnlySet<string> MONTHS = new SortedSet<string>(new MonthComparer()) {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
         public FamilyTreeDate(string input)
         {
-            month = Constants.DefaultDate.Month;
-            day = Constants.DefaultDate.Day;
-            year = Constants.DefaultDate.Year;
-            if (input is not null)
+            string value = input.Trim();
+            string[] parts = value.Split();
+            switch (parts.Length)
             {
-                string[] values = input.Split(' ');
-                if (values.Length < 4)
-                {
-                    foreach (string value in values)
-                    {
-                        if (value.Length < 3)
-                        {
-                            day = value == "" ? 0 : Convert.ToInt32(value);
-                        }
-                        else if (value.Length == 3 || value == "Jan.")
-                        {
-                            month = value;
-                        }
-                        else
-                        {
-                            year = value;
-                        }
-                    }
-                }
-            }
-            Year = year;
-            Month = month;
-            Day = day;
-        }
-
-        public int Day
-        {
-            readonly get
-            {
-                return day;
-            }
-            set
-            {
-                if (value < 0 || value > months[Month])
-                {
-                    throw new InvalidDateException(value, DateAttributes.Day);
-                }
-                day = value;
+                case 0: day = ""; month = ""; year = ""; break;
+                case 1:
+                    day = "";
+                    month = "";
+                    year = InitializeYear(parts[0]);
+                    break;
+                case 2:
+                    day = "";
+                    month = InitializeMonth(parts[0]);
+                    year = InitializeYear(parts[1]);
+                    break;
+                case 3:
+                    day = InitializeDay(parts[0]);
+                    month = InitializeMonth(parts[1]);
+                    year = InitializeYear(parts[2]);
+                    break;
+                default: throw new DateNotFoundException($"{value} isn't a date.");
             }
         }
 
-        public string Month
-        {
-            readonly get
-            {
-                return month;
-            }
-            set
-            {
-                if(!Months.ContainsKey(value))
-                {
-                    throw new InvalidDateException(value, DateAttributes.Month);
-                }
-                month = value;
-            }
-        }
-
-        public string Year
-        {
-            readonly get
-            {
-                return year;
-            }
-            set
-            {
-                bool isNumber = FamilyTreeUtils.NumberPattern().IsMatch(value);
-                if (value != "" && !isNumber && !FamilyTreeUtils.RangePattern().IsMatch(value))
-                {
-                    throw new InvalidDateException(value, DateAttributes.Year);
-                }
-                year = value;
-                FillMonths(isNumber && DateTime.IsLeapYear(Convert.ToInt32(year)));
-            }
-        }
-
-        public readonly object Clone()
-        {
-            return new FamilyTreeDate(ToString());
-        }
-
-        public readonly int CompareTo(FamilyTreeDate other)
-        {
-            if (FamilyTreeUtils.IsDefault(other))
-            {
-                return 1;
-            }
-            int yearDiff = Year.CompareTo(other.Year);
-            if (yearDiff != 0)
-            {
-                return yearDiff;
-            }
-            int monthDiff = Math.Abs(months.Keys.ToList().IndexOf(Month) - months.Keys.ToList().IndexOf(other.Month));
-            return monthDiff != 0 ? monthDiff : Math.Abs(Day - other.Day);
-        }
-
-        public override readonly bool Equals(object obj)
-        {
-            return obj is FamilyTreeDate other && Equals(other);
-        }
-
-        public readonly bool Equals(FamilyTreeDate other)
-        {
-            return CompareTo(other) == 0;
-        }
-
-        public override readonly int GetHashCode()
-        {
-            return HashCode.Combine(Day, Month, Year);
-        }
-
-        public override readonly string ToString()
-        {
-            string output = "";
-            if (Day > 0)
-            {
-                output += Day;
-            }
-            if (Month is not null && Month != "")
-            {
-                output += $" {Month} ";
-            }
-            if (Year is not null && Year != "")
-            {
-                output += Year;
-            }
-            string result = output.Trim();
-            return result == "" ? null : result;
-        }
-
-        public static bool operator==(FamilyTreeDate dateA, FamilyTreeDate dateB)
-        {
-            bool dateAIsDefault = FamilyTreeUtils.IsDefault(dateA);
-            bool dateBIsDefault = FamilyTreeUtils.IsDefault(dateB);
-            return (dateAIsDefault && dateBIsDefault) || (!dateAIsDefault && dateA.Equals(dateB));
-        }
-
-        public static bool operator!=(FamilyTreeDate dateA, FamilyTreeDate dateB)
-        {
-            bool dateAIsDefault = FamilyTreeUtils.IsDefault(dateA);
-            bool dateBIsDefault = FamilyTreeUtils.IsDefault(dateB);
-            return (!dateAIsDefault || !dateBIsDefault) && (dateAIsDefault || !dateA.Equals(dateB));
-        }
-
-        public static bool operator<(FamilyTreeDate dateA, FamilyTreeDate dateB)
-        {
-            bool dateAIsDefault = FamilyTreeUtils.IsDefault(dateA);
-            bool dateBIsDefault = FamilyTreeUtils.IsDefault(dateB);
-            return (dateAIsDefault && !dateBIsDefault) || (!dateBIsDefault && dateA.CompareTo(dateB) < 0);
-        }
-
-        public static bool operator>(FamilyTreeDate dateA, FamilyTreeDate dateB)
-        {
-            bool dateAIsDefault = FamilyTreeUtils.IsDefault(dateA);
-            bool dateBIsDefault = FamilyTreeUtils.IsDefault(dateB);
-            return (!dateAIsDefault && dateBIsDefault) || (!dateAIsDefault && dateA.CompareTo(dateB) > 0);
-        }
-
-        internal readonly IReadOnlyDictionary<string,int> Months
+        public override BridgeInstance Instance
         {
             get
             {
-                return months;
+                if (day == "" && month == "" && year == "")
+                {
+                    return new();
+                }
+                else if (day == "" && month == "")
+                {
+                    return new(year);
+                }
+                else if (day == "")
+                {
+                    return new($"{month} {year}");
+                }
+                return new($"{day} {month} {year}");
             }
         }
 
-        private void FillMonths(bool isLeapYear)
+        public override int CompareTo(AbstractComparableBridge? other)
         {
-            months = new Dictionary<string,int>
+            if (other is not FamilyTreeDate obj)
+            {
+                throw new InvalidCastException("Can't compare distinct types.");
+            }
+            IReadOnlyList<int> yearPartsA = [.. year.Split('-').Select((v1) => Convert.ToInt32(v1))];
+            IReadOnlyList<int> yearPartsB = [.. obj.year.Split('-').Select((v2) => Convert.ToInt32(v2))];
+            bool PartsAIsRange = yearPartsA.Count > 1;
+            bool PartsBIsRange = yearPartsB.Count > 1;
+            int yearCompare;
+            if (PartsAIsRange && PartsBIsRange)
+            {
+                yearCompare = yearPartsA[0] == yearPartsB[0] ? yearPartsA[1] - yearPartsB[1] : yearPartsA[0] - yearPartsB[0];
+            }
+            else if (!PartsAIsRange && PartsBIsRange)
+            {
+                yearCompare = yearPartsA[0] > yearPartsB[0] ? (yearPartsA[0] <= yearPartsB[1] ? 0 : yearPartsA[0] - yearPartsB[1]) : yearPartsA[0] - yearPartsB[0];
+            }
+            else if (PartsAIsRange && !PartsBIsRange)
+            {
+                yearCompare = yearPartsA[0] < yearPartsB[0] ? (yearPartsA[1] >= yearPartsB[0] ? 0 : yearPartsA[1] - yearPartsB[0]) : yearPartsA[0] - yearPartsB[0];
+            }
+            else
+            {
+                yearCompare = yearPartsA[0] - yearPartsB[0];
+            }
+            if (yearCompare != 0)
+            {
+                return yearCompare;
+            }
+            IComparer<string> monthCompare = new MonthComparer();
+            int monthCompareResult = monthCompare.Compare(month, obj.month);
+            if (monthCompareResult != 0)
+            {
+                return monthCompareResult;
+            }
+            return Convert.ToInt32(day) - Convert.ToInt32(obj.day);
+        }
+
+        private static string InitializeDay(string token)
+        {
+            if (DayPattern().Matches(token).Count != 1)
+            {
+                throw new InvalidDateException($"{token} isn't a valid day.");
+            }
+            return token;
+        }
+
+        private static string InitializeMonth(string token)
+        {
+            if (!MONTHS.Contains(token))
+            {
+                throw new InvalidDateException($"{token} isn't a month.");
+            }
+            return token;
+        }
+
+        private static string InitializeYear(string token)
+        {
+            if (YearPattern().Matches(token).Count != 1)
+            {
+                throw new InvalidDateException($"{token} isn't a year.");
+            }
+            return token;
+        }
+
+        [GeneratedRegex(@"^[1-9]\d{3}|[1-9]\d{3}-[1-9]\d{3}$", RegexOptions.Compiled)]
+        private static partial Regex YearPattern();
+        [GeneratedRegex(@"^\d{2}|\d$", RegexOptions.Compiled)]
+        private static partial Regex DayPattern();
+
+        private class MonthComparer : IComparer<string>, IEqualityComparer<string>
+        {
+            public int Compare(string? x, string? y)
+            {
+                return GetHashCode(x!) - GetHashCode(y!);
+            }
+
+            public bool Equals(string? x, string? y)
+            {
+                return Compare(x, y) == 0;
+            }
+            public int GetHashCode(string obj)
+            {
+                switch (obj)
                 {
-                    {"", 0},
-                    {"Jan.", 31},
-                    {"Feb",isLeapYear ? 29 : 28},
-                    {"Mar",31},
-                    {"Apr",30},
-                    {"May",31},
-                    {"Jun",30},
-                    {"Jul",31},
-                    {"Aug",31},
-                    {"Sep",30},
-                    {"Oct",31},
-                    {"Nov",30},
-                    {"Dec",31}
-                };
+                    case "Jan": return 1;
+                    case "Feb": return 2;
+                    case "Mar": return 3;
+                    case "Apr": return 4;
+                    case "May": return 5;
+                    case "Jun": return 6;
+                    case "Jul": return 7;
+                    case "Aug": return 8;
+                    case "Sep": return 9;
+                    case "Oct": return 10;
+                    case "Nov": return 11;
+                    case "Dec": return 12;
+                    default: return 0;
+                }
+            }
         }
     }
 }

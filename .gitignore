@@ -5,6 +5,7 @@
 /.vscode
 */Logs
 */PDFInputs
+*/secrets
 .hintrc
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
@@ -20,6 +21,8 @@
 
 # production
 /client/build
+
+cloud/*.bat
 
 # misc
 .DS_Store
