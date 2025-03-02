@@ -33,8 +33,7 @@ namespace FamilyTreeLibrary.Infrastructure
         {
             services.AddSingleton<FamilyTreeVault>(provider =>
             {
-                FamilyTreeConfiguration configuration = provider.GetService<FamilyTreeConfiguration>()!;
-                return new(configuration);
+                return new(provider.GetRequiredService<FamilyTreeConfiguration>());
             });
             return services;
         }

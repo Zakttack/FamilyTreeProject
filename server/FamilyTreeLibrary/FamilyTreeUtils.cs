@@ -1,23 +1,25 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using FamilyTreeLibrary.Infrastructure.Resource;
+using FamilyTreeLibrary.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 
 namespace FamilyTreeLibrary
 {
     public static class FamilyTreeUtils
     {
-        private static ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
+        public static ILoggerFactory AddFamilyTreeLogger(this ILoggerFactory factory, FamilyTreeVault vault, ILoggerProvider? fallbackProvider = null)
         {
-            builder.AddConsole();
-            builder.SetMinimumLevel(LogLevel.Debug);
-        });
+            factory.AddProvider(new FamilyTreeLoggerProvider(vault, fallbackProvider));
+            return factory;
+        }
 
-        public static ILogger<T> CreateLogger<T>()
+        public static ILoggingBuilder AddFamilyTreeLogger(this ILoggingBuilder builder)
         {
-            return loggerFactory.CreateLogger<T>();
+            builder.Services.AddSingleton<ILoggerProvider, FamilyTreeLoggerProvider>(sp =>
+            {
+                return new(sp.GetRequiredService<FamilyTreeVault>());
+            });
+            return builder;
         }
     }
 }
