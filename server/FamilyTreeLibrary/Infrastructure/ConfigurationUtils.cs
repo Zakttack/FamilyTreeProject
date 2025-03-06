@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Azure.Identity;
 using FamilyTreeLibrary.Infrastructure.Resource;
 using Microsoft.Extensions.Configuration;
@@ -21,22 +20,6 @@ namespace FamilyTreeLibrary.Infrastructure
                 return configuration;
             });
         }
-
-        // public static IServiceCollection AddFamilyTreeConfigurationLocal(this IServiceCollection services)
-        // {
-        //     return services.AddSingleton((provider) =>
-        //     {
-        //         if (!IsLoggedIn())
-        //         {
-        //             Login();
-        //         }
-        //         FamilyTreeConfiguration configuration = new(API_CONFIGURATION_URI, new AzureCliCredential());
-        //         ConfigureApplicationInsights(configuration);
-        //         ConfigureKeyVault(configuration);
-        //         ConfigureStorageSettings(configuration);
-        //         return configuration;
-        //     });
-        // }
 
         public static IConfigurationBuilder AddFamilyTreeConfiguration(this IConfigurationBuilder builder)
         {
@@ -89,48 +72,5 @@ namespace FamilyTreeLibrary.Infrastructure
             configuration["Storage:LifecyclePolicies:Images:ArchiveTierDays"] = "0";
             configuration["Storage:LifecyclePolicies:Images:DeleteDays"] = "180";
         }
-
-        // private static bool IsLoggedIn()
-        // {
-        //     try
-        //     {
-        //         Process process = new()
-        //         {
-        //             StartInfo = new ProcessStartInfo()
-        //             {
-        //                 FileName = "az",
-        //                 Arguments = "account show",
-        //                 RedirectStandardError = true,
-        //                 RedirectStandardOutput = true,
-        //                 CreateNoWindow = true,
-        //                 UseShellExecute = false
-        //             }
-        //         };
-        //         process.Start();
-        //         string output = process.StandardOutput.ReadToEnd();
-        //         string error = process.StandardError.ReadToEnd();
-        //         process.WaitForExit();
-        //         return process.ExitCode == 0 && !string.IsNullOrEmpty(output) && string.IsNullOrEmpty(error);
-        //     }
-        //     catch (Exception)
-        //     {
-        //         return false;
-        //     }
-        // }
-
-        // private static void Login()
-        // {
-        //     Process process = new()
-        //     {
-        //         StartInfo = new()
-        //         {
-        //             FileName = "az",
-        //             Arguments = "login",
-        //             UseShellExecute = true
-        //         }
-        //     };
-        //     process.Start();
-        //     process.WaitForExit();
-        // }
     }
 }
