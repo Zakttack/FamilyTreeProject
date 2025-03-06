@@ -1,12 +1,17 @@
 namespace FamilyTreeLibrary.Serialization
 {
-    public abstract class AbstractBridge : IBridge
+    public abstract class AbstractBridge : IBridge, IEquatable<AbstractBridge>
     {
         public abstract BridgeInstance Instance{ get; }
 
+        public bool Equals(AbstractBridge? other)
+        {
+            return other is not null && Instance == other.Instance;
+        }
+
         public override bool Equals(object? obj)
         {
-            return obj is AbstractBridge bridge && Instance == bridge.Instance;
+            return obj is AbstractBridge bridge && Equals(bridge);
         }
 
         public override int GetHashCode()

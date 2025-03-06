@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary.Models
 {
-    public partial class FamilyTreeDate : AbstractComparableBridge
+    public partial class FamilyTreeDate : AbstractComparableBridge, IComparable<FamilyTreeDate>, IEquatable<FamilyTreeDate>
     {
         private readonly string day;
         private readonly string month;
@@ -58,12 +58,17 @@ namespace FamilyTreeLibrary.Models
 
         public override int CompareTo(AbstractComparableBridge? other)
         {
-            if (other is not FamilyTreeDate obj)
+            return CompareTo(other as FamilyTreeDate);
+        }
+
+        public int CompareTo(FamilyTreeDate? other)
+        {
+            if (other is null)
             {
-                throw new InvalidCastException("Can't compare distinct types.");
+                return 1;
             }
             IReadOnlyList<int> yearPartsA = [.. year.Split('-').Select((v1) => Convert.ToInt32(v1))];
-            IReadOnlyList<int> yearPartsB = [.. obj.year.Split('-').Select((v2) => Convert.ToInt32(v2))];
+            IReadOnlyList<int> yearPartsB = [.. other.year.Split('-').Select((v2) => Convert.ToInt32(v2))];
             bool PartsAIsRange = yearPartsA.Count > 1;
             bool PartsBIsRange = yearPartsB.Count > 1;
             int yearCompare;
@@ -88,12 +93,27 @@ namespace FamilyTreeLibrary.Models
                 return yearCompare;
             }
             IComparer<string> monthCompare = new MonthComparer();
-            int monthCompareResult = monthCompare.Compare(month, obj.month);
+            int monthCompareResult = monthCompare.Compare(month, other.month);
             if (monthCompareResult != 0)
             {
                 return monthCompareResult;
             }
-            return Convert.ToInt32(day) - Convert.ToInt32(obj.day);
+            return Convert.ToInt32(day) - Convert.ToInt32(other.day);
+        }
+
+        public bool Equals(FamilyTreeDate? other)
+        {
+            return base.Equals(other);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         private static string InitializeDay(string token)

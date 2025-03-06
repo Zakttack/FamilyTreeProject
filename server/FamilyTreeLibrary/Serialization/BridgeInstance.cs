@@ -1,11 +1,12 @@
 using FamilyTreeLibrary.Enumerators;
 using FamilyTreeLibrary.Serialization.Models;
+using iText.StyledXmlParser.Css.Selector.Item;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary.Serialization
 {
-    public readonly partial struct BridgeInstance
+    public readonly partial struct BridgeInstance: IEquatable<BridgeInstance>
     {
         private readonly object? instance;
 
@@ -182,13 +183,9 @@ namespace FamilyTreeLibrary.Serialization
             }
         }
 
-        public override bool Equals(object? obj)
+        public bool Equals(BridgeInstance other)
         {
-            if (obj is not BridgeInstance other)
-            {
-                return false;
-            }
-            else if (IsNull && other.IsNull)
+            if (IsNull && other.IsNull)
             {
                 return true;
             }
@@ -235,6 +232,11 @@ namespace FamilyTreeLibrary.Serialization
                 return true;
             }
             return false;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is BridgeInstance other && Equals(other);
         }
 
         public override int GetHashCode()

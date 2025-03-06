@@ -3,7 +3,7 @@ using FamilyTreeLibrary.Serialization;
 
 namespace FamilyTreeLibrary.Models
 {
-    public class Person : AbstractComparableBridge
+    public class Person : AbstractComparableBridge, IComparable<Person>, IEquatable<Person>
     {
         private readonly IDictionary<string, BridgeInstance> document;
 
@@ -86,9 +86,14 @@ namespace FamilyTreeLibrary.Models
 
         public override int CompareTo(AbstractComparableBridge? other)
         {
-            if (other is not Person p)
+            return CompareTo(other as Person);
+        }
+
+        public int CompareTo(Person? p)
+        {
+            if (p is null)
             {
-                throw new InvalidCastException("Can't compare a person to another type.");
+                return 1;
             }
             else if (BirthDate < p.BirthDate)
             {
@@ -107,6 +112,16 @@ namespace FamilyTreeLibrary.Models
                 return 1;
             }
             return BirthName.CompareTo(p.BirthName);
+        }
+
+        public bool Equals(Person? other)
+        {
+            return base.Equals(other);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return base.Equals(obj);
         }
 
         public override int GetHashCode()

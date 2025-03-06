@@ -2,7 +2,7 @@ using FamilyTreeLibrary.Serialization.Models;
 
 namespace FamilyTreeLibrary.Serialization
 {
-    public class Bridge : AbstractBridge
+    public class Bridge : AbstractBridge, IEquatable<Bridge>
     {
         private readonly BridgeInstance instance;
 
@@ -41,6 +41,26 @@ namespace FamilyTreeLibrary.Serialization
             {
                 return instance;
             }
+        }
+
+        public bool Equals(Bridge? other)
+        {
+            return base.Equals(other);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
         }
     }
 }

@@ -3,7 +3,7 @@ using FamilyTreeLibrary.Serialization;
 
 namespace FamilyTreeLibrary.Models
 {
-    public class Partnership : AbstractComparableBridge
+    public class Partnership : AbstractComparableBridge, IComparable<Partnership>, IEquatable<Partnership>
     {
         private readonly IDictionary<string, BridgeInstance> document;
 
@@ -52,11 +52,26 @@ namespace FamilyTreeLibrary.Models
 
         public override int CompareTo(AbstractComparableBridge? other)
         {
-            if (other is not Partnership p)
+            return CompareTo(other as Partnership);
+        }
+
+        public int CompareTo(Partnership? p)
+        {
+            if (p is null)
             {
-                throw new InvalidCastException("Can't compare a partnership to another type.");
+                return 1;
             }
             return PartnershipDate.CompareTo(p.PartnershipDate);
+        }
+
+        public bool Equals(Partnership? other)
+        {
+            return base.Equals(other);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return base.Equals(obj);
         }
 
         public override int GetHashCode()

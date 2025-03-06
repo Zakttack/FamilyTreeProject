@@ -3,7 +3,7 @@ using FamilyTreeLibrary.Serialization;
 
 namespace FamilyTreeLibrary.Models
 {
-    public class FamilyTreeNode : AbstractBridge
+    public class FamilyTreeNode : AbstractBridge, IEquatable<FamilyTreeNode>
     {
         private readonly IDictionary<string, BridgeInstance> vertex;
 
@@ -77,5 +77,25 @@ namespace FamilyTreeLibrary.Models
         }
 
         public override BridgeInstance Instance => new(vertex);
+
+        public bool Equals(FamilyTreeNode? other)
+        {
+            return base.Equals(other);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
     }
 }
