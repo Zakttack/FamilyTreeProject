@@ -13,7 +13,7 @@ namespace FamilyTreeLibrary.Logging
 
         public FamilyTreeLoggerProvider(FamilyTreeVault vault, ILoggerProvider? fallbackProvider = null)
         {
-            instrumentationKey = vault["ApplicationInsights-InstrumentationKey"].AsString;
+            instrumentationKey = vault["ApplicationInsightsInstrumentationKey"].AsString;
             this.fallbackProvider = fallbackProvider;
             TelemetryConfiguration config = TelemetryConfiguration.CreateDefault();
             config.ConnectionString = $"InstrumentationKey={instrumentationKey}";
