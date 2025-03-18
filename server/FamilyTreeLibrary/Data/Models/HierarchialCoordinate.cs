@@ -3,7 +3,7 @@ using Microsoft.Identity.Client;
 
 namespace FamilyTreeLibrary.Data.Models
 {
-    public readonly struct HierarchialCoordinate : IComparable<HierarchialCoordinate>, IEquatable<HierarchialCoordinate>
+    public readonly struct HierarchialCoordinate : IComparable<HierarchialCoordinate>, ICopyable<HierarchialCoordinate>, IEquatable<HierarchialCoordinate>
     {
         private readonly int[] coordinate;
 
@@ -81,6 +81,11 @@ namespace FamilyTreeLibrary.Data.Models
                 }
             }
             return coordinate.Length - other.coordinate.Length;
+        }
+
+        public HierarchialCoordinate Copy()
+        {
+            return new(coordinate);
         }
 
         public override bool Equals(object? obj)

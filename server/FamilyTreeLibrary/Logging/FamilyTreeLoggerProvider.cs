@@ -30,6 +30,7 @@ namespace FamilyTreeLibrary.Logging
         {
             telemetryClient.Flush();
             fallbackProvider?.Dispose();
+            Task.Delay(3000).Wait();
         }
     }
 }

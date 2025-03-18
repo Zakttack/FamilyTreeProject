@@ -1,9 +1,10 @@
 using FamilyTreeLibrary.Serialization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace FamilyTreeLibrary.Models
 {
-    public partial class FamilyTreeDate : AbstractComparableBridge, IComparable<FamilyTreeDate>, IEquatable<FamilyTreeDate>
+    public partial class FamilyTreeDate : AbstractComparableBridge, IComparable<FamilyTreeDate>, ICopyable<FamilyTreeDate>, IEquatable<FamilyTreeDate>
     {
         private readonly string day;
         private readonly string month;
@@ -99,6 +100,19 @@ namespace FamilyTreeLibrary.Models
                 return monthCompareResult;
             }
             return Convert.ToInt32(day) - Convert.ToInt32(other.day);
+        }
+
+        public FamilyTreeDate Copy()
+        {
+            JsonSerializerOptions options = new()
+            {
+                Converters = {
+                    new BridgeSerializer()
+                },
+                WriteIndented = true
+            };
+            IBridge bridge = JsonSerializer.Deserialize<IBridge>(ToString(), options) ?? throw new NullReferenceException("Nothing is there.");
+            return new(bridge.Instance.AsString);
         }
 
         public bool Equals(FamilyTreeDate? other)

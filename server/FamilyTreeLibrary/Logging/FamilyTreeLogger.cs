@@ -138,4 +138,12 @@ namespace FamilyTreeLibrary.Logging
             }
         }
     }
+
+    public class FamilyTreeLogger<T> : FamilyTreeLogger, IExtendedLogger<T>
+    {
+        public FamilyTreeLogger(FamilyTreeVault vault, ILogger<T>? fallbackLogger = null)
+            :base(typeof(T).FullName ?? nameof(T), vault, fallbackLogger) {}
+        public FamilyTreeLogger(TelemetryClient telemetryClient, ILogger<T>? fallbackLogger = null)
+            :base(typeof(T).FullName ?? nameof(T), telemetryClient, fallbackLogger){}
+    }
 }

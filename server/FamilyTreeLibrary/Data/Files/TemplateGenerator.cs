@@ -1,5 +1,4 @@
 using FamilyTreeLibrary.Data.Models;
-using FamilyTreeLibrary.Infrastructure.Resource;
 using FamilyTreeLibrary.Logging;
 using FamilyTreeLibrary.Models;
 using FamilyTreeLibrary.Serialization;
@@ -13,253 +12,318 @@ using iText.Layout.Properties;
 
 namespace FamilyTreeLibrary.Data.Files
 {
-    public partial class TemplateGenerator
+    public class TemplateGenerator : ITemplateGenerator
     {
-        private const string DEFAULT_FILE_PATH = "../../../../resources/PfingstenFamilyAlternative.txt";
-        private const string DEFAULT_WRITE_FILE_PATH = "../../../../resources/2023PfingstenBookAlternate.pdf";
-        private readonly string? filePath;
-        private readonly IExtendedLogger logger;
-        private readonly FamilyTreeConfiguration configuration;
-        private readonly FamilyTreeVault vault;
-        private readonly IReadOnlyDictionary<HierarchialCoordinate, FamilyTreeNode> nodeCollection;
+        private readonly string inheritedFamilyName;
+        private const string LOWER = @"^[a-z]+\.\s";
+        private const string NUMERICAL = @"^\d+\.\s";
+        private const string PARENTHESIZED_NUMERICAL = @"^\(\d+\)\s";
+        private const string ROMAN_LOWER = @"^[ivxlcdm]+\)\s";
+        private const string ROMAN_UPPER = @"^[IVXLCDM]+:\s";
+        private const string UPPER = @"^[A-Z]+\.\s";
+        private const string DATE_PATTERN = @"(?:\s+(?:(\d{1,2}\s)?[A-Z][a-z]{2}\s)?\d{4}(?:-\d{4})?)";
+        private const string NAME_PATTERN = @"[A-Z][A-Za-z\-\,\.]*(?:\s[A-Z][A-Za-z\-\,\.]*)*";
+        private readonly IReadOnlyDictionary<HierarchialCoordinate, FamilyTreeNode> family;
+        private readonly IList<Models.Line> lines;
         private readonly ISet<Person> people;
         private readonly ISet<Partnership> partnerships;
-        private readonly string inheritedFamilyName;
+        private readonly IExtendedLogger<TemplateGenerator> logger;
 
-        public TemplateGenerator(FamilyTreeConfiguration configuration, FamilyTreeVault vault, IExtendedLogger logger, string? filePath = DEFAULT_FILE_PATH)
+        public TemplateGenerator(IExtendedLogger<TemplateGenerator> logger)
         {
-            this.filePath = filePath;
             this.logger = logger;
-            this.vault = vault;
-            this.configuration = configuration;
-            inheritedFamilyName = $"Pfingsten#{new Random().Next()}";
+            int id = new Random().Next();
+            inheritedFamilyName = $"Pfingsten#{id}";
             people = new SortedSet<Person>();
             partnerships = new HashSet<Partnership>();
-            this.logger.LogInformation("Beginning the Template Generation process.");
-            nodeCollection = GetNodeCollection();
+            lines = [];
+            family = GetFamily();
         }
 
-        public FileStream GetTemplate()
+        public TemplateGenerator(IExtendedLogger<TemplateGenerator> logger, int id)
         {
-            IReadOnlyDictionary<HierarchialCoordinate, string> contents = BuildTemplate();
-            if (filePath is null)
+            this.logger = logger;
+            inheritedFamilyName = $"Pfingsten#{id}";
+            people = new SortedSet<Person>();
+            partnerships = new HashSet<Partnership>();
+            lines = [];
+            family = GetFamily();
+        }
+
+        public IReadOnlyDictionary<HierarchialCoordinate, FamilyTreeNode> Family
+        {
+            get => family;
+        }
+
+        private static IDictionary<string,BridgeInstance> DefaultPerson
+        {
+            get
             {
-                throw new NotImplementedException("I haven't gotten to databases yet.");
+                return new Dictionary<string,BridgeInstance>()
+                {
+                    ["birthName"] = new(),
+                    ["birthDate"] = new(),
+                    ["deceasedDate"] = new()
+                };
             }
-            using FileStream stream = new(DEFAULT_WRITE_FILE_PATH, FileMode.Create, FileAccess.Write);
-            using PdfWriter writer = new(stream);
-            using PdfDocument document = new(writer);
-            using Document template = new(document);
+        }
+        private static string FilePath
+        {
+            get
+            {
+                DirectoryInfo directory = new(Directory.GetCurrentDirectory());
+                while(directory.Name != "FamilyTreeProject")
+                {
+                    directory = directory.Parent!;
+                }
+                return System.IO.Path.Combine(directory.FullName, "resources\\PfingstenFamilyAlternative.txt");
+            }
+        }
+
+        private static string WritePath
+        {
+            get
+            {
+                DirectoryInfo directory = new(Directory.GetCurrentDirectory());
+                while(directory.Name != "FamilyTreeProject")
+                {
+                    directory = directory.Parent!;
+                }
+                return System.IO.Path.Combine(directory.FullName, "resources\\2023PfingstenBookAlternate.pdf");
+            }
+        }
+
+        public FileStream WriteTemplate()
+        {
+            logger.LogInformation("Writing partnerships to the path: \"{filePath}\"", WritePath);
+            using FileStream initialStream = new(WritePath, FileMode.Create, FileAccess.Write);
+            using PdfWriter templateWriter = new(initialStream);
+            using PdfDocument templateDocument = new(templateWriter);
+            using Document template = new(templateDocument);
             const float representationHeight = 36f;
             float pageHeight = template.GetPageEffectiveArea(PageSize.A4).GetHeight();
             float currentHeight = 0f;
-            foreach (KeyValuePair<HierarchialCoordinate, string> content in contents)
+            foreach (Models.Line line in lines)
             {
                 if (currentHeight + representationHeight > pageHeight)
                 {
+                    logger.LogDebug("Moving to a new page.");
                     template.Add(new AreaBreak(AreaBreakType.NEXT_PAGE));
                     currentHeight = 0f;
                 }
-                template.Add(new Paragraph($"{content.Key} {content.Value}"));
+                template.Add(new Paragraph(line.ToString()));
+                logger.LogDebug("{line} has been written.", line);
                 currentHeight += representationHeight;
             }
             template.Close();
-            document.Close();
-            writer.Close();
-            return new(stream.Name, FileMode.Open, FileAccess.Read);
+            templateDocument.Close();
+            templateWriter.Close();
+            logger.LogInformation("Go ahead and look at: \"{filePath}\"", WritePath);
+            return new(initialStream.Name, FileMode.Open, FileAccess.Read);
         }
 
-        private IReadOnlyDictionary<HierarchialCoordinate,string> BuildTemplate()
+        private Models.Line BuildHeader(Queue<string> whole, string orderTypePattern, HierarchialCoordinate coordinate)
         {
-            return new SortedDictionary<HierarchialCoordinate, string>(nodeCollection.Select((node) => 
-            {
-                string representation = $"{people.First((person) => person.Id == node.Value.MemberId)}";
-                if (node.Value.InLawId.HasValue)
-                {
-                    representation += $" & {people.First((person) => person.Id == node.Value.InLawId.Value)}:";
-                    if (node.Value.PartnershipId.HasValue)
-                    {
-                        representation += $" {partnerships.First((partnership) => partnership.Id == node.Value.PartnershipId.Value)}";
-                    }
-                }
-                return new KeyValuePair<HierarchialCoordinate, string>(node.Key, representation);
-            }).ToDictionary());
-        }
-
-        private void FillNodeCollection(HierarchialCoordinate current, int g, Regex[] generationNotations, string content, string inheritedFamilyName, ref SortedDictionary<HierarchialCoordinate, FamilyTreeNode> nodes)
-        {
-            logger.LogDebug($"Considering generation {g + 1}");
-            string[] parts = generationNotations[g].Split(content);
-            if (g < generationNotations.Length - 1)
-            {
-                HierarchialCoordinate sibling = current;
-                foreach (string part in parts)
-                {
-                    if (part != "")
-                    {
-                        string[] subParts = generationNotations[g+1].Split(part);
-                        FamilyTreeNode node = GetNode(subParts[0]);
-                        nodes[sibling] = node;
-                        logger.LogDebug($"{sibling} {node}");
-                        logger.LogDebug($"Finding children of {node}");
-                        if (subParts.Length > 1)
-                        {
-                            FillNodeCollection(sibling++, g++, generationNotations, part[subParts[0].Length..], inheritedFamilyName, ref nodes);
-                        }
-                        logger.LogDebug($"Moving on to the next sibling of {node}");
-                        sibling = sibling.Sibling ?? throw new NullReferenceException("The Root doesn't have siblings.");
-                    }
-                }
-            }
-        }
-
-        private FamilyTreeNode GetNode(string part)
-        {
-            logger.LogDebug("Analyzing the header.");
-            string[] lines = part.Trim().Split('\n');
-            if (lines.Length < 1 || lines.Length > 2)
-            {
-                throw new InvalidDataException("Unable to parse this node.");
-            }
-            IDictionary<string,BridgeInstance> member = new Dictionary<string,BridgeInstance>();
-            Match memberNameMath = NameExpression().Match(lines[0]);
-            member["birthName"] = new(memberNameMath.Value);
-            logger.LogDebug($"Spotted Member name: {memberNameMath.Value}");
-            MatchCollection memberDateCollection = DateExpression().Matches(lines[0]);
-            logger.LogDebug($"Spotted Dates: {string.Join(',', memberDateCollection.Select((date) => date.Value))}");
-            IReadOnlyList<FamilyTreeDate> memberDates = [.. memberDateCollection.Select((memberDate) => new FamilyTreeDate(memberDate.Value))];
-            IDictionary<string,BridgeInstance> node;
-            Person p_member;
-            if (lines.Length == 2)
-            {
-                IDictionary<string,BridgeInstance> inLaw = new Dictionary<string,BridgeInstance>();
-                Match inLawNameMatch = NameExpression().Match(lines[1]);
-                inLaw["birthName"] = new(inLawNameMatch.Value);
-                logger.LogDebug($"Spotted InLaw name: {memberNameMath.Value}");
-                MatchCollection inLawDateCollection = DateExpression().Matches(lines[1]);
-                logger.LogDebug($"Spotted Dates: {string.Join(',', memberDateCollection.Select((date) => date.Value))}");
-                IReadOnlyList<FamilyTreeDate> inLawDates = [.. inLawDateCollection.Select((inLawDate) => new FamilyTreeDate(inLawDate.Value))];
-                switch (inLawDates.Count)
-                {
-                    case 0:
-                        inLaw["birthDate"] = new();
-                        inLaw["deceasedDate"] = new();
-                        break;
-                    case 1:
-                        inLaw["birthDate"] = inLawDates[0].Instance;
-                        inLaw["deceasedDate"] = new();
-                        break;
-                    case 2:
-                        inLaw["birthDate"] = inLawDates[0].Instance;
-                        inLaw["deceasedDate"] = inLawDates[1].Instance;
-                        break;
-                    default: throw new InvalidDataException("Too many dates.");
-                }
-                switch (memberDates.Count)
-                {
-                    case 0:
-                        member["birthDate"] = new();
-                        member["deceasedDate"] = new();
-                        break;
-                    case 1:
-                        member["birthDate"] = memberDates[0].Instance;
-                        member["deceasedDate"] = new();
-                        break;
-                    case 2:
-                        member["birthDate"] = memberDates[0].Instance;
-                        member["deceasedDate"] = new();
-                        break;
-                    case 3:
-                        member["birthDate"] = memberDates[0].Instance;
-                        member["deceasedDate"] = memberDates[2].Instance;
-                        break;
-                    default: throw new InvalidDataException("Too many dates");
-                }
-                p_member = GetPerson(member);
-                Person p_inLaw = GetPerson(inLaw);
-                IDictionary<string,BridgeInstance> partnership = new Dictionary<string,BridgeInstance>()
-                {
-                    ["partnershipDate"] = memberDates.Count > 1 ? memberDates[1].Instance : new(),
-                };
-                Partnership p = new(partnership, true);
-                partnerships.Add(p);
-                node = new Dictionary<string,BridgeInstance>()
-                {
-                    ["inheritedFamilyNames"] = new([new(inheritedFamilyName)]),
-                    ["memberId"] = new(p_member.Id.ToString()),
-                    ["inLawId"] = new(p_inLaw.Id.ToString()),
-                    ["partnershipId"] = new(p.Id.ToString())
-                };
-                return new(node, true);
-            }
-            switch (memberDates.Count)
-            {
-                case 0:
-                    member["birthDate"] = new();
-                    member["deceasedDate"] = new();
-                    break;
-                case 1:
-                    member["birthDate"] = memberDates[0].Instance;
-                    member["deceasedDate"] = new();
-                    break;
-                case 2:
-                    member["birthDate"] = memberDates[0].Instance;
-                    member["deceasedDate"] = memberDates[1].Instance;
-                    break;
-                default: throw new InvalidDataException("Too many dates");
-            }
-            p_member = GetPerson(member);
-            node = new Dictionary<string,BridgeInstance>()
-            {
-                ["inheritedFamilyNames"] = new([new(inheritedFamilyName)]),
-                ["memberId"] = new(p_member.Id.ToString())
+            string subOrderTypePattern = orderTypePattern switch {
+                LOWER => PARENTHESIZED_NUMERICAL,
+                NUMERICAL => LOWER,
+                PARENTHESIZED_NUMERICAL => ROMAN_LOWER,
+                ROMAN_UPPER => UPPER,
+                UPPER => NUMERICAL,
+                _ => ""
             };
-            return new(node, true);
-        }
-
-        private IReadOnlyDictionary<HierarchialCoordinate,FamilyTreeNode> GetNodeCollection()
-        {
-            SortedDictionary<HierarchialCoordinate,FamilyTreeNode> nodes = [];
-            string? extension = System.IO.Path.GetExtension(filePath);
-            Regex[] generationNotations = [RomanUpper(), Upper(), Digit(), Lower(), ParenthesizedDigit(), RomanLower()];
-            if (extension == "txt")
+            bool endOfLine = false;
+            string memberPattern = GetMemberPattern(orderTypePattern);
+            string subMemberPattern = GetMemberPattern(subOrderTypePattern);
+            string inLawPattern = $@"^({NAME_PATTERN})\s*(({DATE_PATTERN})\s*)*\s*$";
+            IDictionary<string,BridgeInstance> memberObj = DefaultPerson;
+            IDictionary<string,BridgeInstance> inLawObj = DefaultPerson;
+            IDictionary<string,BridgeInstance> partnershipObj = new Dictionary<string,BridgeInstance>();
+            Queue<FamilyTreeDate> memberDates = new();
+            Queue<FamilyTreeDate> inLawDates = new();
+            while(!endOfLine && whole.TryDequeue(out string? text) && text is not null)
             {
-                logger.LogDebug($"Reading from {DEFAULT_FILE_PATH}.");
-                string content = File.ReadAllText(filePath ?? DEFAULT_FILE_PATH);
-                logger.LogDebug(content);
-                FillNodeCollection(new HierarchialCoordinate([1]), 0, generationNotations, content, inheritedFamilyName, ref nodes);
-            }
-            return nodes;
-        }
+                Match memberMatch = Regex.Match(text, memberPattern, RegexOptions.Compiled);
+                if (memberMatch.Success)
+                {
+                    memberObj["birthName"] = new(memberMatch.Groups[1].Value);
+                    logger.LogInformation("Member Name Found: {name}", memberObj["birthName"]);
+                    memberDates = new(Regex.Matches(text,DATE_PATTERN, RegexOptions.Compiled).Cast<Match>().Select(m => new FamilyTreeDate(m.Value)));
+                    if (memberDates.Count <= 3 && memberDates.Count > 0)
+                    {
+                        memberObj["birthDate"] = memberDates.Dequeue().Instance;
+                        logger.LogInformation("Member Birth Date Found: {birthDate}", memberObj["birthDate"]);
+                    }
+                    else
+                    {
+                        logger.LogWarning("No birth date found for the member \"{name}\".", memberObj["birthName"]);
+                    }
+                    if (memberDates.Count == 2)
+                    {
+                        memberDates.Enqueue(memberDates.Dequeue());
+                        memberObj["deceasedDate"] = memberDates.Dequeue().Instance;
+                        logger.LogInformation("Member Deceased Date Found: {deceasedDate}", memberObj["deceasedDate"]);
+                    }
+                }
+                else
+                {
+                    Match inLawMatch = Regex.Match(text, inLawPattern, RegexOptions.Compiled);
+                    if (inLawMatch.Success)
+                    {
+                        inLawObj["birthName"] = new(inLawMatch.Groups[1].Value);
+                        logger.LogInformation("InLaw Birth Name Found: {name}", inLawObj["birthName"]);
+                        inLawDates = new(Regex.Matches(text,DATE_PATTERN, RegexOptions.Compiled).Cast<Match>().Select(m => new FamilyTreeDate(m.Value)));
+                        if (inLawDates.Count <= 2 && inLawDates.Count > 0)
+                        {
+                            inLawObj["birthDate"] = inLawDates.Dequeue().Instance;
+                            logger.LogInformation("InLaw Birth Date Found: {birthDate}", inLawObj["birthDate"]);
+                        }
+                        else
+                        {
+                            logger.LogWarning("No birth date found for the inLaw \"{name}\".", inLawObj["birthName"]);
+                        }
+                        if (inLawDates.Count == 1)
+                        {
+                            inLawObj["deceasedDate"] = inLawDates.Dequeue().Instance;
+                            logger.LogInformation("InLaw Deceased Date Found: {deceasedDate}", inLawObj["deceasedDate"]);
 
-        private Person GetPerson(IDictionary<string,BridgeInstance> personObj)
-        {
-            Person initial = new(personObj, true);
-            bool isAdded = people.Add(initial);
-            if (!isAdded)
+                        }
+                        partnershipObj["partnershipDate"] = memberDates.Dequeue().Instance;
+                        logger.LogInformation("Partnership date found {partnershipDate}", partnershipObj["partnershipDate"]);
+                    }
+                }
+                endOfLine = !whole.TryPeek(out string? nextText) || nextText is null || Regex.IsMatch(nextText, subMemberPattern, RegexOptions.Compiled)
+                    || Regex.IsMatch(nextText, memberPattern, RegexOptions.Compiled);
+                logger.LogDebug("Done Reading Header? {endOfLine}", endOfLine);
+            }
+            if (memberDates.Count == 1)
             {
-                return people.First(other => other == initial);
+                memberObj["deceasedDate"] = memberDates.Dequeue().Instance;
+                logger.LogInformation("Member Deceased Date Found: {deceasedDate}", memberObj["deceasedDate"]);
             }
-            return initial;
+            if (!IsPerson(memberObj))
+            {
+                throw new InvalidOperationException("The member must exist.");
+            }
+            Person member = GetPerson(new(memberObj, true));
+            logger.LogDebug("{member}", member);
+            Person? inLaw = IsPerson(inLawObj) ? GetPerson(new(inLawObj, true)) : null;
+            logger.LogDebug("{inLaw}", inLaw);
+            Partnership? partnership = IsPartnership(partnershipObj) ? GetPartnership(new(partnershipObj, true)) : null;
+            logger.LogDebug("{partnership}", partnership);
+            return new(coordinate, member, inLaw, partnership);
         }
 
-        [GeneratedRegex(@"([A-Z][a-z]*)(\s[A-Z][a-z\-\,\.]*)*", RegexOptions.Compiled)]
-        private static partial Regex NameExpression();
-        [GeneratedRegex(@"((\d\d|\d)\s([A-Z][a-z][a-z])\s(\d\d\d\d|\d\d\d\d\-\d\d\d\d))|(([A-Z][a-z][a-z])\s(\d\d\d\d|\d\d\d\d\-\d\d\d\d))|(\d\d\d\d|\d\d\d\d\-\d\d\d\d)", RegexOptions.Compiled)]
-        public static partial Regex DateExpression();
+        private Queue<Content> GetContents(Queue<string> whole, string[] orderTypePatterns, int i, HierarchialCoordinate start)
+        {
+            Queue<Content> contents = new();
+            Content currentContent;
+            HierarchialCoordinate currentCoordinate = start;
+            Queue<string> subQueue = new();
+            Models.Line header = new(new(), new(DefaultPerson, true));
+            bool processHeader = true;
+            while (whole.Count > 0)
+            {
+                if (processHeader)
+                {
+                    header = BuildHeader(whole, orderTypePatterns[i], currentCoordinate.Copy());
+                    logger.LogDebug("{header}",header);
+                    currentCoordinate = currentCoordinate.Sibling!.Value;
+                    processHeader = !processHeader;
+                }
+                string pattern = GetMemberPattern(orderTypePatterns[i]);
+                if (whole.TryPeek(out string? text) && text is not null && !Regex.IsMatch(text, pattern, RegexOptions.Compiled))
+                {
+                    logger.LogDebug("{header} has a child {text}.", header, text);
+                    subQueue.Enqueue(whole.Dequeue());
+                }
+                else
+                {
+                    logger.LogDebug("All children of {header} has been processed.", header);
+                    currentContent = new(header.Copy(),new(subQueue));
+                    contents.Enqueue(currentContent.Copy());
+                    subQueue.Clear();
+                    processHeader = !processHeader;
+                }
+            }
+            if (header.Member["birthName"].IsString && subQueue.Count > 0)
+            {
+                logger.LogDebug("Considering the last child of {header}", header);
+                currentContent = new(header, subQueue);
+                contents.Enqueue(currentContent);
+            }
+            return contents;
+        }
 
-        [GeneratedRegex(@"(I|V|X|L|C|D|M)+:\s", RegexOptions.Compiled)]
-        private static partial Regex RomanUpper();
+        private IReadOnlyDictionary<HierarchialCoordinate, FamilyTreeNode> GetFamily()
+        {
+            SortedDictionary<HierarchialCoordinate, FamilyTreeNode> family = [];
+            Stack<Queue<Content>> contents = new();
+            string[] orderTypePatterns = [ROMAN_UPPER, UPPER, NUMERICAL, LOWER, PARENTHESIZED_NUMERICAL, ROMAN_LOWER];
+            logger.LogInformation("Retrieving the partnerships of {inheritedFamilyName}.", inheritedFamilyName);
+            Queue<string> lines = ReadTextFile();
+            contents.Push(GetContents(lines, orderTypePatterns, contents.Count, new([1])));
+            while (contents.TryPop(out Queue<Content>? collection) && collection is not null)
+            {
+                if (collection.TryDequeue(out Content current))
+                {
+                    Content content = current.Copy();
+                    logger.LogDebug("{header} is ready for writing.", content.Header);
+                    this.lines.Add(content.Header);
+                    logger.LogDebug("Constructing a node associating {header}", content.Header);
+                    IDictionary<string,BridgeInstance> nodeObj = new Dictionary<string,BridgeInstance>()
+                    {
+                        ["inheritedFamilyNames"] = new([new(inheritedFamilyName)]),
+                        ["memberId"] = new(content.Header.Member.Id.ToString()),
+                        ["inLawId"] = content.Header.InLaw is null ? new() : new(content.Header.InLaw.Id.ToString()),
+                        ["partnershipId"] = content.Header.Partnership is null ? new() : new(content.Header.Partnership.Id.ToString())
+                    };
+                    family[content.Header.Coordinate] = new(nodeObj, true);
+                    logger.LogDebug("{coordinate}: {node}", content.Header.Coordinate, family[content.Header.Coordinate]);
+                    contents.Push(collection);
+                    contents.Push(GetContents(content.SubContent, orderTypePatterns, contents.Count, content.Header.Coordinate.Child));
+                }
+            }
+            return family;
+        }
 
-        [GeneratedRegex(@"([A-Z])+.\s", RegexOptions.Compiled)]
-        private static partial Regex Upper();
-        [GeneratedRegex(@"(\d)+.\s", RegexOptions.Compiled)]
-        private static partial Regex Digit();
-        [GeneratedRegex(@"([a-z])+.\s", RegexOptions.Compiled)]
-        private static partial Regex Lower();
-        [GeneratedRegex(@"\((\d)+\)\s", RegexOptions.Compiled)]
-        private static partial Regex ParenthesizedDigit();
-        [GeneratedRegex(@"(i|v|x|l|c|d|m)+\)\s", RegexOptions.Compiled)]
-        private static partial Regex RomanLower();
+        private static string GetMemberPattern(string orderTypePattern)
+        {
+            return $@"{orderTypePattern}({NAME_PATTERN})\s*(({DATE_PATTERN})\s*)*\s*$";
+        }
+
+        private Partnership GetPartnership(Partnership p)
+        {
+            if (partnerships.Add(p))
+            {
+                return p;
+            }
+            return partnerships.First(temp => temp == p);
+        }
+
+        private Person GetPerson(Person p)
+        {
+            if (people.Add(p))
+            {
+                return p;
+            }
+            return people.First((temp) => temp == p);
+        }
+
+        private static bool IsPartnership(IDictionary<string,BridgeInstance> obj)
+        {
+            return obj.ContainsKey("partnershipDate");
+        }
+
+        private static bool IsPerson(IDictionary<string,BridgeInstance> obj)
+        {
+            return obj.TryGetValue("birthName", out BridgeInstance birthName) && birthName.IsString;
+        }
+
+        public Queue<string> ReadTextFile()
+        {
+            logger.LogInformation("Reading from {FilePath}.", FilePath);
+            return new(File.ReadLines(FilePath));
+        }
     }
 }

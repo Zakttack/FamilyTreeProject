@@ -7,18 +7,13 @@ namespace FamilyTreeLibrary
 {
     public static class FamilyTreeUtils
     {
-        public static ILoggerFactory AddFamilyTreeLogger(this ILoggerFactory factory, FamilyTreeVault vault, ILoggerProvider? fallbackProvider = null)
-        {
-            factory.AddProvider(new FamilyTreeLoggerProvider(vault, fallbackProvider));
-            return factory;
-        }
-
         public static ILoggingBuilder AddFamilyTreeLogger(this ILoggingBuilder builder)
         {
             builder.Services.AddSingleton<ILoggerProvider, FamilyTreeLoggerProvider>(sp =>
             {
                 return new(sp.GetRequiredService<FamilyTreeVault>());
             });
+            builder.Services.AddTransient(typeof(IExtendedLogger<>), typeof(FamilyTreeLogger<>));
             return builder;
         }
     }

@@ -9,4 +9,6 @@ namespace FamilyTreeLibrary.Logging
         public void TrackDependency(string dependencyType, string dependencyName, string data, DateTimeOffset startTime, TimeSpan duration, bool success);
         public void TrackOperation(string operationName, Action operation, IDictionary<string, string>? properties = null);
     }
+
+    public interface IExtendedLogger<T> : IExtendedLogger {}
 }

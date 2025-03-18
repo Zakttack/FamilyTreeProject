@@ -111,7 +111,7 @@ namespace FamilyTreeLibrary.Serialization
                 {
                     throw new InvalidCastException("The instance doesn't exist.");
                 }
-                string? representation = instance.ToString() ?? throw new InvalidCastException("The instance doesn't exist.");
+                string representation = instance.ToString() ?? throw new InvalidCastException("The instance doesn't exist.");
                 return representation;
             }
         }
@@ -201,7 +201,7 @@ namespace FamilyTreeLibrary.Serialization
             {
                 return AsString == other.AsString;
             }
-            else if (IsArray == other.IsArray)
+            else if (IsArray && other.IsArray)
             {
                 if (AsArray.Count() != other.AsArray.Count())
                 {

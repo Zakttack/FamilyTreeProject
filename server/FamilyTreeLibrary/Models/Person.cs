@@ -1,9 +1,10 @@
 using FamilyTreeLibrary.Data;
 using FamilyTreeLibrary.Serialization;
+using System.Text.Json;
 
 namespace FamilyTreeLibrary.Models
 {
-    public class Person : AbstractComparableBridge, IComparable<Person>, IEquatable<Person>
+    public class Person : AbstractComparableBridge, IComparable<Person>, ICopyable<Person>, IEquatable<Person>
     {
         private readonly IDictionary<string, BridgeInstance> document;
 
@@ -112,6 +113,19 @@ namespace FamilyTreeLibrary.Models
                 return 1;
             }
             return BirthName.CompareTo(p.BirthName);
+        }
+
+        public Person Copy()
+        {
+            JsonSerializerOptions options = new()
+            {
+                Converters = {
+                    new BridgeSerializer()
+                },
+                WriteIndented = true
+            };
+            IBridge bridge = JsonSerializer.Deserialize<IBridge>(ToString(), options) ?? throw new NullReferenceException("Nothing is there.");
+            return new(bridge.Instance.AsObject);
         }
 
         public bool Equals(Person? other)

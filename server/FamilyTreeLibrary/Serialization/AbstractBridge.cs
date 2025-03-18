@@ -4,10 +4,7 @@ namespace FamilyTreeLibrary.Serialization
     {
         public abstract BridgeInstance Instance{ get; }
 
-        public bool Equals(AbstractBridge? other)
-        {
-            return other is not null && Instance == other.Instance;
-        }
+        public abstract bool Equals(AbstractBridge? other);
 
         public override bool Equals(object? obj)
         {

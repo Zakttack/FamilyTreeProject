@@ -1,9 +1,10 @@
 using FamilyTreeLibrary.Data;
 using FamilyTreeLibrary.Serialization;
+using System.Text.Json;
 
 namespace FamilyTreeLibrary.Models
 {
-    public class Partnership : AbstractComparableBridge, IComparable<Partnership>, IEquatable<Partnership>
+    public class Partnership : AbstractComparableBridge, IComparable<Partnership>, ICopyable<Partnership>, IEquatable<Partnership>
     {
         private readonly IDictionary<string, BridgeInstance> document;
 
@@ -62,6 +63,19 @@ namespace FamilyTreeLibrary.Models
                 return 1;
             }
             return PartnershipDate.CompareTo(p.PartnershipDate);
+        }
+
+        public Partnership Copy()
+        {
+            JsonSerializerOptions options = new()
+            {
+                Converters = {
+                    new BridgeSerializer()
+                },
+                WriteIndented = true
+            };
+            IBridge bridge = JsonSerializer.Deserialize<IBridge>(ToString(), options) ?? throw new NullReferenceException("Nothing is there.");
+            return new(bridge.Instance.AsObject);
         }
 
         public bool Equals(Partnership? other)

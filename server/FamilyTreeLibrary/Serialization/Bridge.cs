@@ -43,9 +43,14 @@ namespace FamilyTreeLibrary.Serialization
             }
         }
 
+        public override bool Equals(AbstractBridge? other)
+        {
+            return other is Bridge bridge && Equals(bridge);
+        }
+
         public bool Equals(Bridge? other)
         {
-            return base.Equals(other);
+            return other is not null && Instance == other.Instance;
         }
 
         public override bool Equals(object? obj)

@@ -37,7 +37,7 @@ namespace FamilyTreeLibrary.Infrastructure.Resource
             {
                 string secretName = properties.Name;
                 KeyVaultSecret secretValue = client.GetSecret(secretName).Value;
-                IBridge instance = JsonSerializer.Deserialize<IBridge>(secretValue.Value, options) ?? throw new KeyNotFoundException($"{secretName} doesn't have a value.");
+                IBridge instance = JsonSerializer.Deserialize<IBridge>($"\"{secretValue.Value}\"", options) ?? throw new KeyNotFoundException($"{secretName} doesn't have a value.");
                 pairs[secretName] = instance.Instance;
             }
             return pairs;

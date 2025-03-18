@@ -6,6 +6,10 @@ namespace FamilyTreeLibrary.Serialization
 
         public abstract int CompareTo(AbstractComparableBridge? other);
 
+        public override bool Equals(AbstractBridge? other)
+        {
+            return other is AbstractComparableBridge obj && Equals(obj);
+        }
         public bool Equals(AbstractComparableBridge? other)
         {
             return CompareTo(other) == 0;

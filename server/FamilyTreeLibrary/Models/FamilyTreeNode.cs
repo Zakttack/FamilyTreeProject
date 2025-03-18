@@ -1,9 +1,10 @@
+using System.Text.Json;
 using FamilyTreeLibrary.Data;
 using FamilyTreeLibrary.Serialization;
 
 namespace FamilyTreeLibrary.Models
 {
-    public class FamilyTreeNode : AbstractBridge, IEquatable<FamilyTreeNode>
+    public class FamilyTreeNode : AbstractBridge, ICopyable<FamilyTreeNode>, IEquatable<FamilyTreeNode>
     {
         private readonly IDictionary<string, BridgeInstance> vertex;
 
@@ -78,9 +79,30 @@ namespace FamilyTreeLibrary.Models
 
         public override BridgeInstance Instance => new(vertex);
 
+        public FamilyTreeNode Copy()
+        {
+            JsonSerializerOptions options = new()
+            {
+                Converters = {
+                    new BridgeSerializer()
+                },
+                WriteIndented = true
+            };
+            IBridge bridge = JsonSerializer.Deserialize<IBridge>(ToString(), options) ?? throw new NullReferenceException("Nothing is there.");
+            return new(bridge.Instance.AsObject);
+        }
+
+        public override bool Equals(AbstractBridge? other)
+        {
+            return other is FamilyTreeNode node && Equals(node);
+        }
         public bool Equals(FamilyTreeNode? other)
         {
-            return base.Equals(other);
+            if (other is null)
+            {
+                return false;
+            }
+            return MemberId == other.MemberId && InLawId == other.InLawId && PartnershipId == other.PartnershipId;
         }
 
         public override bool Equals(object? obj)
