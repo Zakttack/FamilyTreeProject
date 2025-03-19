@@ -23,6 +23,7 @@
 /client/build
 
 cloud/*.bat
+resources/2023PfingstenBookAlternate.pdf
 
 # misc
 .DS_Store

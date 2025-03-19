@@ -2,6 +2,9 @@ targetScope = 'resourceGroup'
 param logContainerName string = 'logs'
 param imageContainerName string = 'images'
 param templateContainerName string = 'templates'
+param dbName string = 'familytreedb'
+param personContainerName string = 'person'
+param partnershipContainerName string = 'partnership'
 
 resource familyTreeIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
   name: 'familyTreeIdentity'
@@ -15,171 +18,131 @@ resource familyTreeConfiguration 'Microsoft.AppConfiguration/configurationStores
   name: 'familyTreeConfiguration'
 }
 
-resource familyTreeInsights 'Microsoft.Insights/components@2018-05-01-preview' = {
+resource familyTreeInsights 'Microsoft.Insights/components@2018-05-01-preview' existing = {
   name: 'familyTreeInsights'
-  location: resourceGroup().location
-  kind: 'web'
-  properties: {
-    Application_Type: 'web'
-  }
 }
 
-resource familyTreeStaticStorage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+resource familyTreeStaticStorage 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
   name: 'familytreestaticstorage'
-  location: resourceGroup().location
-  sku: {
-    name: 'Standard_LRS'
-  }
-  kind: 'StorageV2'
-  properties: {
-    accessTier: 'Hot'
-  }
 }
 
-resource familyTreeBlobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
+resource familyTreeBlobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' existing = {
   parent: familyTreeStaticStorage
   name: 'default'
 }
 
-resource logContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
+resource logContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' existing = {
   parent: familyTreeBlobService
   name: logContainerName
-  properties: {
-    publicAccess: 'None'
-  }
 }
 
-resource imageContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
+resource imageContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' existing = {
   parent: familyTreeBlobService
   name: imageContainerName
-  properties: {
-    publicAccess: 'None'
-  }
 }
 
-resource templateContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
+resource templateContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' existing = {
   parent: familyTreeBlobService
   name: templateContainerName
+}
+
+resource lifecyclePolicy 'Microsoft.Storage/storageAccounts/managementPolicies@2021-09-01' existing = {
+  parent: familyTreeStaticStorage
+  name: 'default'
+}
+
+resource appInsightsDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' existing = {
+  name: 'AppInsightsToStorageLogs'
+  scope: familyTreeInsights
+}
+
+resource storageDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' existing = {
+  name: 'StorageLogs'
+  scope: familyTreeBlobService
+}
+
+resource familyTreeDocumentDBaccount 'Microsoft.DocumentDB/databaseAccounts@2024-12-01-preview' = {
+  kind: 'GlobalDocumentDB'
+  location: resourceGroup().location
+  name: 'familytreedocumentdbaccount'
   properties: {
-    publicAccess: 'None'
+    databaseAccountOfferType: 'Standard'
+    consistencyPolicy: {
+      defaultConsistencyLevel: 'Eventual'
+    }
+    locations: [
+      {
+        locationName: resourceGroup().location
+        failoverPriority: 0
+        isZoneRedundant: false
+      }
+    ]
+    enableAutomaticFailover: false
+    enableMultipleWriteLocations: false
+    backupPolicy: {
+      type: 'Periodic'
+      periodicModeProperties: {
+        backupIntervalInMinutes: 1440
+        backupRetentionIntervalInHours: 168
+        backupStorageRedundancy: 'Local'
+      }
+    }
+    publicNetworkAccess: 'Disabled'
+    minimalTlsVersion: 'tls12'
   }
 }
 
-resource lifecyclePolicy 'Microsoft.Storage/storageAccounts/managementPolicies@2021-09-01' = {
-  parent: familyTreeStaticStorage
-  name: 'default'
+resource familyTreeDocumentDB 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-12-01-preview' = {
+  location: resourceGroup().location
+  parent: familyTreeDocumentDBaccount
+  name: dbName
   properties: {
-    policy: {
-      rules: [
-        {
-          enabled: true
-          name: 'MoveLogsToColdThenArchiveBeforeDeletion'
-          type: 'Lifecycle'
-          definition: {
-            actions: {
-              baseBlob: {
-                delete: {
-                  daysAfterModificationGreaterThan: 180
-                }
-                tierToCool: {
-                  daysAfterModificationGreaterThan: 0
-                }
-                tierToArchive: {
-                  daysAfterModificationGreaterThan: 90
-                }
-              }
-            }
-            filters: {
-              blobTypes: ['blockBlob']
-              prefixMatch: [logContainerName]
-            }
-          }
-        }
-        {
-          enabled: true
-          name: 'MoveTemplatesToArchiveBeforeDeletion'
-          type: 'Lifecycle'
-          definition: {
-            actions: {
-              baseBlob: {
-                delete: {
-                  daysAfterModificationGreaterThan: 180
-                }
-                tierToArchive: {
-                  daysAfterModificationGreaterThan: 90
-                }
-              }
-            }
-            filters: {
-              blobTypes: ['blockBlob']
-              prefixMatch: [templateContainerName]
-            }
-          }
-        }
-        {
-          enabled: true
-          name: 'MoveImagesToArchiveOnUserRemoval'
-          type: 'Lifecycle'
-          definition: {
-            actions: {
-              baseBlob: {
-                delete: {
-                  daysAfterModificationGreaterThan: 180
-                }
-                tierToArchive: {
-                  daysAfterModificationGreaterThan: 0
-                }
-              }
-            }
-            filters: {
-              blobTypes: ['blockBlob']
-              prefixMatch: [imageContainerName]
-            }
-          }
-        }
-      ]
+    resource: {
+      id: dbName
     }
   }
 }
 
-resource appInsightsDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: 'AppInsightsToStorageLogs'
-  scope: familyTreeInsights
+resource personContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-12-01-preview' = {
+  parent: familyTreeDocumentDB
+  location: resourceGroup().location
+  name: personContainerName
   properties: {
-    storageAccountId: familyTreeStaticStorage.id
-    logs: [
-      {
-        category: 'AppTraces'
-        enabled: true
+    options: {
+      autoscaleSettings: {
+        maxThroughput: 4000
       }
-    ]
+    }
+    resource: {
+      id: personContainerName
+      partitionKey: {
+        kind: 'Hash'
+        paths: [
+          '/birthName'
+        ]
+      }
+    }
   }
 }
 
-resource storageDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: 'StorageLogs'
-  scope: familyTreeBlobService
+resource partnershipContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-12-01-preview' = {
+  parent: familyTreeDocumentDB
+  location: resourceGroup().location
+  name: partnershipContainerName
   properties: {
-    storageAccountId: familyTreeStaticStorage.id
-    logs: [
-      {
-        category: 'StorageRead'
-        enabled: true
+    options: {
+      autoscaleSettings: {
+        maxThroughput: 4000
       }
-      {
-        category: 'StorageWrite'
-        enabled: true
+    }
+    resource: {
+      id: partnershipContainerName
+      partitionKey: {
+        kind: 'Hash'
+        paths: [
+          '/partnershipDate'
+        ]
       }
-      {
-        category: 'StorageDelete'
-        enabled: true
-      }
-    ]
-    metrics: [
-      {
-        category: 'Transaction'
-        enabled: true
-      }
-    ]
+    }
   }
 }

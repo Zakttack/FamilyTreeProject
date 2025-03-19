@@ -1,12 +1,11 @@
 ﻿using FamilyTreeLibrary;
 using FamilyTreeLibrary.Data.Files;
 using FamilyTreeLibrary.Infrastructure;
+using FamilyTreeLibrary.Infrastructure.Resource;
 using FamilyTreeLibrary.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using iText.Kernel.Pdf;
-using iText.Kernel.Pdf.Canvas.Parser;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
@@ -25,19 +24,9 @@ try
 {
     ITemplateGenerator templateGenerator = new TemplateGenerator(host.Services.GetRequiredService<IExtendedLogger<TemplateGenerator>>());
     using FileStream templateStream = templateGenerator.WriteTemplate();
-    using PdfReader reader = new(templateStream);
-    using PdfDocument document = new(reader);
-    for (int page = 1; page <= document.GetNumberOfPages(); page++)
-    {
-        string[] pageContent = PdfTextExtractor.GetTextFromPage(document.GetPage(page)).Split('\n', StringSplitOptions.None);
-        foreach (string content in pageContent)
-        {
-            Console.WriteLine(content);
-        }
-    }
-    document.Close();
-    reader.Close();
-    templateStream.Close();
+    FamilyTreeStaticStorage staticStorage = new(host.Services.GetRequiredService<FamilyTreeConfiguration>(), host.Services.GetRequiredService<FamilyTreeVault>());
+    string blobUri = staticStorage.UploadTemplate(templateStream);
+    Console.WriteLine(blobUri);
 }
 catch (Exception ex)
 {

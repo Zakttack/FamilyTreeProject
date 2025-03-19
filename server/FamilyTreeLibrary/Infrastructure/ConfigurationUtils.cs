@@ -15,6 +15,7 @@ namespace FamilyTreeLibrary.Infrastructure
             {
                 FamilyTreeConfiguration configuration = new(API_CONFIGURATION_URI);
                 ConfigureApplicationInsights(configuration);
+                ConfigureCosmosDB(configuration);
                 ConfigureKeyVault(configuration);
                 ConfigureStorageSettings(configuration);
                 return configuration;
@@ -26,14 +27,6 @@ namespace FamilyTreeLibrary.Infrastructure
             return builder.AddAzureAppConfiguration(options =>
             {
                 options.Connect(new Uri(API_CONFIGURATION_URI), new DefaultAzureCredential()).Select("*");
-            });
-        }
-
-        public static IConfigurationBuilder AddFamilyTreeConfigurationLocal(this IConfigurationBuilder builder)
-        {
-            return builder.AddAzureAppConfiguration(options =>
-            {
-                options.Connect(new Uri(API_CONFIGURATION_URI), new AzureCliCredential()).Select("*");
             });
         }
 
@@ -50,6 +43,13 @@ namespace FamilyTreeLibrary.Infrastructure
         {
             configuration["ApplicationInsights:Name"] = "familyTreeInsights";
             configuration["ApplicationInsights:Type"] = "web";
+        }
+
+        private static void ConfigureCosmosDB(FamilyTreeConfiguration configuration)
+        {
+            configuration["CosmosDB:DatabaseName"] = "familytreedb";
+            configuration["CosmosDB:PersonContainerName"] = "person";
+            configuration["CosmosDB:PartnershipContainerName"] = "partnership";
         }
 
         private static void ConfigureKeyVault(FamilyTreeConfiguration configuration)
