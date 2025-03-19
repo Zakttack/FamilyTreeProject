@@ -82,8 +82,8 @@ namespace FamilyTreeLibrary.Serialization
                     throw new InvalidCastException("The instance doesn't exist.");
                 }
                 string? representation = instance.ToString() ?? throw new InvalidCastException("The instance doesn't exist.");
-                if (Digits().Matches(representation).Count != 1 || DigitsWithDecimal().Matches(representation).Count != 1 || 
-                    NegativeDigits().Matches(representation).Count != 1 || NegativeDigitsWithDecimal().Matches(representation).Count != 1)
+                if (Digits().Matches(representation).Count < 1 && DigitsWithDecimal().Matches(representation).Count < 1 && 
+                    NegativeDigits().Matches(representation).Count < 1 && NegativeDigitsWithDecimal().Matches(representation).Count < 1)
                 {
                     throw new InvalidCastException($"{representation} isn't a number.");
                 }
@@ -154,8 +154,8 @@ namespace FamilyTreeLibrary.Serialization
                 {
                     return false;
                 }
-                return Digits().Matches(representation).Count == 1 || DigitsWithDecimal().Matches(representation).Count == 1 || 
-                    NegativeDigits().Matches(representation).Count == 1 || NegativeDigitsWithDecimal().Matches(representation).Count == 1;
+                return Digits().Matches(representation).Count > 0 || DigitsWithDecimal().Matches(representation).Count > 0 || 
+                    NegativeDigits().Matches(representation).Count > 0 || NegativeDigitsWithDecimal().Matches(representation).Count > 0;
             }
         }
 

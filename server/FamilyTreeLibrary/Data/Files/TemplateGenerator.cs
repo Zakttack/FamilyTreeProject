@@ -96,7 +96,7 @@ namespace FamilyTreeLibrary.Data.Files
         public FileStream WriteTemplate()
         {
             logger.LogInformation("Writing partnerships to the path: \"{filePath}\"", WritePath);
-            using FileStream initialStream = new(WritePath, FileMode.Create, FileAccess.Write);
+            using FileStream initialStream = new(WritePath, FileMode.Create);
             using PdfWriter templateWriter = new(initialStream);
             using PdfDocument templateDocument = new(templateWriter);
             using Document template = new(templateDocument);
@@ -149,9 +149,9 @@ namespace FamilyTreeLibrary.Data.Files
                     memberObj["birthName"] = new(memberMatch.Groups[1].Value);
                     logger.LogInformation("Member Name Found: {name}", memberObj["birthName"]);
                     memberDates = new(Regex.Matches(text,DATE_PATTERN, RegexOptions.Compiled).Cast<Match>().Select(m => new FamilyTreeDate(m.Value)));
-                    if (memberDates.Count <= 3 && memberDates.Count > 0)
+                    if (memberDates.TryDequeue(out FamilyTreeDate? memberBirthDate) && memberBirthDate is not null)
                     {
-                        memberObj["birthDate"] = memberDates.Dequeue().Instance;
+                        memberObj["birthDate"] = memberBirthDate.Instance;
                         logger.LogInformation("Member Birth Date Found: {birthDate}", memberObj["birthDate"]);
                     }
                     else
@@ -186,10 +186,17 @@ namespace FamilyTreeLibrary.Data.Files
                         {
                             inLawObj["deceasedDate"] = inLawDates.Dequeue().Instance;
                             logger.LogInformation("InLaw Deceased Date Found: {deceasedDate}", inLawObj["deceasedDate"]);
-
                         }
-                        partnershipObj["partnershipDate"] = memberDates.Dequeue().Instance;
-                        logger.LogInformation("Partnership date found {partnershipDate}", partnershipObj["partnershipDate"]);
+                        if (memberDates.TryDequeue(out FamilyTreeDate? partnershipDate) && partnershipDate is not null)
+                        {
+                            partnershipObj["partnershipDate"] = partnershipDate.Instance;
+                            logger.LogInformation("Partnership date found {partnershipDate}", partnershipObj["partnershipDate"]);
+                        }
+                        else
+                        {
+                            logger.LogWarning("No partnership date between {member} and {inLaw} found.", memberObj["birthName"], inLawObj["birthName"]);
+                        }
+
                     }
                 }
                 endOfLine = !whole.TryPeek(out string? nextText) || nextText is null || Regex.IsMatch(nextText, subMemberPattern, RegexOptions.Compiled)

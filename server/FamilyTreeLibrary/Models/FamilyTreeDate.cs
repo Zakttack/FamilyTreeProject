@@ -99,7 +99,21 @@ namespace FamilyTreeLibrary.Models
             {
                 return monthCompareResult;
             }
-            return Convert.ToInt32(day) - Convert.ToInt32(other.day);
+            bool dayAIsProvided = int.TryParse(day, out int dayA);
+            bool dayBIsProvided = int.TryParse(other.day, out int dayB);
+            if (!dayAIsProvided && !dayBIsProvided)
+            {
+                return 0;
+            }
+            else if (!dayAIsProvided && dayBIsProvided)
+            {
+                return -1;
+            }
+            else if (dayAIsProvided && !dayBIsProvided)
+            {
+                return 1;
+            }
+            return dayA - dayB;
         }
 
         public FamilyTreeDate Copy()
@@ -130,9 +144,14 @@ namespace FamilyTreeLibrary.Models
             return base.GetHashCode();
         }
 
+        public override string ToString()
+        {
+            return base.ToString().Trim('\"');
+        }
+
         private static string InitializeDay(string token)
         {
-            if (DayPattern().Matches(token).Count != 1)
+            if (DayPattern().Matches(token).Count < 0)
             {
                 throw new InvalidDateException($"{token} isn't a valid day.");
             }
@@ -150,7 +169,7 @@ namespace FamilyTreeLibrary.Models
 
         private static string InitializeYear(string token)
         {
-            if (YearPattern().Matches(token).Count != 1)
+            if (YearPattern().Matches(token).Count < 0)
             {
                 throw new InvalidDateException($"{token} isn't a year.");
             }

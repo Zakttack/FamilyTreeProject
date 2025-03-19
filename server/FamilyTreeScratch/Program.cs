@@ -29,7 +29,7 @@ try
     using PdfDocument document = new(reader);
     for (int page = 1; page <= document.GetNumberOfPages(); page++)
     {
-        string[] pageContent = PdfTextExtractor.GetTextFromPage(document.GetPage(1)).Split('\n', StringSplitOptions.None);
+        string[] pageContent = PdfTextExtractor.GetTextFromPage(document.GetPage(page)).Split('\n', StringSplitOptions.None);
         foreach (string content in pageContent)
         {
             Console.WriteLine(content);
