@@ -1,5 +1,6 @@
 ﻿using FamilyTreeLibrary;
 using FamilyTreeLibrary.Data.Databases;
+using FamilyTreeLibrary.Data.Files;
 using FamilyTreeLibrary.Infrastructure;
 using FamilyTreeLibrary.Infrastructure.Resource;
 using FamilyTreeLibrary.Logging;
@@ -24,17 +25,12 @@ using IHost host = Host.CreateDefaultBuilder(args)
 IExtendedLogger<Program> logger = host.Services.GetRequiredService<IExtendedLogger<Program>>();
 try
 {
-    PersonCollection collection = new(host.Services.GetRequiredService<FamilyTreeConfiguration>(), host.Services.GetRequiredService<FamilyTreeVault>());
-    Person p = new(new Dictionary<string,BridgeInstance>() 
-    {
-        ["birthName"] = new("Zak Ray Merrigan"),
-        ["birthDate"] = new("25 Jul 1999"),
-        ["deceasedDate"] = new()
-    }, true);
-    collection[p.Id] = p.Copy();
-    Console.WriteLine("Done");
+    ITemplateGenerator templateGenerator = new TemplateGenerator(host.Services.GetRequiredService<IExtendedLogger<TemplateGenerator>>());
+    templateGenerator.WriteTemplate();
+    Console.WriteLine("You can view the pdf.");
 }
 catch (Exception ex)
 {
     logger.LogCritical(ex, "{name}: {message}\n{stackTrace}", ex.GetType().Name, ex.Message, ex.StackTrace);
+    Console.WriteLine($"{ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
 }
