@@ -49,7 +49,7 @@ namespace FamilyTreeLibrary.Infrastructure
         {
             configuration["CosmosDB:DatabaseName"] = "familytreedb";
             configuration["CosmosDB:PersonContainerName"] = "person";
-            configuration["CosmosDB:PartnershipContainerName"] = "partnership";
+            configuration["CosmosDB:FamilyDynamicContainerName"] = "familydynamic";
         }
 
         private static void ConfigureKeyVault(FamilyTreeConfiguration configuration)

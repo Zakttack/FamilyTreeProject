@@ -124,7 +124,7 @@ namespace FamilyTreeLibrary.Models
                 },
                 WriteIndented = true
             };
-            IBridge bridge = JsonSerializer.Deserialize<IBridge>(ToString(), options) ?? throw new NullReferenceException("Nothing is there.");
+            IBridge bridge = JsonSerializer.Deserialize<IBridge>(Instance.ToString(), options) ?? throw new NullReferenceException("Nothing is there.");
             return new(bridge.Instance.AsObject);
         }
 

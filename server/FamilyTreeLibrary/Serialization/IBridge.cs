@@ -1,5 +1,3 @@
-using FamilyTreeLibrary.Models;
-
 namespace FamilyTreeLibrary.Serialization
 {
     public interface IBridge

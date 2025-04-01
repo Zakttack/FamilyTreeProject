@@ -4,15 +4,15 @@ using System.Text.Json;
 
 namespace FamilyTreeLibrary.Models
 {
-    public class Partnership : AbstractComparableBridge, IComparable<Partnership>, ICopyable<Partnership>, IEquatable<Partnership>
+    public class FamilyDynamic : AbstractComparableBridge, IComparable<FamilyDynamic>, ICopyable<FamilyDynamic>, IEquatable<FamilyDynamic>
     {
         private readonly IDictionary<string, BridgeInstance> document;
 
-        public Partnership(IDictionary<string,BridgeInstance> obj, bool needToGenerateId = false)
+        public FamilyDynamic(IDictionary<string,BridgeInstance> obj, bool needToGenerateId = false)
         {
             if (!obj.ContainsKey("id") && !needToGenerateId)
             {
-                throw new UniqueIdentifierNotExistsException("An id must be present to uniquely identify a partnership document.");
+                throw new UniqueIdentifierNotExistsException("An id must be present to uniquely identify a family dynamic document.");
             }
             document = obj;
             if (!document.ContainsKey("id"))
@@ -29,11 +29,11 @@ namespace FamilyTreeLibrary.Models
             }
         }
 
-        public FamilyTreeDate PartnershipDate
+        public FamilyTreeDate FamilyDynamicStartDate
         {
             get
             {
-                return new(document["partnershipDate"].AsString);
+                return new(document["familyDynamicStartDate"].AsString);
             }
         }
 
@@ -53,19 +53,19 @@ namespace FamilyTreeLibrary.Models
 
         public override int CompareTo(AbstractComparableBridge? other)
         {
-            return CompareTo(other as Partnership);
+            return CompareTo(other as FamilyDynamic);
         }
 
-        public int CompareTo(Partnership? p)
+        public int CompareTo(FamilyDynamic? p)
         {
             if (p is null)
             {
                 return 1;
             }
-            return PartnershipDate.CompareTo(p.PartnershipDate);
+            return FamilyDynamicStartDate.CompareTo(p.FamilyDynamicStartDate);
         }
 
-        public Partnership Copy()
+        public FamilyDynamic Copy()
         {
             JsonSerializerOptions options = new()
             {
@@ -74,11 +74,11 @@ namespace FamilyTreeLibrary.Models
                 },
                 WriteIndented = true
             };
-            IBridge bridge = JsonSerializer.Deserialize<IBridge>(ToString(), options) ?? throw new NullReferenceException("Nothing is there.");
+            IBridge bridge = JsonSerializer.Deserialize<IBridge>(Instance.ToString(), options) ?? throw new NullReferenceException("Nothing is there.");
             return new(bridge.Instance.AsObject);
         }
 
-        public bool Equals(Partnership? other)
+        public bool Equals(FamilyDynamic? other)
         {
             return base.Equals(other);
         }
@@ -95,7 +95,7 @@ namespace FamilyTreeLibrary.Models
 
         public override string ToString()
         {
-            return PartnershipDate.ToString();
+            return FamilyDynamicStartDate.ToString();
         }
     }
 }

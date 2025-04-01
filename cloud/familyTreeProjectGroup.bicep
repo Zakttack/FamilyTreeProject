@@ -4,7 +4,8 @@ param imageContainerName string = 'images'
 param templateContainerName string = 'templates'
 param dbName string = 'familytreedb'
 param personContainerName string = 'person'
-param partnershipContainerName string = 'partnership'
+param familyDynamicContainerName string = 'familydynamic'
+param myIpAddress string = '24.220.242.86'
 
 resource familyTreeIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
   name: 'familyTreeIdentity'
@@ -14,8 +15,35 @@ resource familyTreeVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
   name: 'familyTreeVault'
 }
 
+resource acrCredentials 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: familyTreeVault
+  name: 'ContainerRegistryCredentials'
+  properties: {
+    contentType: 'application/json'
+    value: '{"username":"${familyTreeRegistry.listCredentials().username}","password":"${familyTreeRegistry.listCredentials().passwords[0].value}"}'
+  }
+}
+
 resource familyTreeConfiguration 'Microsoft.AppConfiguration/configurationStores@2023-03-01' existing = {
   name: 'familyTreeConfiguration'
+}
+
+resource acrName 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
+  parent: familyTreeConfiguration
+  name: 'ContainerRegistry:Name'
+  properties: {
+    value: familyTreeRegistry.name
+    contentType: 'text/plain'
+  }
+}
+
+resource acrLoginServer 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
+  parent: familyTreeConfiguration
+  name: 'ContainerRegistry:LoginServer'
+  properties: {
+    value: familyTreeRegistry.properties.loginServer
+    contentType: 'text/plain'
+  }
 }
 
 resource familyTreeInsights 'Microsoft.Insights/components@2018-05-01-preview' existing = {
@@ -61,88 +89,33 @@ resource storageDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-pr
   scope: familyTreeBlobService
 }
 
-resource familyTreeDocumentDBaccount 'Microsoft.DocumentDB/databaseAccounts@2024-12-01-preview' = {
-  kind: 'GlobalDocumentDB'
-  location: resourceGroup().location
+resource familyTreeDocumentDBaccount 'Microsoft.DocumentDB/databaseAccounts@2024-12-01-preview' existing = {
   name: 'familytreedocumentdbaccount'
-  properties: {
-    databaseAccountOfferType: 'Standard'
-    consistencyPolicy: {
-      defaultConsistencyLevel: 'Eventual'
-    }
-    locations: [
-      {
-        locationName: resourceGroup().location
-        failoverPriority: 0
-        isZoneRedundant: false
-      }
-    ]
-    enableAutomaticFailover: false
-    enableMultipleWriteLocations: false
-    backupPolicy: {
-      type: 'Periodic'
-      periodicModeProperties: {
-        backupIntervalInMinutes: 1440
-        backupRetentionIntervalInHours: 168
-        backupStorageRedundancy: 'Local'
-      }
-    }
-    publicNetworkAccess: 'Disabled'
-    minimalTlsVersion: 'tls12'
-  }
 }
 
-resource familyTreeDocumentDB 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-12-01-preview' = {
-  location: resourceGroup().location
+resource familyTreeDocumentDB 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-12-01-preview' existing = {
   parent: familyTreeDocumentDBaccount
   name: dbName
-  properties: {
-    resource: {
-      id: dbName
-    }
-  }
 }
 
-resource personContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-12-01-preview' = {
+resource personContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-12-01-preview' existing = {
   parent: familyTreeDocumentDB
-  location: resourceGroup().location
   name: personContainerName
-  properties: {
-    options: {
-      autoscaleSettings: {
-        maxThroughput: 4000
-      }
-    }
-    resource: {
-      id: personContainerName
-      partitionKey: {
-        kind: 'Hash'
-        paths: [
-          '/birthName'
-        ]
-      }
-    }
-  }
 }
 
-resource partnershipContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-12-01-preview' = {
+resource familyDynamicContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-12-01-preview' existing = {
   parent: familyTreeDocumentDB
+  name: familyDynamicContainerName
+}
+
+resource familyTreeRegistry 'Microsoft.ContainerRegistry/registries@2024-11-01-preview' = {
   location: resourceGroup().location
-  name: partnershipContainerName
+  name: 'familyTreeRegistry'
   properties: {
-    options: {
-      autoscaleSettings: {
-        maxThroughput: 4000
-      }
-    }
-    resource: {
-      id: partnershipContainerName
-      partitionKey: {
-        kind: 'Hash'
-        paths: [
-          '/partnershipDate'
-        ]
-      }
-    }
+    adminUserEnabled: true
+    publicNetworkAccess: 'Enabled'
+  }
+  sku: {
+    name: 'Basic'
   }
 }

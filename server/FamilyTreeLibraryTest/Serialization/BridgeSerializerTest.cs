@@ -180,8 +180,8 @@ namespace FamilyTreeLibraryTest.Serialization
             IBridge actualBridge = JsonSerializer.Deserialize<IBridge>(json, options)!;
             Assert.That(actualBridge.Instance.AsNumber.AsDouble, Is.EqualTo(2.5));
         }
-
-         [Test]
+        
+        [Test]
         public void TestSerializeNumber1()
         {
             Assert.That(JsonSerializer.Serialize<IBridge>(new Bridge(new Number(2)), options), Is.EqualTo("2"));
@@ -220,6 +220,19 @@ namespace FamilyTreeLibraryTest.Serialization
             string json = "[\"Merrigan\", \"Drazenovic\", \"Pfingsten\"]";
             IEnumerable<BridgeInstance> expected = [new BridgeInstance("Merrigan"), new("Drazenovic"), new("Pfingsten")];
             IEnumerable<BridgeInstance> actual = JsonSerializer.Deserialize<IBridge>(json, options)!.Instance.AsArray;
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void TestDeserializeObject1()
+        {
+            string json = "{\"attributeA\": \"valueA\", \"attributeB\": \"valueB\"}";
+            IDictionary<string,BridgeInstance> expected = new Dictionary<string,BridgeInstance>()
+            {
+                ["attributeA"] = new("valueA"),
+                ["attributeB"] = new("valueB")
+            };
+            IDictionary<string,BridgeInstance> actual = JsonSerializer.Deserialize<IBridge>(json, options)!.Instance.AsObject;
             Assert.That(actual, Is.EqualTo(expected));
         }
     }

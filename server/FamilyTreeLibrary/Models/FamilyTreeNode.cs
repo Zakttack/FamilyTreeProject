@@ -65,15 +65,15 @@ namespace FamilyTreeLibrary.Models
             }
         }
 
-        public Guid? PartnershipId
+        public Guid? DynamicId
         {
             get
             {
-                return vertex["partnershipId"].IsNull ? null : Guid.Parse(vertex["partnershipId"].AsString);
+                return vertex["dynamicId"].IsNull ? null : Guid.Parse(vertex["dynamicId"].AsString);
             }
             set
             {
-                vertex["partnershipId"] = value is null ? new() : new(value.ToString()!);
+                vertex["dynamicId"] = value is null ? new() : new(value.ToString()!);
             }
         }
 
@@ -102,7 +102,7 @@ namespace FamilyTreeLibrary.Models
             {
                 return false;
             }
-            return MemberId == other.MemberId && InLawId == other.InLawId && PartnershipId == other.PartnershipId;
+            return MemberId == other.MemberId && InLawId == other.InLawId && DynamicId == other.DynamicId;
         }
 
         public override bool Equals(object? obj)

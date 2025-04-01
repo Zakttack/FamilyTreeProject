@@ -26,7 +26,7 @@ namespace FamilyTreeLibrary.Data.Files
         private readonly IReadOnlyDictionary<HierarchialCoordinate, FamilyTreeNode> family;
         private readonly IList<Models.Line> lines;
         private readonly ISet<Person> people;
-        private readonly ISet<Partnership> partnerships;
+        private readonly ISet<FamilyDynamic> familyDynamics;
         private readonly IExtendedLogger<TemplateGenerator> logger;
 
         public TemplateGenerator(IExtendedLogger<TemplateGenerator> logger)
@@ -35,7 +35,7 @@ namespace FamilyTreeLibrary.Data.Files
             int id = new Random().Next();
             inheritedFamilyName = $"Pfingsten#{id}";
             people = new SortedSet<Person>();
-            partnerships = new HashSet<Partnership>();
+            familyDynamics = new HashSet<FamilyDynamic>();
             lines = [];
             family = GetFamily();
         }
@@ -45,7 +45,7 @@ namespace FamilyTreeLibrary.Data.Files
             this.logger = logger;
             inheritedFamilyName = $"Pfingsten#{id}";
             people = new SortedSet<Person>();
-            partnerships = new HashSet<Partnership>();
+            familyDynamics = new HashSet<FamilyDynamic>();
             lines = [];
             family = GetFamily();
         }
@@ -138,7 +138,7 @@ namespace FamilyTreeLibrary.Data.Files
             string inLawPattern = $@"^({NAME_PATTERN})\s*(({DATE_PATTERN})\s*)*\s*$";
             IDictionary<string,BridgeInstance> memberObj = DefaultPerson;
             IDictionary<string,BridgeInstance> inLawObj = DefaultPerson;
-            IDictionary<string,BridgeInstance> partnershipObj = new Dictionary<string,BridgeInstance>();
+            IDictionary<string,BridgeInstance> familyDynamicObj = new Dictionary<string,BridgeInstance>();
             Queue<FamilyTreeDate> memberDates = new();
             Queue<FamilyTreeDate> inLawDates = new();
             while(!endOfLine && whole.TryDequeue(out string? text) && text is not null)
@@ -187,14 +187,14 @@ namespace FamilyTreeLibrary.Data.Files
                             inLawObj["deceasedDate"] = inLawDates.Dequeue().Instance;
                             logger.LogInformation("InLaw Deceased Date Found: {deceasedDate}", inLawObj["deceasedDate"]);
                         }
-                        if (memberDates.TryDequeue(out FamilyTreeDate? partnershipDate) && partnershipDate is not null)
+                        if (memberDates.TryDequeue(out FamilyTreeDate? familyDynamicStartDate) && familyDynamicStartDate is not null)
                         {
-                            partnershipObj["partnershipDate"] = partnershipDate.Instance;
-                            logger.LogInformation("Partnership date found {partnershipDate}", partnershipObj["partnershipDate"]);
+                            familyDynamicObj["familyDynamicStartDate"] = familyDynamicStartDate.Instance;
+                            logger.LogInformation("Family Dynamic Start Date found {familyDynamicStartDate}", familyDynamicObj["familyDynamicStartDate"]);
                         }
                         else
                         {
-                            logger.LogWarning("No partnership date between {member} and {inLaw} found.", memberObj["birthName"], inLawObj["birthName"]);
+                            logger.LogWarning("No family dynamic start date between {member} and {inLaw} found.", memberObj["birthName"], inLawObj["birthName"]);
                         }
 
                     }
@@ -216,9 +216,9 @@ namespace FamilyTreeLibrary.Data.Files
             logger.LogDebug("{member}", member);
             Person? inLaw = IsPerson(inLawObj) ? GetPerson(new(inLawObj, true)) : null;
             logger.LogDebug("{inLaw}", inLaw);
-            Partnership? partnership = IsPartnership(partnershipObj) ? GetPartnership(new(partnershipObj, true)) : null;
-            logger.LogDebug("{partnership}", partnership);
-            return new(coordinate, member, inLaw, partnership);
+            FamilyDynamic? familyDynamic = IsFamilyDynamic(familyDynamicObj) ? GetFamilyDynamic(new(familyDynamicObj, true)) : null;
+            logger.LogDebug("{familyDynamic}", familyDynamic);
+            return new(coordinate, member, inLaw, familyDynamic);
         }
 
         private Queue<Content> GetContents(Queue<string> whole, string[] orderTypePatterns, int i, HierarchialCoordinate start)
@@ -267,7 +267,7 @@ namespace FamilyTreeLibrary.Data.Files
             SortedDictionary<HierarchialCoordinate, FamilyTreeNode> family = [];
             Stack<Queue<Content>> contents = new();
             string[] orderTypePatterns = [ROMAN_UPPER, UPPER, NUMERICAL, LOWER, PARENTHESIZED_NUMERICAL, ROMAN_LOWER];
-            logger.LogInformation("Retrieving the partnerships of {inheritedFamilyName}.", inheritedFamilyName);
+            logger.LogInformation("Retrieving the family dynamics of {inheritedFamilyName}.", inheritedFamilyName);
             Queue<string> lines = ReadTextFile();
             contents.Push(GetContents(lines, orderTypePatterns, contents.Count, new([1])));
             while (contents.TryPop(out Queue<Content>? collection) && collection is not null)
@@ -283,7 +283,7 @@ namespace FamilyTreeLibrary.Data.Files
                         ["inheritedFamilyNames"] = new([new(inheritedFamilyName)]),
                         ["memberId"] = new(content.Header.Member.Id.ToString()),
                         ["inLawId"] = content.Header.InLaw is null ? new() : new(content.Header.InLaw.Id.ToString()),
-                        ["partnershipId"] = content.Header.Partnership is null ? new() : new(content.Header.Partnership.Id.ToString())
+                        ["dynamicId"] = content.Header.FamilyDynamic is null ? new() : new(content.Header.FamilyDynamic.Id.ToString())
                     };
                     family[content.Header.Coordinate] = new(nodeObj, true);
                     logger.LogDebug("{coordinate}: {node}", content.Header.Coordinate, family[content.Header.Coordinate]);
@@ -299,13 +299,13 @@ namespace FamilyTreeLibrary.Data.Files
             return $@"{orderTypePattern}({NAME_PATTERN})\s*(({DATE_PATTERN})\s*)*\s*$";
         }
 
-        private Partnership GetPartnership(Partnership p)
+        private FamilyDynamic GetFamilyDynamic(FamilyDynamic f)
         {
-            if (partnerships.Add(p))
+            if (familyDynamics.Add(f))
             {
-                return p;
+                return f;
             }
-            return partnerships.First(temp => temp == p);
+            return familyDynamics.First(temp => temp == f);
         }
 
         private Person GetPerson(Person p)
@@ -317,9 +317,9 @@ namespace FamilyTreeLibrary.Data.Files
             return people.First((temp) => temp == p);
         }
 
-        private static bool IsPartnership(IDictionary<string,BridgeInstance> obj)
+        private static bool IsFamilyDynamic(IDictionary<string,BridgeInstance> obj)
         {
-            return obj.ContainsKey("partnershipDate");
+            return obj.ContainsKey("familyDynamicStartDate");
         }
 
         private static bool IsPerson(IDictionary<string,BridgeInstance> obj)
