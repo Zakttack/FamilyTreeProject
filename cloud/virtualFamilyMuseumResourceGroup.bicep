@@ -2,6 +2,8 @@ targetScope = 'resourceGroup'
 
 param appConfigurationName string
 param keyVaultName string
+param userPrincipalId string
+param roleDefinitionId string
 
 resource familyConfiguration 'Microsoft.AppConfiguration/configurationStores@2025-06-01-preview' = {
   name: appConfigurationName
@@ -42,5 +44,16 @@ resource familyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
       name: 'standard'
     }
     tenantId: subscription().tenantId
+  }
+}
+
+resource familyVaultAdminRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: familyVault
+  name: guid(familyVault.id, userPrincipalId, roleDefinitionId)
+  properties: {
+    description: 'This is an administrative role for my Family Vault.'
+    principalId: userPrincipalId
+    principalType: 'User'
+    roleDefinitionId: roleDefinitionId
   }
 }
