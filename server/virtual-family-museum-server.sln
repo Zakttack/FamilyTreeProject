@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualFamilyMuseumLibrary"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualFamilyMuseumScratch", "VirtualFamilyMuseumScratch\VirtualFamilyMuseumScratch.csproj", "{AABA05AD-A48A-46F1-9732-C32EB14330EF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualFamilyMuseumLibraryTest", "VirtualFamilyMuseumLibraryTest\VirtualFamilyMuseumLibraryTest.csproj", "{A3351B28-2791-4766-9E23-0FDD994096D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{AABA05AD-A48A-46F1-9732-C32EB14330EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AABA05AD-A48A-46F1-9732-C32EB14330EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AABA05AD-A48A-46F1-9732-C32EB14330EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3351B28-2791-4766-9E23-0FDD994096D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3351B28-2791-4766-9E23-0FDD994096D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3351B28-2791-4766-9E23-0FDD994096D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3351B28-2791-4766-9E23-0FDD994096D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
