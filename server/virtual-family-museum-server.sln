@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualFamilyMuseumLibrary", "VirtualFamilyMuseumLibrary\VirtualFamilyMuseumLibrary.csproj", "{AF8A3B4B-018A-43C0-B148-00D9DBDCAA02}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualFamilyMuseumScratch", "VirtualFamilyMuseumScratch\VirtualFamilyMuseumScratch.csproj", "{AABA05AD-A48A-46F1-9732-C32EB14330EF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{AF8A3B4B-018A-43C0-B148-00D9DBDCAA02}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF8A3B4B-018A-43C0-B148-00D9DBDCAA02}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF8A3B4B-018A-43C0-B148-00D9DBDCAA02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AABA05AD-A48A-46F1-9732-C32EB14330EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AABA05AD-A48A-46F1-9732-C32EB14330EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AABA05AD-A48A-46F1-9732-C32EB14330EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AABA05AD-A48A-46F1-9732-C32EB14330EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
