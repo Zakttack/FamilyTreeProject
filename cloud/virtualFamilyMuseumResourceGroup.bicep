@@ -89,3 +89,21 @@ resource familyInsightsWorkspace 'Microsoft.OperationalInsights/workspaces@2025-
     }
   }
 }
+
+resource familyInsights 'Microsoft.Insights/components@2020-02-02' = {
+  kind: 'web'
+  location: resourceGroup().location
+  name: 'virtual-family-museum-insights'
+  properties: {
+    Application_Type: 'web'
+    DisableIpMasking: false
+    DisableLocalAuth: false
+    ForceCustomerStorageForProfiler: false
+    HockeyAppId: null
+    ImmediatePurgeDataOn30Days: false
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+    SamplingPercentage: 100
+    WorkspaceResourceId: familyInsightsWorkspace.id
+  }
+}
