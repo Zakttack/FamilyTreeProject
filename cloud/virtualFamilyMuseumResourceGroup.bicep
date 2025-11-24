@@ -69,3 +69,23 @@ resource familyConfigurationAdminRole 'Microsoft.Authorization/roleAssignments@2
     roleDefinitionId: familyConfigurationRoleDefinitionId
   }
 }
+
+resource familyInsightsWorkspace 'Microsoft.OperationalInsights/workspaces@2025-07-01' = {
+  location: resourceGroup().location
+  name: 'la-virtual-family-museum'
+  properties: {
+    defaultDataCollectionRuleResourceId: null
+    features: {
+      disableLocalAuth: true
+      enableDataExport: false
+      enableLogAccessUsingOnlyResourcePermissions: true
+      immediatePurgeDataOn30Days: false
+    }
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+    retentionInDays: 30
+    sku: {
+      name: 'PerGB2018'
+    }
+  }
+}
