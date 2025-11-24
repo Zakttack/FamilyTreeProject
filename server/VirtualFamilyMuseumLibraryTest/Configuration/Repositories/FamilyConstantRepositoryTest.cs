@@ -4,7 +4,7 @@ using VirtualFamilyMuseumLibrary.Configuration.Repositories;
 
 namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
 {
-    public class FamilyConfigurationTest
+    public class FamilyConstantRepositoryTest
     {
         private IConstantRepository repository;
         [SetUp]
