@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace VirtualFamilyMuseumLibrary.Configuration.Repositories
 {
-    public class FamilyConfiguration(IConfiguration config) : INonSensitiveConstantRepository
+    public class FamilyConstantRepository(IConfiguration config) : IConstantRepository
     {
         private readonly IConfiguration config = config;
 

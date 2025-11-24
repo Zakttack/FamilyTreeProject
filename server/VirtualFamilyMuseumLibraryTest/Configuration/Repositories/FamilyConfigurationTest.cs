@@ -6,7 +6,7 @@ namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
 {
     public class FamilyConfigurationTest
     {
-        private INonSensitiveConstantRepository repository;
+        private IConstantRepository repository;
         [SetUp]
         public void Setup()
         {
@@ -15,7 +15,7 @@ namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
                 {
                     ["FamilyVault:Uri"] = "https://vault.example.net"
                 }).Build();
-            repository = new FamilyConfiguration(configuration);
+            repository = new FamilyConstantRepository(configuration);
         }
 
         [Test]
