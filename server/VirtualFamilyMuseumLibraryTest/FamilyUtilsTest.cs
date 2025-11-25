@@ -7,7 +7,6 @@ namespace VirtualFamilyMuseumLibraryTest
     [Category("Unit")]
     public class FamilyUtilsTest
     {
-
         [Test]
         public void FamilyConfigurationResourceShouldConnect()
         {
@@ -15,6 +14,18 @@ namespace VirtualFamilyMuseumLibraryTest
             var builder = Host.CreateApplicationBuilder();
             builder.AddFamilyConfiguration(allowLocalJsonFallback: false);
             Assert.That(Environment.GetEnvironmentVariable("FAMILY_CONFIGURATION_URI"), Is.EqualTo("https://appconfig-virtual-family-museum.azconfig.io"));
+        }
+
+        [Test]
+        public void FamilyVaultShouldConnect()
+        {
+            Assert.DoesNotThrow(() =>
+            {
+                Environment.SetEnvironmentVariable("FAMILY_CONFIGURATION_URI", "https://appconfig-virtual-family-museum.azconfig.io");
+                var builder = Host.CreateApplicationBuilder();
+                builder.AddFamilyConfiguration(allowLocalJsonFallback: false);
+                builder.AddFamilyVault();
+            }, "Family Vault Failed to Load.");
         }
     }
 }
