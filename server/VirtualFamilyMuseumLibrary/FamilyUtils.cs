@@ -5,6 +5,8 @@ using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using VirtualFamilyMuseumLibrary.Configuration.Models;
+using VirtualFamilyMuseumLibrary.Configuration.Repositories;
+
 public static class FamilyUtils
 {
     private const string BOOTSTRAP_KEY = "FAMILY_CONFIGURATION_URI";
@@ -38,6 +40,10 @@ public static class FamilyUtils
             .Validate(cfg => Uri.IsWellFormedUriString(cfg.Uri, UriKind.Absolute),
                 "FamilyVault:Uri must be a valid absolute URI")
             .ValidateOnStart();
+        builder.Services.AddSingleton<INonSensitiveConstantRepository,FamilyConfiguration>((sp) =>
+        {
+            return new FamilyConfiguration(builder.Configuration);
+        });
         return builder;
     }
 }
