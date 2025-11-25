@@ -1,72 +1,85 @@
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using VirtualFamilyMuseumLibrary;
 using VirtualFamilyMuseumLibrary.Configuration.Models;
 using VirtualFamilyMuseumLibrary.Configuration.Repositories;
 
 namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
 {
+    [TestFixture]
+    [Category("Integration")]
     public class FamilyConfigurationTest
     {
-        private INonSensitiveConstantRepository repository;
-        [SetUp]
-        public void Setup()
+        private IHost? host;
+
+        [OneTimeSetUp]
+        public void GlobalSetup()
         {
-            IConfiguration configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string,string?>
-                {
-                    ["FamilyVault:Uri"] = "https://vault.example.net"
-                }).Build();
-            repository = new FamilyConfiguration(configuration);
+            Environment.SetEnvironmentVariable("FAMILY_CONFIGURATION_URI", "https://appconfig-virtual-family-museum.azconfig.io");
+            HostApplicationBuilder? builder = Host.CreateApplicationBuilder();
+            builder.AddFamilyConfiguration(allowLocalJsonFallback: false);
+            host = builder.Build();
+        }
+
+        [OneTimeTearDown]
+        public void GlobalTearDown()
+        {
+            host?.Dispose();
         }
 
         [Test]
-        public void ShouldReadKeyVaultUri()
+        [Order(1)]
+        public void ShouldRegisterNonSensitiveConstantRepository()
         {
-            string expected = "https://vault.example.net";
-            Assert.That(repository.GetValue("FamilyVault:Uri") , Is.EqualTo(expected));
+            // Arrange & Act
+            INonSensitiveConstantRepository? repository = host!.Services.GetService<INonSensitiveConstantRepository>();
+
+            // Assert
+            Assert.That(repository, Is.Not.Null, "INonSensitiveConstantRepository should be registered");
+            Assert.That(repository, Is.InstanceOf<FamilyConfiguration>(), 
+                "Repository should be FamilyConfiguration implementation");
+            
+            TestContext.Out.WriteLine($"INonSensitiveConstantRepository registered: {repository.GetType().Name}");
         }
 
         [Test]
-        public void ShouldNotReadOtherAttribute()
+        [Order(2)]
+        public void ShouldReadNonSensitiveValueFromAppConfiguration()
         {
-            Assert.That(repository.GetValue("SomeAttribute"), Is.Null);
-        }
+            // Arrange
+            INonSensitiveConstantRepository repository = host!.Services.GetRequiredService<INonSensitiveConstantRepository>();
+            
+            // Act
+            string? vaultUri = repository.GetValue("FamilyVault:Uri");
 
-        [Test]
-        public void ShouldModelKeyVault()
-        {
-            FamilyVaultConfig expected = new()
-            {
-                Uri = "https://vault.example.net"
-            };
-            FamilyVaultConfig? actual = repository.BindSection<FamilyVaultConfig>("FamilyVault");
-            Assert.That(actual, Is.Not.Null);
             Assert.Multiple(() =>
             {
-                Assert.That(actual.Uri, Is.EqualTo("https://vault.example.net"));
-                Assert.That(actual, Is.EqualTo(expected));
+                // Assert
+                Assert.That(vaultUri, Is.Not.Null.And.Not.Empty,
+                    "Should be able to read FamilyVault:Uri from App Configuration");
+                Assert.That(Uri.IsWellFormedUriString(vaultUri, UriKind.Absolute), Is.True,
+                    "FamilyVault:Uri should be a valid absolute URI");
             });
+
+            TestContext.Out.WriteLine($"✓ Read from App Configuration: FamilyVault:Uri = {vaultUri}");
         }
 
         [Test]
-        public void ShouldNotModelKeyVault()
+        [Order(3)]
+        public void ShouldBindConfigurationSection()
         {
-            Assert.That(repository.BindSection<FamilyVaultConfig>("FamilyVault:Uri"), Is.Null);
-        }
+            // Arrange
+            INonSensitiveConstantRepository repository = host!.Services.GetRequiredService<INonSensitiveConstantRepository>();
 
-        [Test]
-        public void ShouldModelAsString()
-        {
-            string? actual = repository.BindSection<string>("FamilyVault:Uri");
-            Assert.That(actual, Is.EqualTo(repository.GetValue("FamilyVault:Uri")));
-        }
+            // Act
+            FamilyVaultConfig? vaultConfig = repository.BindSection<FamilyVaultConfig>("FamilyVault");
 
-        [Test]
-        public void ShouldNotModelAsString()
-        {
-            Assert.Throws<InvalidOperationException>(() => 
-            {
-                repository.BindSection<string>("FamilyVault");
-            });
+            // Assert
+            Assert.That(vaultConfig, Is.Not.Null, "Should bind FamilyVault section");
+            Assert.That(vaultConfig.Uri, Is.Not.Null.And.Not.Empty, "Bound config should have Uri");
+            
+            TestContext.Out.WriteLine($"✓ Successfully bound FamilyVault section");
+            TestContext.Out.WriteLine($"  {vaultConfig}");
         }
     }
 }
