@@ -1,10 +1,9 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using VirtualFamilyMuseumLibrary;
-using VirtualFamilyMuseumLibrary.Configuration.Models;
-using VirtualFamilyMuseumLibrary.Configuration.Repositories;
+using VirtualFamilyMuseumLibrary.ConstantStore.Models;
+using VirtualFamilyMuseumLibrary.ConstantStore.Repositories;
 
-namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
+namespace VirtualFamilyMuseumLibraryTest.ConstantStore.Repositories
 {
     [TestFixture]
     [Category("Integration")]
@@ -32,7 +31,7 @@ namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
         public void ShouldRegisterNonSensitiveConstantRepository()
         {
             // Arrange & Act
-            INonSensitiveConstantRepository? repository = host!.Services.GetService<INonSensitiveConstantRepository>();
+            INonSensitiveConstantRepository? repository = FamilyUtils.NonSensitiveConstantRepository;
 
             // Assert
             Assert.That(repository, Is.Not.Null, "INonSensitiveConstantRepository should be registered");
@@ -47,8 +46,8 @@ namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
         public void ShouldReadNonSensitiveValueFromAppConfiguration()
         {
             // Arrange
-            INonSensitiveConstantRepository repository = host!.Services.GetRequiredService<INonSensitiveConstantRepository>();
-            
+            INonSensitiveConstantRepository? repository = FamilyUtils.NonSensitiveConstantRepository;
+            Assert.That(repository, Is.Not.Null);
             // Act
             string? vaultUri = repository.GetValue("FamilyVault:Uri");
 
@@ -69,8 +68,8 @@ namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
         public void ShouldBindConfigurationSection()
         {
             // Arrange
-            INonSensitiveConstantRepository repository = host!.Services.GetRequiredService<INonSensitiveConstantRepository>();
-
+            INonSensitiveConstantRepository? repository = FamilyUtils.NonSensitiveConstantRepository;
+            Assert.That(repository, Is.Not.Null);
             // Act
             FamilyVaultConfig? vaultConfig = repository.BindSection<FamilyVaultConfig>("FamilyVault");
 

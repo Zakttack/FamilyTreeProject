@@ -1,7 +1,7 @@
-using VirtualFamilyMuseumLibrary.Configuration.Models;
-using VirtualFamilyMuseumLibrary.Configuration.Repositories;
+using VirtualFamilyMuseumLibrary.ConstantStore.Models;
+using VirtualFamilyMuseumLibrary.ConstantStore.Repositories;
 
-namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
+namespace VirtualFamilyMuseumLibraryTest.ConstantStore.Repositories
 {
     public class NonSensitiveConstantRepositoryTestDouble : INonSensitiveConstantRepository
     {

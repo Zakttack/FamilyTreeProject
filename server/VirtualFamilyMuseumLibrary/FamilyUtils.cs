@@ -1,19 +1,37 @@
 ﻿namespace VirtualFamilyMuseumLibrary;
 using Azure.Identity;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
-using VirtualFamilyMuseumLibrary.Configuration.Models;
-using VirtualFamilyMuseumLibrary.Configuration.Repositories;
+using Microsoft.Extensions.Logging;
+using VirtualFamilyMuseumLibrary.ConstantStore;
+using VirtualFamilyMuseumLibrary.ConstantStore.Models;
+using VirtualFamilyMuseumLibrary.ConstantStore.Repositories;
 
 public static class FamilyUtils
 {
-    private const string BOOTSTRAP_KEY = "FAMILY_CONFIGURATION_URI";
+    public static INonSensitiveConstantRepository? NonSensitiveConstantRepository
+    {
+        get;
+        private set;
+    }
 
+    public static ISensitiveConstantRepository? SensitiveConstantRepository
+    {
+        get;
+        private set;
+    }
+
+    public static ConstantStoreService? Service
+    {
+        get;
+        private set;
+    }
     public static IHostApplicationBuilder AddFamilyConfiguration(this IHostApplicationBuilder builder, bool allowLocalJsonFallback = true)
     {
+        const string BOOTSTRAP_KEY = "FAMILY_CONFIGURATION_URI";
         builder.Configuration.AddEnvironmentVariables();
         if (allowLocalJsonFallback)
         {
@@ -34,27 +52,52 @@ public static class FamilyUtils
             options.Connect(new Uri(endpoint), new DefaultAzureCredential()).Select(KeyFilter.Any, LabelFilter.Null);
         });
         builder.Services.AddAzureAppConfiguration();
-        builder.Services.AddSingleton<INonSensitiveConstantRepository,FamilyConfiguration>((sp) =>
-        {
-            return new FamilyConfiguration(builder.Configuration);
-        });
+        NonSensitiveConstantRepository = new FamilyConfiguration(builder.Configuration);
         return builder;
     }
 
     public static IHostApplicationBuilder AddFamilyVault(this IHostApplicationBuilder builder)
     {
-        builder.Services
-            .AddOptions<FamilyVaultConfig>()
-            .Bind(builder.Configuration.GetSection("FamilyVault"))
-            .ValidateDataAnnotations()
-            .Validate(cfg => Uri.IsWellFormedUriString(cfg.Uri, UriKind.Absolute),
-                "FamilyVault:Uri must be a valid absolute URI")
-            .ValidateOnStart();
-        builder.Services.AddSingleton<ISensitiveConstantRepository,FamilyVault>((sp) =>
+        if (NonSensitiveConstantRepository is null)
         {
-            FamilyVaultConfig config = sp.GetRequiredService<IOptions<FamilyVaultConfig>>().Value;
-            return new FamilyVault(config);
-        });
+            throw new InvalidOperationException("Family Configuration Resource Instance Not Found!!!");
+        }
+        FamilyVaultConfig? vaultConfig = NonSensitiveConstantRepository.BindSection<FamilyVaultConfig>("FamilyVault") ?? throw new InvalidOperationException("Family Vault Config is not found!!!");
+        SensitiveConstantRepository = new FamilyVault(vaultConfig);
+        return builder;
+    }
+
+    public static IHostApplicationBuilder AddConstantStoreService(this IHostApplicationBuilder builder)
+    {
+        if (NonSensitiveConstantRepository is null)
+        {
+            throw new InvalidOperationException("Family Configuration Resource Instance Not Found!!!");
+        }
+        else if (SensitiveConstantRepository is null)
+        {
+            throw new InvalidOperationException("Family Vault Resource Instance Not Found!!!");
+        }
+        Service = new(NonSensitiveConstantRepository, SensitiveConstantRepository);
+        return builder;
+    }
+
+    public static IHostApplicationBuilder AddFamilyInsights(this IHostApplicationBuilder builder)
+    {
+        if (Service is null)
+        {
+            throw new InvalidOperationException("Constant Store Instance Not Initialized!!!");
+        }
+        builder.Logging.ClearProviders();
+        builder.Logging.AddConsole();
+        builder.Logging.AddDebug();
+        builder.Logging.SetMinimumLevel(LogLevel.Debug);
+        FamilyInsightsConfig insightsConfig = Service.GetFamilyInsightsConfig();
+        builder.Services.AddOpenTelemetry()
+            .UseAzureMonitor(options =>
+            {
+                options.ConnectionString = insightsConfig.ConnectionString;
+            });
+        builder.Logging.AddOpenTelemetry();
         return builder;
     }
 }

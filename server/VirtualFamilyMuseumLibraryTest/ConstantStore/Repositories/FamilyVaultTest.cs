@@ -1,12 +1,10 @@
 using Azure;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using VirtualFamilyMuseumLibrary;
-using VirtualFamilyMuseumLibrary.Configuration.Models;
-using VirtualFamilyMuseumLibrary.Configuration.Repositories;
+using VirtualFamilyMuseumLibrary.ConstantStore.Models;
+using VirtualFamilyMuseumLibrary.ConstantStore.Repositories;
 
-namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
+namespace VirtualFamilyMuseumLibraryTest.ConstantStore.Repositories
 {
     [TestFixture]
     [Category("Integration")]
@@ -43,8 +41,10 @@ namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
         [Order(1)]
         public void ShouldLoadFamilyVaultConfigFromAppConfiguration()
         {
+            Assert.That(FamilyUtils.NonSensitiveConstantRepository, Is.Not.Null);
             // Arrange & Act
-            FamilyVaultConfig config = host!.Services.GetRequiredService<IOptions<FamilyVaultConfig>>().Value;
+            FamilyVaultConfig? config = FamilyUtils.NonSensitiveConstantRepository.BindSection<FamilyVaultConfig>("FamilyVault");
+            Assert.That(config, Is.Not.Null);
             Assert.Multiple(() =>
             {
                 Assert.That(config.Uri, Is.Not.Null.And.Not.Empty, "FamilyVault Uri should be populated");
@@ -58,29 +58,26 @@ namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
         [Order(2)]
         public void ShouldRegisterSensitiveConstantRepository()
         {
-            // Arrange & Act
-            ISensitiveConstantRepository? repository = host!.Services.GetService<ISensitiveConstantRepository>();
-
             // Assert
-            Assert.That(repository, Is.Not.Null, "ISensitiveConstantRepository should be registered");
-            Assert.That(repository, Is.InstanceOf<FamilyVault>(), 
+            Assert.That(FamilyUtils.SensitiveConstantRepository, Is.Not.Null, "ISensitiveConstantRepository should be registered");
+            Assert.That(FamilyUtils.SensitiveConstantRepository, Is.InstanceOf<FamilyVault>(), 
                 "Repository should be FamilyVault implementation");
             
-            TestContext.Out.WriteLine($"✓ ISensitiveConstantRepository registered: {repository.GetType().Name}");
+            TestContext.Out.WriteLine($"✓ ISensitiveConstantRepository registered: {FamilyUtils.SensitiveConstantRepository.GetType().Name}");
         }
 
         [Test]
         [Order(3)]
-        public async Task ShouldReadSecretFromKeyVault()
+        public void ShouldReadSecretFromKeyVault()
         {
             // Arrange
-            ISensitiveConstantRepository repository = host!.Services.GetRequiredService<ISensitiveConstantRepository>();
             const string secretName = "FamilyInsights--ConnectionString";
 
             // Act
             try
             {
-                string secretValue = await repository.GetSecretAsync(secretName);
+                Assert.That(FamilyUtils.SensitiveConstantRepository, Is.Not.Null);
+                string secretValue = FamilyUtils.SensitiveConstantRepository.GetSecret(secretName);
 
                 // Assert
                 Assert.That(secretValue, Is.Not.Null.And.Not.Empty, 
@@ -105,15 +102,13 @@ namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
 
         [Test]
         [Order(4)]
-        public async Task ShouldHandleNonExistentSecretGracefully()
+        public void ShouldHandleNonExistentSecretGracefully()
         {
             // Arrange
-            ISensitiveConstantRepository repository = host!.Services.GetRequiredService<ISensitiveConstantRepository>();
             string nonExistentSecret = "ThisSecretDefinitelyDoesNotExist-12345";
-
+            Assert.That(FamilyUtils.SensitiveConstantRepository, Is.Not.Null);
             // Act & Assert
-            var ex = Assert.ThrowsAsync<RequestFailedException>(
-                async () => await repository.GetSecretAsync(nonExistentSecret));
+            var ex = Assert.Throws<RequestFailedException>(() => FamilyUtils.SensitiveConstantRepository.GetSecret(nonExistentSecret));
             
             Assert.That(ex.Status, Is.EqualTo(404), "Should return 404 for non-existent secret");
             
@@ -125,8 +120,7 @@ namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
         public void ShouldRejectInvalidSecretNames()
         {
             // Arrange
-            ISensitiveConstantRepository repository = host!.Services.GetRequiredService<ISensitiveConstantRepository>();
-            
+            Assert.That(FamilyUtils.SensitiveConstantRepository, Is.Not.Null);
             // Azure Key Vault has restrictions on secret names:
             // - Only alphanumeric characters and hyphens
             // - Cannot start or end with a hyphen
@@ -135,8 +129,7 @@ namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
             const string invalidSecretName = "Invalid_Secret_Name_With_Underscores_And_@_Special_Chars!";
 
             // Act & Assert
-            var ex = Assert.ThrowsAsync<RequestFailedException>(
-                async () => await repository.GetSecretAsync(invalidSecretName));
+            var ex = Assert.Throws<RequestFailedException>(() => FamilyUtils.SensitiveConstantRepository.GetSecret(invalidSecretName));
             
             // Azure Key Vault returns 400 (Bad Request) for invalid secret names
             Assert.That(ex!.Status, Is.EqualTo(400), 

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 
-namespace VirtualFamilyMuseumLibrary.Configuration.Repositories
+namespace VirtualFamilyMuseumLibrary.ConstantStore.Repositories
 {
     public class FamilyConfiguration(IConfiguration config) : INonSensitiveConstantRepository
     {

@@ -1,4 +1,4 @@
-namespace VirtualFamilyMuseumLibrary.Configuration.Repositories
+namespace VirtualFamilyMuseumLibrary.ConstantStore.Repositories
 {
     public interface INonSensitiveConstantRepository
     {

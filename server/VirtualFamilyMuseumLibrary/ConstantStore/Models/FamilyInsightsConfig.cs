@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace VirtualFamilyMuseumLibrary.Configuration.Models
+namespace VirtualFamilyMuseumLibrary.ConstantStore.Models
 {
     public sealed record FamilyInsightsConfig
     {

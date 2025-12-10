@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using VirtualFamilyMuseumLibrary.Configuration.Repositories;
+using VirtualFamilyMuseumLibrary.ConstantStore.Repositories;
 
-namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
+namespace VirtualFamilyMuseumLibraryTest.ConstantStore.Repositories
 {
     public class SensitiveConstantRepositoryTestDouble : ISensitiveConstantRepository
     {
@@ -13,9 +9,9 @@ namespace VirtualFamilyMuseumLibraryTest.Configuration.Repositories
             {"FamilyInsights--ConnectionString", "This is the connection string to family insights"}
         };
 
-        public Task<string> GetSecretAsync(string name)
+        public string GetSecret(string name)
         {
-            return Task.FromResult(secretStore[name]);
+            return secretStore[name];
         }
     }
 }

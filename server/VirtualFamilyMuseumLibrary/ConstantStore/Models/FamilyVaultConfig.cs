@@ -1,4 +1,4 @@
-namespace VirtualFamilyMuseumLibrary.Configuration.Models
+namespace VirtualFamilyMuseumLibrary.ConstantStore.Models
 {
     public sealed record FamilyVaultConfig
     {

@@ -1,14 +1,14 @@
-using VirtualFamilyMuseumLibrary.Configuration;
-using VirtualFamilyMuseumLibrary.Configuration.Models;
-using VirtualFamilyMuseumLibraryTest.Configuration.Repositories;
+using VirtualFamilyMuseumLibrary.ConstantStore;
+using VirtualFamilyMuseumLibrary.ConstantStore.Models;
+using VirtualFamilyMuseumLibraryTest.ConstantStore.Repositories;
 
-namespace VirtualFamilyMuseumLibraryTest.Configuration
+namespace VirtualFamilyMuseumLibraryTest.ConstantStore
 {
     [TestFixture]
     [Category("Unit")]
-    public class ConfigurationServiceTest
+    public class ConstantStoreServiceTest
     {
-        private ConfigurationService service;
+        private ConstantStoreService service;
         [SetUp]
         public void SetUp()
         {
@@ -16,13 +16,13 @@ namespace VirtualFamilyMuseumLibraryTest.Configuration
         }
 
         [Test]
-        public async Task ShouldReturnFamilyInsightsConfig()
+        public void ShouldReturnFamilyInsightsConfig()
         {
             FamilyInsightsConfig expectedConfig = new()
             {
                 ConnectionString = "This is the connection string to family insights"
             };
-            FamilyInsightsConfig actualConfig = await service.GetFamilyInsightsConfig();
+            FamilyInsightsConfig actualConfig = service.GetFamilyInsightsConfig();
             Assert.That(actualConfig, Is.EqualTo(expectedConfig));
         }
     }

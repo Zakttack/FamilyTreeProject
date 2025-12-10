@@ -1,17 +1,17 @@
 using Azure;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
-using VirtualFamilyMuseumLibrary.Configuration.Models;
+using VirtualFamilyMuseumLibrary.ConstantStore.Models;
 
-namespace VirtualFamilyMuseumLibrary.Configuration.Repositories
+namespace VirtualFamilyMuseumLibrary.ConstantStore.Repositories
 {
     public class FamilyVault(FamilyVaultConfig config) : ISensitiveConstantRepository
     {
         private readonly SecretClient client = new(new Uri(config.Uri), new DefaultAzureCredential());
 
-        public async Task<string> GetSecretAsync(string name)
+        public string GetSecret(string name)
         {
-            Response<KeyVaultSecret> response = await client.GetSecretAsync(name);
+            Response<KeyVaultSecret> response = client.GetSecret(name);
             return response.Value.Value;
         }
     }
