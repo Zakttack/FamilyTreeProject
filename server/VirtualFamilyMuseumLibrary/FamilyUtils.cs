@@ -1,6 +1,7 @@
 ﻿namespace VirtualFamilyMuseumLibrary;
 using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.Extensions.DependencyInjection;
@@ -81,23 +82,51 @@ public static class FamilyUtils
         return builder;
     }
 
-    public static IHostApplicationBuilder AddFamilyInsights(this IHostApplicationBuilder builder)
+    public static IHostApplicationBuilder AddFamilyInsights(this IHostApplicationBuilder builder, ApplicationHostType hostType)
     {
         if (Service is null)
         {
             throw new InvalidOperationException("Constant Store Instance Not Initialized!!!");
         }
-        builder.Logging.ClearProviders();
+        FamilyInsightsConfig insightsConfig = Service.GetFamilyInsightsConfig();
+        switch (hostType)
+        {
+            case ApplicationHostType.API:
+                builder.Services.AddOpenTelemetry()
+                    .UseAzureMonitor(options =>
+                    {
+                        options.ConnectionString = insightsConfig.ConnectionString;
+                    });
+                break;
+            case ApplicationHostType.Console:
+                builder.Logging.AddOpenTelemetry(logging =>
+                {
+                    logging.AddAzureMonitorLogExporter(options =>
+                    {
+                        options.ConnectionString = insightsConfig.ConnectionString;
+                    });
+                });
+                break;
+            case ApplicationHostType.Functions:
+                builder.Services.AddOpenTelemetry()
+                    .UseAzureMonitor(options =>
+                    {
+                        options.ConnectionString = insightsConfig.ConnectionString;
+                    });
+                break;
+            case ApplicationHostType.Test:
+                builder.Logging.AddOpenTelemetry(logging =>
+                {
+                    logging.AddAzureMonitorLogExporter(options =>
+                    {
+                        options.ConnectionString = insightsConfig.ConnectionString;
+                    });
+                });
+                break;
+        }
         builder.Logging.AddConsole();
         builder.Logging.AddDebug();
         builder.Logging.SetMinimumLevel(LogLevel.Debug);
-        FamilyInsightsConfig insightsConfig = Service.GetFamilyInsightsConfig();
-        builder.Services.AddOpenTelemetry()
-            .UseAzureMonitor(options =>
-            {
-                options.ConnectionString = insightsConfig.ConnectionString;
-            });
-        builder.Logging.AddOpenTelemetry();
         return builder;
     }
 }
