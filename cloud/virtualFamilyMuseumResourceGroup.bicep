@@ -5,6 +5,7 @@ param keyVaultName string
 param userPrincipalId string
 param familyVaultRoleDefinitionId string
 param familyConfigurationRoleDefinitionId string
+param storageAccountName string
 
 resource familyConfiguration 'Microsoft.AppConfiguration/configurationStores@2025-06-01-preview' = {
   name: appConfigurationName
@@ -105,5 +106,68 @@ resource familyInsights 'Microsoft.Insights/components@2020-02-02' = {
     publicNetworkAccessForQuery: 'Enabled'
     SamplingPercentage: 100
     WorkspaceResourceId: familyInsightsWorkspace.id
+  }
+}
+
+resource familyDrive 'Microsoft.Storage/storageAccounts@2025-06-01' = {
+  name: storageAccountName
+  location: resourceGroup().location
+  kind: 'StorageV2'
+  sku: {
+    name: 'Standard_LRS'
+  }
+  properties: {
+    accessTier: 'Hot'
+    allowBlobPublicAccess: false
+    allowCrossTenantReplication: false
+    allowedCopyScope: 'AAD'
+    allowSharedKeyAccess: true
+    defaultToOAuthAuthentication: false
+    dnsEndpointType: 'Standard'
+    dualStackEndpointPreference: {
+      publishIpv6Endpoint: false
+    }
+    enableExtendedGroups: false
+    encryption: {
+      keySource: 'Microsoft.Storage'
+      services: {
+        blob: {
+          enabled: true
+          keyType: 'Account'
+        }
+        file: {
+          enabled: true
+          keyType: 'Account'
+        }
+        queue: {
+          enabled: true
+          keyType: 'Account'
+        }
+        table: {
+          enabled: true
+          keyType: 'Account'
+        }
+      }
+    }
+    isHnsEnabled: false
+    isLocalUserEnabled: false
+    isNfsV3Enabled: false
+    isSftpEnabled: false
+    keyPolicy: {
+      keyExpirationPeriodInDays: 0
+    }
+    largeFileSharesState: 'Enabled'
+    minimumTlsVersion: 'TLS1_2'
+    networkAcls: {
+      bypass: 'AzureServices'
+      defaultAction: 'Allow'
+    }
+    publicNetworkAccess: 'Enabled'
+    routingPreference: {
+      routingChoice: 'MicrosoftRouting'
+      publishInternetEndpoints: true
+      publishMicrosoftEndpoints: true
+    }
+    supportsHttpsTrafficOnly: true
   }
 }
