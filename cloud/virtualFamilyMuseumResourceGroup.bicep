@@ -171,3 +171,37 @@ resource familyDrive 'Microsoft.Storage/storageAccounts@2025-06-01' = {
     supportsHttpsTrafficOnly: true
   }
 }
+
+resource familyDriveBlobService 'Microsoft.Storage/storageAccounts/blobServices@2025-06-01' = {
+  parent: familyDrive
+  name: 'default'
+  properties: {
+    automaticSnapshotPolicyEnabled: false
+    changeFeed: {
+      enabled: false
+    }
+    containerDeleteRetentionPolicy: {
+      enabled: true
+      days: 7
+      allowPermanentDelete: true
+    }
+    cors: {
+      corsRules: []
+    }
+    deleteRetentionPolicy: {
+      enabled: true
+      days: 7
+      allowPermanentDelete: true
+    }
+    isVersioningEnabled: false
+    lastAccessTimeTrackingPolicy: {
+      enable: false
+      blobType: []
+      name: 'AccessTimeTracking'
+      trackingGranularityInDays: 0
+    }
+    restorePolicy: {
+      enabled: false
+    }
+  }
+}
