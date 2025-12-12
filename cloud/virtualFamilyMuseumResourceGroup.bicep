@@ -205,3 +205,36 @@ resource familyDriveBlobService 'Microsoft.Storage/storageAccounts/blobServices@
     }
   }
 }
+
+resource familyDriveImagesContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2025-06-01' = {
+  parent: familyDriveBlobService
+  name: 'images'
+  properties: {
+    immutableStorageWithVersioning: {
+      enabled: false
+    }
+    publicAccess: 'None'
+  }
+}
+
+resource familyDriveLogsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2025-06-01' = {
+  parent: familyDriveBlobService
+  name: 'logs'
+  properties: {
+    immutableStorageWithVersioning: {
+      enabled: false
+    }
+    publicAccess: 'None'
+  }
+}
+
+resource familyDriveTemplatesContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2025-06-01' = {
+  parent: familyDriveBlobService
+  name: 'templates'
+  properties: {
+    immutableStorageWithVersioning: {
+      enabled: false
+    }
+    publicAccess: 'None'
+  }
+}
