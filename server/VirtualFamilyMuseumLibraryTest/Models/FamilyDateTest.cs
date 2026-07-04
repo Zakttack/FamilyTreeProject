@@ -1,4 +1,6 @@
 using VirtualFamilyMuseumLibrary.Models;
+using VirtualFamilyMuseumLibrary.Serialization;
+using VirtualFamilyMuseumLibrary.Serialization.Models;
 
 namespace VirtualFamilyMuseumLibraryTest.Models
 {
@@ -165,6 +167,50 @@ namespace VirtualFamilyMuseumLibraryTest.Models
         {
             FamilyDate firstDate = new("1960-1967");
             FamilyDate secondDate = new("1960-1967");
+
+            int result = firstDate.CompareTo(secondDate);
+            Assert.That(result, Is.EqualTo(0));
+        }
+
+        // =====================================================================
+        // CompareTo — year exactly matches range boundary
+        // =====================================================================
+
+        [Test]
+        public void NonRangeYearEqualToRangeMinimumShouldCompareAsEqual()
+        {
+            FamilyDate firstDate = new("1999");
+            FamilyDate secondDate = new("1999-2026");
+
+            int result = firstDate.CompareTo(secondDate);
+            Assert.That(result, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void NonRangeYearEqualToRangeMaximumShouldCompareAsEqual()
+        {
+            FamilyDate firstDate = new("2026");
+            FamilyDate secondDate = new("1999-2026");
+
+            int result = firstDate.CompareTo(secondDate);
+            Assert.That(result, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void RangeYearWithMinimumEqualToOtherYearShouldCompareAsEqual()
+        {
+            FamilyDate firstDate = new("1967-1999");
+            FamilyDate secondDate = new("1967");
+
+            int result = firstDate.CompareTo(secondDate);
+            Assert.That(result, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void RangeYearWithMaximumEqualToOtherYearShouldCompareAsEqual()
+        {
+            FamilyDate firstDate = new("1967-1999");
+            FamilyDate secondDate = new("1999");
 
             int result = firstDate.CompareTo(secondDate);
             Assert.That(result, Is.EqualTo(0));
@@ -560,6 +606,43 @@ namespace VirtualFamilyMuseumLibraryTest.Models
             Assert.That(result, Is.Null);
         }
 
+        [Test]
+        public void GetDateShouldReturnNullForDayTokenWithTrailingNonDigitCharacters()
+        {
+            FamilyDate? result = null;
+            Assert.DoesNotThrow(() => result = FamilyDate.GetDate("15x Nov 2003"));
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void GetDateShouldReturnNullForDayTokenWithLeadingNonDigitCharacters()
+        {
+            FamilyDate? result = null;
+            Assert.DoesNotThrow(() => result = FamilyDate.GetDate("x15 Nov 2003"));
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void GetDateShouldReturnNullForYearWithExtraTrailingDigit()
+        {
+            FamilyDate? result = FamilyDate.GetDate("19999");
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void GetDateShouldReturnNullForYearWithTrailingLetter()
+        {
+            FamilyDate? result = FamilyDate.GetDate("1999x");
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void GetDateShouldReturnNullForRangeYearWithExtraDigits()
+        {
+            FamilyDate? result = FamilyDate.GetDate("19990-20260");
+            Assert.That(result, Is.Null);
+        }
+
         // =====================================================================
         // Comparison operators — both non-null operands
         // =====================================================================
@@ -911,6 +994,58 @@ namespace VirtualFamilyMuseumLibraryTest.Models
         {
             FamilyDate date = new("2024", Month.Dec, 31);
             Assert.That(date.Day, Is.EqualTo(31));
+        }
+
+        // =====================================================================
+        // Value (IBridge)
+        // =====================================================================
+
+        [Test]
+        public void ValueShouldMatchToStringForYearOnly()
+        {
+            FamilyDate date = new("1985");
+            IBridge bridge = date;
+            Assert.That(bridge.Value, Is.EqualTo((BridgeValue)"1985"));
+        }
+
+        [Test]
+        public void ValueShouldMatchToStringForMonthAndYear()
+        {
+            FamilyDate date = new("1985", Month.Aug);
+            IBridge bridge = date;
+            Assert.That(bridge.Value, Is.EqualTo((BridgeValue)"Aug 1985"));
+        }
+
+        [Test]
+        public void ValueShouldMatchToStringForFullDate()
+        {
+            FamilyDate date = new("1985", Month.Aug, 14);
+            IBridge bridge = date;
+            Assert.That(bridge.Value, Is.EqualTo((BridgeValue)"14 Aug 1985"));
+        }
+
+        [Test]
+        public void ValueShouldRoundTripThroughDeserializeDateForYearOnly()
+        {
+            FamilyDate original = new("1985");
+            IBridge bridge = original;
+            Assert.That(bridge.DeserializeDate(), Is.EqualTo(original));
+        }
+
+        [Test]
+        public void ValueShouldRoundTripThroughDeserializeDateForMonthAndYear()
+        {
+            FamilyDate original = new("1985", Month.Aug);
+            IBridge bridge = original;
+            Assert.That(bridge.DeserializeDate(), Is.EqualTo(original));
+        }
+
+        [Test]
+        public void ValueShouldRoundTripThroughDeserializeDateForFullDate()
+        {
+            FamilyDate original = new("1985", Month.Aug, 14);
+            IBridge bridge = original;
+            Assert.That(bridge.DeserializeDate(), Is.EqualTo(original));
         }
     }
 }

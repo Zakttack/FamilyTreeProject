@@ -1,9 +1,11 @@
 using System.Text;
 using System.Text.RegularExpressions;
+using VirtualFamilyMuseumLibrary.Serialization;
+using VirtualFamilyMuseumLibrary.Serialization.Models;
 
 namespace VirtualFamilyMuseumLibrary.Models
 {
-    public readonly partial struct FamilyDate(string year, Month? month = null, int? day = null) : IComparable<FamilyDate>, IEquatable<FamilyDate>
+    public readonly partial struct FamilyDate(string year, Month? month = null, int? day = null) : IBridge, IComparable<FamilyDate>, IEquatable<FamilyDate>
     {
         public string Year
         {
@@ -26,6 +28,14 @@ namespace VirtualFamilyMuseumLibrary.Models
             get
             {
                 return day;
+            }
+        }
+
+        public BridgeValue Value
+        {
+            get
+            {
+                return ToString();
             }
         }
 
@@ -285,13 +295,13 @@ namespace VirtualFamilyMuseumLibrary.Models
             };
         }
 
-        [GeneratedRegex(@"\d+")]
+        [GeneratedRegex(@"^\d+$")]
         private static partial Regex DayRegex();
 
-        [GeneratedRegex(@"\d\d\d\d")]
+        [GeneratedRegex(@"^\d\d\d\d$")]
         private static partial Regex YearNonRangeRegex();
 
-        [GeneratedRegex(@"\d\d\d\d-\d\d\d\d")]
+        [GeneratedRegex(@"^\d\d\d\d-\d\d\d\d$")]
         private static partial Regex YearRangeRegex();
     }
 }
