@@ -24,6 +24,8 @@
 /client/build
 
 infrastructure/*.ps1
+infrastructure/main/*.ps1
+infrastructure/test/*.ps1
 resources/2023PfingstenBookAlternate.pdf
 data/credentials.json
 
