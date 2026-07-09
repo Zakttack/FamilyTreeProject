@@ -23,7 +23,7 @@
 # production
 /client/build
 
-cloud/*.ps1
+infrastructure/*.ps1
 resources/2023PfingstenBookAlternate.pdf
 data/credentials.json
 
