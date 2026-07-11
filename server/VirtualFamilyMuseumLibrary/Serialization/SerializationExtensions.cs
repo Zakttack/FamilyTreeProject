@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using VirtualFamilyMuseumLibrary.Models;
 using VirtualFamilyMuseumLibrary.Serialization.Models;
@@ -11,6 +13,7 @@ namespace VirtualFamilyMuseumLibrary.Serialization
             return new JsonSerializerOptions()
             {
                 Converters = { new BridgeSerializer()},
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 WriteIndented = writeIndented
             };
         }
