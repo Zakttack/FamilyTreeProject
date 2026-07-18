@@ -23,7 +23,7 @@ resource familyInsightsTest 'Microsoft.Insights/components@2020-02-02' = {
   properties: {
     Application_Type: 'web'
     DisableIpMasking: false
-    DisableLocalAuth: true
+    DisableLocalAuth: false
     ForceCustomerStorageForProfiler: false
     ImmediatePurgeDataOn30Days: false
     IngestionMode: 'LogAnalytics'
