@@ -1,6 +1,12 @@
 using Azure.Identity;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.ApplicationInsights;
 
 namespace VirtualFamilyMuseumLibrary
 {
@@ -38,6 +44,40 @@ namespace VirtualFamilyMuseumLibrary
                 builder.AddAzureKeyVault(new Uri(keyVaultEndpoint), new DefaultAzureCredential());
             }
             return builder;
+        }
+
+        public static IHostApplicationBuilder AddFamilyInsights(this IHostApplicationBuilder builder, ExecutionTypes executionType)
+        {
+            string? connectionString = builder.Configuration["FamilyInsights:ConnectionString"];
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                return builder;
+            }
+
+            builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
+            builder.Services.AddSingleton<ITelemetryInitializer>(new RoleNameTelemetryInitializer(executionType.ToString()));
+
+            builder.Services.AddApplicationInsightsTelemetryWorkerService(options =>
+            {
+                options.ConnectionString = connectionString;
+            });
+
+            builder.Logging.AddApplicationInsights(
+                config => config.ConnectionString = connectionString,
+                options => { });
+
+            builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>(null, LogLevel.Debug);
+
+            return builder;
+        }
+
+        private sealed class RoleNameTelemetryInitializer(string roleName) : ITelemetryInitializer
+        {
+            public void Initialize(ITelemetry telemetry)
+            {
+                telemetry.Context.Cloud.RoleName = roleName;
+            }
         }
     }
 }
