@@ -1,4 +1,13 @@
-# Family Tree Project
+## Family Tree Project
+# Table of Contents
+1. Overview
+2. Motivation & Background
+3. Architecture Summary
+4. Key Features
+5. Technical Focus & Learning
+6. Branch Overview
+7. Teamwork & Communication
+8. Outcome
 # Background
 Initially, the family reunion committee is implementing a family tree in a word document and continually saving each update as PDF. After attending the reunion and looking at the physical copy of the tree, I thought to myself that I can automate this process by the applying the fundamemental concepts of Full-Stack Software programming. As a family reunion committee member, I am automating the family tree by writting a ASP.NET Core Full-Stack application that represents each family instance as a tree node in terms of Graph Theory as a MongoDB Collection record and in the DAO, Reading/Writing from a MongoDB Collection partitioned by family name as tree structure represented in Graph Theory.
 
