@@ -20,3 +20,10 @@ Backend: .NET 8 Web API
 Database: MongoDB  
 PDF Parsing: iText7  
 Data Model: Graph Theory lineage representation
+# Key Features
+- Interactive React UI for exploring hierarchical family structures
+- CRUD workflows for reporting marriages, children, and deceased members
+- PDF ingestion pipeline using iText7 to parse the original genealogy book
+- Graph‑based traversal logic for multi‑branch lineage relationships
+- Modular backend services for people, relationships, and lineage metadata
+- NoSQL document modeling for flexible, schema‑light storage
