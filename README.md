@@ -14,3 +14,9 @@ This project modernizes how my family reunion committee maintains our multi‑ge
 The system is built using TypeScript React, .NET 8 Web API, MongoDB, and iText7 PDF parsing, with lineage relationships represented as graph structures stored in flexible NoSQL documents.
 # Motivation & Background
 This project is both a volunteer contribution and a long-term engineering sandbox, blending personal passion with technical growth. It reinforces my engineering philosophy: clarity, structure, mathematics, and maintainability.
+# Architecture Summary
+Frontend: TypeScript React
+Backend: .NET 8 Web API
+Database: MongoDB
+PDF Parsing: iText7
+Data Model: Graph Theory lineage representation
