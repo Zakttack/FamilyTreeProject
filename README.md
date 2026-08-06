@@ -109,5 +109,5 @@ Current areas of exploration include:
   - Authentication & Authorization aligned with least‑privilege principles
   - Messaging & event‑driven patterns for identity mapping and microservice communication
   - Docker containerization for reproducibility and cloud deployment
-  - Unit & integration testing to strengthen reliability and maintainability
+  - Unit & integration testing to strengthen reliability and maintainability  
 Version 2 is a work‑in‑progress branch focused on architectural growth, cloud computing, and advanced engineering practices.
