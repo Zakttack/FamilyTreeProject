@@ -111,3 +111,5 @@ Current areas of exploration include:
   - Docker containerization for reproducibility and cloud deployment
   - Unit & integration testing to strengthen reliability and maintainability  
 Version 2 is a work‑in‑progress branch focused on architectural growth, cloud computing, and advanced engineering practices.
+# Teamwork & Communication
+This project required translating non‑technical family records into structured digital formats, reinforcing communication, mentorship, and collaborative design.
