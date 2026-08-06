@@ -86,3 +86,28 @@ The `dev` branch represents ongoing development and expands the system into clou
   Refining backend structure with clearer separation of concerns, improved maintainability, and scalable design patterns.
 
 Version 2 is the long-term evolution of the platform and reflects my growth toward becoming a cloud-centric software engineer.
+# Branch Overview
+- master — Stable Version 1 (Runnable)  
+This branch contains the fully functional local version of the platform and represents the foundational implementation of the system.
+  - Localhost React + TypeScript + CSS frontend
+  - .NET Web API backend
+  - MongoDB Document database
+  - PDF parsing pipeline using iText7
+  - Core Lineage modeling using graph-based relationships
+Version 1 is stable, runnable, and serves as the baseline for the project.
+- dev — Active development (Version 2, Not Runnable)
+The dev branch is not in a runnable state. It is intentionally used for browsing code, architectural exploration, and ongoing development work. This branch represents the long‑term evolution of the platform toward cloud‑centric, scalable architecture.  
+Current areas of exploration include:
+  - MVC architecture with clearer separation of concerns
+  - Azure services and Infrastructure‑as‑Code (IaC) using Bicep
+  - Transitioning from MongoDB + static file handling to Layered Polyglot Persistence, including:
+    - Neo4j for parent‑child lineage relationships
+    - Cosmos DB (NoSQL API) for person documents and family dynamics
+    - Redis caching for global state management
+    - PostgreSQL for assisting in the Authentication/Authorization Pipeline
+    - Azure Blob Storage for static file handling
+  - Authentication & Authorization aligned with least‑privilege principles
+  - Messaging & event‑driven patterns for identity mapping and microservice communication
+  - Docker containerization for reproducibility and cloud deployment
+  - Unit & integration testing to strengthen reliability and maintainability
+Version 2 is a work‑in‑progress branch focused on architectural growth, cloud computing, and advanced engineering practices.
