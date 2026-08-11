@@ -66,3 +66,16 @@ resource familyTemplatesContainer 'Microsoft.Storage/storageAccounts/blobService
     publicAccess: 'None'
   }
 }
+
+var storageBlobDataOwnerId = 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b'
+var objectId = '71528c84-639b-4d98-8895-a97b10ed3da7'
+
+resource developerBlobDataOwnerAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(familyStorageAccount.id, objectId, storageBlobDataOwnerId)
+  scope: familyStorageAccount
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', storageBlobDataOwnerId)
+    principalId: objectId
+    principalType: 'User'
+  }
+}
