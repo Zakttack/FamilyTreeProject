@@ -25,7 +25,7 @@ namespace VirtualFamilyMuseumLibrary.Drive.Models
             init;
         }
 
-        public required string ContentType
+        public required FamilyContentTypes ContentType
         {
             get;
             init;
