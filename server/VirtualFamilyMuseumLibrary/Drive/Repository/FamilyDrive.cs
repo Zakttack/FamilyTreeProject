@@ -85,12 +85,10 @@ namespace VirtualFamilyMuseumLibrary.Drive.Repository
             {
                 content.Position = 0;
             }
-            await blob.UploadAsync(content, new BlobUploadOptions()
+            await blob.UploadAsync(content, true);
+            await blob.SetHttpHeadersAsync(new BlobHttpHeaders
             {
-                HttpHeaders = new BlobHttpHeaders
-                {
-                    ContentType = contentType.GetContentType()
-                }
+                ContentType = contentType.GetContentType()
             });
             return new()
             {
