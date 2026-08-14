@@ -20,15 +20,21 @@ namespace VirtualFamilyMuseumLibrary.Drive.Repository
             templateClient = client.GetBlobContainerClient(configuration["FamilyDrive:TemplateContainerName"]!);
         }
 
-        public async Task<FamilyBlobResource?> DeleteAsync(string blobName)
+        private BlobClient? GetBlobClient(string blobName)
         {
-            FamilyDriveContainers? containerType = DriveExtensions.GetContainer(blobName);
-            BlobClient? blob = containerType switch
+            FamilyDriveContainers containerType = DriveExtensions.GetContainer(blobName);
+            string relativeBlobName = blobName[(blobName.IndexOf('/') + 1)..];
+            return containerType switch
             {
-                FamilyDriveContainers.Images => imageClient.GetBlobClient(blobName),
-                FamilyDriveContainers.Templates => templateClient.GetBlobClient(blobName),
+                FamilyDriveContainers.Images => imageClient.GetBlobClient(relativeBlobName),
+                FamilyDriveContainers.Templates => templateClient.GetBlobClient(relativeBlobName),
                 _ => null
             };
+        }
+
+        public async Task<FamilyBlobResource?> DeleteAsync(string blobName)
+        {
+            BlobClient? blob = GetBlobClient(blobName);
             if (blob is null || !await blob.ExistsAsync())
             {
                 return null;
@@ -47,13 +53,7 @@ namespace VirtualFamilyMuseumLibrary.Drive.Repository
 
         public async Task<FamilyBlobResource?> GetAsync(string blobName)
         {
-            FamilyDriveContainers containerType = DriveExtensions.GetContainer(blobName);
-            BlobClient? blob = containerType switch
-            {
-                FamilyDriveContainers.Images => imageClient.GetBlobClient(blobName),
-                FamilyDriveContainers.Templates => templateClient.GetBlobClient(blobName),
-                _ => null
-            };
+            BlobClient? blob = GetBlobClient(blobName);
             if (blob is null || !await blob.ExistsAsync())
             {
                 return null;
@@ -70,13 +70,7 @@ namespace VirtualFamilyMuseumLibrary.Drive.Repository
 
         public async Task<FamilyBlobResource?> SaveAsync(string blobName, Stream content, FamilyContentTypes contentType)
         {
-            FamilyDriveContainers containerType = DriveExtensions.GetContainer(blobName);
-            BlobClient? blob = containerType switch
-            {
-                FamilyDriveContainers.Images => imageClient.GetBlobClient(blobName),
-                FamilyDriveContainers.Templates => templateClient.GetBlobClient(blobName),
-                _ => null
-            };
+            BlobClient? blob = GetBlobClient(blobName);
             if (blob is null)
             {
                 return null;
