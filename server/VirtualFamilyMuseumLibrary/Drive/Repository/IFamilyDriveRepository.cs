@@ -6,6 +6,6 @@ namespace VirtualFamilyMuseumLibrary.Drive.Repository
     {
         public Task<FamilyBlobResource?> DeleteAsync(string blobName);
         public Task<FamilyBlobResource?> GetAsync(string blobName);
-        public Task<FamilyBlobResource?> UploadAsync(string blobName, Stream content, FamilyContentTypes contentType);
+        public Task<FamilyBlobResource?> SaveAsync(string blobName, Stream content, FamilyContentTypes contentType);
     }
 }

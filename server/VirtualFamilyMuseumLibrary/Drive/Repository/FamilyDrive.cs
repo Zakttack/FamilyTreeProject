@@ -68,7 +68,7 @@ namespace VirtualFamilyMuseumLibrary.Drive.Repository
             };
         }
 
-        public async Task<FamilyBlobResource?> UploadAsync(string blobName, Stream content, FamilyContentTypes contentType)
+        public async Task<FamilyBlobResource?> SaveAsync(string blobName, Stream content, FamilyContentTypes contentType)
         {
             FamilyDriveContainers containerType = DriveExtensions.GetContainer(blobName);
             BlobClient? blob = containerType switch
