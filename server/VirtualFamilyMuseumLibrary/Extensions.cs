@@ -12,6 +12,7 @@ namespace VirtualFamilyMuseumLibrary
 {
     public static class Extensions
     {
+        public const char EN_DASH = '\u2013';
         public static IConfigurationBuilder AddConstantStorePipeline(this IConfigurationBuilder builder, ExecutionTypes executionType)
         {
             builder.AddEnvironmentVariables();
