@@ -1,5 +1,6 @@
 using VirtualFamilyMuseumLibrary.Drive;
 using VirtualFamilyMuseumLibrary.Drive.Models;
+using VirtualFamilyMuseumLibrary.Models;
 
 namespace VirtualFamilyMuseumLibraryTest.Drive
 {
@@ -317,6 +318,150 @@ namespace VirtualFamilyMuseumLibraryTest.Drive
 
             Assert.That(result, Has.Count.EqualTo(1));
             Assert.That(result.Dequeue(), Is.EqualTo("2.1) Amanda Ryleigh Thornwood (24 Jun 1963 – 24 Jun 1963) & Todd Logan Overby (10 Oct 1945 – 8 Sep 2002): 1987"));
+        }
+
+        // =====================================================================
+        // AsTemplateLine(string)
+        // =====================================================================
+
+        [Test]
+        public void AsTemplateLineShouldThrowInvalidCastExceptionForEmptyLine()
+        {
+            Assert.That(() => "".AsTemplateLine(), Throws.TypeOf<InvalidCastException>());
+        }
+
+        [Test]
+        public void AsTemplateLineShouldThrowInvalidCastExceptionForWhitespaceOnlyLine()
+        {
+            Assert.That(() => "   ".AsTemplateLine(), Throws.TypeOf<InvalidCastException>());
+        }
+
+        [Test]
+        public void AsTemplateLineShouldParseMemberWithNoDatesAndNoInLaw()
+        {
+            TemplateLine result = "1.1) Kit Dale Kessler (–)".AsTemplateLine();
+
+            Assert.That(result.Coordinate, Is.EqualTo(new HierarchicalCoordinate([1, 1])));
+            Assert.That(result.MemberBirthName, Is.EqualTo("Kit Dale Kessler"));
+            Assert.That(result.MemberBirthDate, Is.Null);
+            Assert.That(result.MemberDeceasedDate, Is.Null);
+            Assert.That(result.InLawBirthName, Is.Null);
+            Assert.That(result.FamilyDynamicStartDate, Is.Null);
+        }
+
+        [Test]
+        public void AsTemplateLineShouldParseMemberWithBirthDateButNoDeceasedDateAndNoInLaw()
+        {
+            TemplateLine result = "1) Todd Solo (1975 – Present)".AsTemplateLine();
+
+            Assert.That(result.Coordinate, Is.EqualTo(new HierarchicalCoordinate([1])));
+            Assert.That(result.MemberBirthName, Is.EqualTo("Todd Solo"));
+            Assert.That(result.MemberBirthDate, Is.EqualTo(new FamilyDate("1975")));
+            Assert.That(result.MemberDeceasedDate, Is.Null);
+        }
+
+        [Test]
+        public void AsTemplateLineShouldParseMemberWithBothDatesAndNoInLaw()
+        {
+            TemplateLine result = "2) Colby Bryan Kessler (20 Feb 1888 – Apr 1942)".AsTemplateLine();
+
+            Assert.That(result.Coordinate, Is.EqualTo(new HierarchicalCoordinate([2])));
+            Assert.That(result.MemberBirthName, Is.EqualTo("Colby Bryan Kessler"));
+            Assert.That(result.MemberBirthDate, Is.EqualTo(new FamilyDate("1888", Month.Feb, 20)));
+            Assert.That(result.MemberDeceasedDate, Is.EqualTo(new FamilyDate("1942", Month.Apr)));
+        }
+
+        [Test]
+        public void AsTemplateLineShouldParseFullLineWithInLawAndFamilyDynamicStartDate()
+        {
+            TemplateLine result = "1) Brian Bryan Kessler (Sep 1886 – Dec 1915) & Todd Zachary Vasterling (1911 – Present): 1948".AsTemplateLine();
+
+            Assert.That(result.Coordinate, Is.EqualTo(new HierarchicalCoordinate([1])));
+            Assert.That(result.MemberBirthName, Is.EqualTo("Brian Bryan Kessler"));
+            Assert.That(result.MemberBirthDate, Is.EqualTo(new FamilyDate("1886", Month.Sep)));
+            Assert.That(result.MemberDeceasedDate, Is.EqualTo(new FamilyDate("1915", Month.Dec)));
+            Assert.That(result.InLawBirthName, Is.EqualTo("Todd Zachary Vasterling"));
+            Assert.That(result.InLawBirthDate, Is.EqualTo(new FamilyDate("1911")));
+            Assert.That(result.InLawDeceasedDate, Is.Null);
+            Assert.That(result.FamilyDynamicStartDate, Is.EqualTo(new FamilyDate("1948")));
+        }
+
+        [Test]
+        public void AsTemplateLineShouldParseInLawWithNoFamilyDynamicStartDate()
+        {
+            // Regression: this is the exact shape that used to throw ArgumentOutOfRangeException
+            // before the family-dynamic-separator-index check was fixed from "< -1" to "< 0".
+            TemplateLine result = "1.1.3.1) Quinn Mitchell Thornwood (12 Jan 1990 – Present) & Rhonda Lillian Hollenbeck (10 Nov 1992 – Present)".AsTemplateLine();
+
+            Assert.That(result.Coordinate, Is.EqualTo(new HierarchicalCoordinate([1, 1, 3, 1])));
+            Assert.That(result.MemberBirthName, Is.EqualTo("Quinn Mitchell Thornwood"));
+            Assert.That(result.MemberBirthDate, Is.EqualTo(new FamilyDate("1990", Month.Jan, 12)));
+            Assert.That(result.MemberDeceasedDate, Is.Null);
+            Assert.That(result.InLawBirthName, Is.EqualTo("Rhonda Lillian Hollenbeck"));
+            Assert.That(result.InLawBirthDate, Is.EqualTo(new FamilyDate("1992", Month.Nov, 10)));
+            Assert.That(result.InLawDeceasedDate, Is.Null);
+            Assert.That(result.FamilyDynamicStartDate, Is.Null);
+        }
+
+        [Test]
+        public void AsTemplateLineShouldParseInLawWithNoDatesAtAll()
+        {
+            TemplateLine result = "3) Steven Chris Kessler (–) & Chris Colby Renquist (–)".AsTemplateLine();
+
+            Assert.That(result.MemberBirthDate, Is.Null);
+            Assert.That(result.MemberDeceasedDate, Is.Null);
+            Assert.That(result.InLawBirthName, Is.EqualTo("Chris Colby Renquist"));
+            Assert.That(result.InLawBirthDate, Is.Null);
+            Assert.That(result.InLawDeceasedDate, Is.Null);
+        }
+
+        [Test]
+        public void AsTemplateLineShouldParseCoordinatesWithManySegments()
+        {
+            TemplateLine result = "2.4.1.3.3) Danielle Nicole Brandvold (12 May 2020 – Present)".AsTemplateLine();
+
+            Assert.That(result.Coordinate, Is.EqualTo(new HierarchicalCoordinate([2, 4, 1, 3, 3])));
+        }
+
+        [Test]
+        public void AsTemplateLineShouldThrowFormatExceptionWhenNoHierarchicalCoordinateIsPresent()
+        {
+            // The leading segment (everything before the first delimiter) is always parsed as
+            // the coordinate. If a line doesn't start with one, that segment is non-numeric text
+            // and int.Parse surfaces that as a FormatException rather than a domain-specific one.
+            Assert.That(() => "John Doe (1975 – Present)".AsTemplateLine(), Throws.TypeOf<FormatException>());
+        }
+
+        [Test]
+        public void AsTemplateLineShouldThrowInvalidCastExceptionWhenFamilyDynamicStartDateExistsWithoutInLaw()
+        {
+            InvalidCastException? exception = Assert.Throws<InvalidCastException>(() => "1) Solo Name (1975 – Present): 1943".AsTemplateLine());
+            Assert.That(exception!.Message, Does.Contain("in-law"));
+        }
+
+        [Test]
+        public void AsTemplateLineShouldThrowInvalidCastExceptionWhenFamilyDynamicStartDatePrecedesInLawSummary()
+        {
+            InvalidCastException? exception = Assert.Throws<InvalidCastException>(() => "1) Member A (1975 – Present): 1943 & In Law B (1980 – Present)".AsTemplateLine());
+            Assert.That(exception!.Message, Does.Contain("must come before"));
+        }
+
+        [Test]
+        public void AsTemplateLineShouldRoundTripThroughToString()
+        {
+            string[] lines =
+            [
+                "1.1.2.1.1) Dalon Brandon Kowalczyk (–)",
+                "1.1.1) Landon Erik Thornwood (13 Dec 1973 – Present)",
+                "1) Lee Ann Alayna Thornwood (2 Dec 1905 – 6 Dec 1966) & Mary Malinda Hollenbeck, Sr. (8 Dec 1925 – Present): 16 Nov 1943",
+                "1.1.3.1) Quinn Mitchell Thornwood (12 Jan 1990 – Present) & Rhonda Lillian Hollenbeck (10 Nov 1992 – Present)",
+            ];
+
+            foreach (string line in lines)
+            {
+                TemplateLine result = line.AsTemplateLine();
+                Assert.That(result.ToString(), Is.EqualTo(line));
+            }
         }
     }
 }
