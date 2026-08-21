@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using VirtualFamilyMuseumLibrary.Drive.Models;
 
 namespace VirtualFamilyMuseumLibrary.Drive
@@ -28,6 +29,26 @@ namespace VirtualFamilyMuseumLibrary.Drive
                 "image/jpeg" => FamilyContentTypes.Image_JPEG,
                 _ => throw new NotSupportedException($"{text} isn't a supported content-type.")
             };
+        }
+
+        public static Queue<string> GetPdfPageLines(string[] initialLines)
+        {
+            Regex hierarchicalCoordinateRegex = new(@"^\d+(\.\d+)*\)\s+[A-Za-z]", RegexOptions.Compiled);
+            List<string> pdfLines = [.. initialLines];
+            int index = 0;
+            while (index < pdfLines.Count)
+            {
+                if (hierarchicalCoordinateRegex.IsMatch(pdfLines[index]))
+                {
+                    index++;
+                }
+                else
+                {
+                    pdfLines[index - 1] = $"{pdfLines[index - 1].Trim()} {pdfLines[index].Trim()}";
+                    pdfLines.RemoveAt(index);
+                }
+            }
+            return new Queue<string>(pdfLines.Select(line => line.Trim()));
         }
     }
 }
