@@ -17,16 +17,16 @@ namespace VirtualFamilyMuseumLibraryTest.Drive.Repository
     {
         // Seeded test data: 3 real PDF blobs living in the templates container. These are
         // read-only fixtures for this suite and must never be modified or deleted here.
-        private const string KESSLER_TEMPLATE_BLOB_NAME = "templates/2026/August/14/Kessler#266518394.pdf";
-        private const string KESSLER_TEMPLATE_BLOB_URL = "https://family6f26m763wyjwkdrive.blob.core.windows.net/templates/2026/August/14/Kessler%23266518394.pdf";
-        private const long KESSLER_TEMPLATE_BLOB_LENGTH = 122247;
+        private const string KESSLER_TEMPLATE_BLOB_NAME = "templates/2026/Aug/14/Kessler#266518394";
+        private const string KESSLER_TEMPLATE_BLOB_URL = "https://family6f26m763wyjwkdrive.blob.core.windows.net/templates/2026/Aug/14/Kessler%23266518394";
+        private const long KESSLER_TEMPLATE_BLOB_LENGTH = 122576;
 
-        private const string THORNWOOD_TEMPLATE_BLOB_NAME = "templates/2026/August/14/Thornwood#1030668903.pdf";
-        private const string THORNWOOD_TEMPLATE_BLOB_URL = "https://family6f26m763wyjwkdrive.blob.core.windows.net/templates/2026/August/14/Thornwood%231030668903.pdf";
-        private const long THORNWOOD_TEMPLATE_BLOB_LENGTH = 133507;
+        private const string THORNWOOD_TEMPLATE_BLOB_NAME = "templates/2026/Aug/14/Thornwood#1030668903";
+        private const string THORNWOOD_TEMPLATE_BLOB_URL = "https://family6f26m763wyjwkdrive.blob.core.windows.net/templates/2026/Aug/14/Thornwood%231030668903";
+        private const long THORNWOOD_TEMPLATE_BLOB_LENGTH = 126008;
 
-        private const string VANTONGEREN_TEMPLATE_BLOB_NAME = "templates/2026/August/14/Vantongeren#1545226455.pdf";
-        private const string VANTONGEREN_TEMPLATE_BLOB_URL = "https://family6f26m763wyjwkdrive.blob.core.windows.net/templates/2026/August/14/Vantongeren%231545226455.pdf";
+        private const string VANTONGEREN_TEMPLATE_BLOB_NAME = "templates/2026/Aug/14/Vantongeren#1545226455";
+        private const string VANTONGEREN_TEMPLATE_BLOB_URL = "https://family6f26m763wyjwkdrive.blob.core.windows.net/templates/2026/Aug/14/Vantongeren%231545226455";
         private const long VANTONGEREN_TEMPLATE_BLOB_LENGTH = 121597;
 
         private IHost host = null!;
@@ -96,7 +96,7 @@ namespace VirtualFamilyMuseumLibraryTest.Drive.Repository
         [Test]
         public async Task GetAsyncShouldReturnNullForNonExistentTemplateBlob()
         {
-            FamilyBlobResource? result = await drive.GetAsync("templates/2026/August/14/DoesNotExist.pdf");
+            FamilyBlobResource? result = await drive.GetAsync("templates/2026/Aug/14/DoesNotExist.pdf");
             Assert.That(result, Is.Null);
         }
 
