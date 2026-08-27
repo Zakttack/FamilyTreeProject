@@ -1,11 +1,25 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
+using VirtualFamilyMuseumLibrary.Drive.Domain;
 using VirtualFamilyMuseumLibrary.Drive.Models;
+using VirtualFamilyMuseumLibrary.Drive.Repository;
 using VirtualFamilyMuseumLibrary.Models;
 
 namespace VirtualFamilyMuseumLibrary.Drive
 {
     public static class DriveExtensions
     {
+        public static IHostApplicationBuilder AddFamilyDrive(this IHostApplicationBuilder builder)
+        {
+            builder.Services.AddSingleton<IFamilyDriveRepository,FamilyDrive>((provider) => new FamilyDrive(provider.GetRequiredService<IConfiguration>()));
+            builder.Services.AddSingleton((provider) => new TemplateReader(provider.GetRequiredService<IFamilyDriveRepository>(), 
+                provider.GetRequiredService<ILogger<TemplateReader>>()));
+            return builder;
+        }
+        
         public static TemplateLine AsTemplateLine(this string line)
         {
             if (string.IsNullOrWhiteSpace(line))
