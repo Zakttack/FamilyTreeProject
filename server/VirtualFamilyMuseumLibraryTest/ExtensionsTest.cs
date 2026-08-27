@@ -12,7 +12,7 @@ namespace VirtualFamilyMuseumLibraryTest
         internal const string FAMILY_VAULT_TEST_ENDPOINT = "https://kv-vfm-test.vault.azure.net/";
         private IHost host;
         private IConfiguration constantStore;
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
             Environment.SetEnvironmentVariable("FamilyConfigurationTest__Endpoint", FAMILY_CONFIGURATION_TEST_ENDPOINT);
@@ -24,7 +24,7 @@ namespace VirtualFamilyMuseumLibraryTest
             host = builder.Build();
         }
 
-        [TearDown]
+        [OneTimeTearDown]
         public void TearDown()
         {
             host.Dispose();
