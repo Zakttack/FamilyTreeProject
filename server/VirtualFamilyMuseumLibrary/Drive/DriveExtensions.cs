@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Text;
 using System.Text.RegularExpressions;
 using VirtualFamilyMuseumLibrary.Drive.Domain;
 using VirtualFamilyMuseumLibrary.Drive.Models;
@@ -109,6 +110,67 @@ namespace VirtualFamilyMuseumLibrary.Drive
                 }
             }
             return new Queue<string>(pdfLines.Select(line => line.Trim()));
+        }
+
+        public static IEnumerable<string[]> PackPages(IEnumerable<string> physicalLines)
+        {
+            const int MAX_LINES_PER_PAGE = 49;
+            IList<string[]> pages = [];
+            string[] page = new string[MAX_LINES_PER_PAGE];
+            int linePosition = 0;
+
+            foreach (string physicalLine in physicalLines)
+            {
+                if (linePosition >= page.Length)
+                {
+                    pages.Add(page);
+                    page = new string[MAX_LINES_PER_PAGE];
+                    linePosition = 0;
+                }
+                page[linePosition++] = physicalLine;
+            }
+
+            if (linePosition > 0)
+            {
+                pages.Add(page);
+            }
+
+            return pages;
+        }
+
+        public static IList<string> WrapTemplateLine(string text)
+        {
+            const int MAX_CHARACTERS_PER_LINE = 75;
+            string[] tokens = text.Split();
+            IList<string> wrapped = [];
+            StringBuilder lineBuilder = new();
+
+            foreach (string token in tokens)
+            {
+                if (token.Length >= MAX_CHARACTERS_PER_LINE)
+                {
+                    throw new ArgumentException("A token can't take up an entire line. It's too long.");
+                }
+                else if (lineBuilder.Length == 0)
+                {
+                    lineBuilder.Append(token);
+                }
+                else if (lineBuilder.Length + 1 + token.Length <= MAX_CHARACTERS_PER_LINE)
+                {
+                    lineBuilder.Append(' ').Append(token);
+                }
+                else
+                {
+                    wrapped.Add(lineBuilder.ToString());
+                    lineBuilder.Clear();
+                    lineBuilder.Append(token);
+                }
+            }
+            if (lineBuilder.Length > 0)
+            {
+                wrapped.Add(lineBuilder.ToString());
+            }
+            return wrapped;
         }
     }
 }

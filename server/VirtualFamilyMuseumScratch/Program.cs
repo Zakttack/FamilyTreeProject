@@ -29,3 +29,5 @@ foreach (string line in initialLines)
 {
     Console.WriteLine(line);
 }
+
+VirtualFamilyMuseumScratch.DenormalizeSketch.Demo();

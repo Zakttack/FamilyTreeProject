@@ -463,5 +463,235 @@ namespace VirtualFamilyMuseumLibraryTest.Drive
                 Assert.That(result.ToString(), Is.EqualTo(line));
             }
         }
+
+        // =====================================================================
+        // PackPages(IEnumerable<string>)
+        // =====================================================================
+
+        [Test]
+        public void PackPagesShouldReturnEmptyCollectionForEmptyInput()
+        {
+            IEnumerable<string[]> result = DriveExtensions.PackPages([]);
+            Assert.That(result, Is.Empty);
+        }
+
+        [Test]
+        public void PackPagesShouldFlushASinglePartiallyFilledPageWhenInputNeverReachesCapacity()
+        {
+            // Regression: an earlier implementation only flushed a page when the *next* line
+            // caused an overflow, so input that never overflowed produced zero pages.
+            string[] input = ["Line 0", "Line 1", "Line 2", "Line 3", "Line 4"];
+
+            string[][] result = [.. DriveExtensions.PackPages(input)];
+
+            Assert.That(result, Has.Length.EqualTo(1));
+            Assert.That(result[0], Has.Length.EqualTo(49));
+            Assert.That(result[0][..5], Is.EqualTo(input));
+        }
+
+        [Test]
+        public void PackPagesShouldLeaveUnusedSlotsInAPartiallyFilledPageAsNull()
+        {
+            string[][] result = [.. DriveExtensions.PackPages(["Only line"])];
+
+            Assert.That(result[0][0], Is.EqualTo("Only line"));
+            Assert.That(result[0][1..], Is.All.Null);
+        }
+
+        [Test]
+        public void PackPagesShouldReturnExactlyOnePageWhenInputExactlyFillsPageCapacity()
+        {
+            string[] input = [.. Enumerable.Range(0, 49).Select(i => $"Line {i}")];
+
+            string[][] result = [.. DriveExtensions.PackPages(input)];
+
+            Assert.That(result, Has.Length.EqualTo(1));
+            Assert.That(result[0], Is.EqualTo(input));
+        }
+
+        [Test]
+        public void PackPagesShouldStartANewPageWhenCapacityIsExceededByOneLine()
+        {
+            string[] input = [.. Enumerable.Range(0, 50).Select(i => $"Line {i}")];
+
+            string[][] result = [.. DriveExtensions.PackPages(input)];
+
+            Assert.That(result, Has.Length.EqualTo(2));
+            Assert.That(result[0], Is.EqualTo(input[..49]));
+            Assert.That(result[1][0], Is.EqualTo("Line 49"));
+            Assert.That(result[1][1..], Is.All.Null);
+        }
+
+        [Test]
+        public void PackPagesShouldReturnExactlyTwoPagesWhenInputExactlyFillsTwoPagesWorthOfCapacity()
+        {
+            string[] input = [.. Enumerable.Range(0, 98).Select(i => $"Line {i}")];
+
+            string[][] result = [.. DriveExtensions.PackPages(input)];
+
+            Assert.That(result, Has.Length.EqualTo(2));
+            Assert.That(result[0], Is.EqualTo(input[..49]));
+            Assert.That(result[1], Is.EqualTo(input[49..]));
+        }
+
+        [Test]
+        public void PackPagesShouldPreserveInputOrderAcrossPageBoundaries()
+        {
+            string[] input = [.. Enumerable.Range(0, 51).Select(i => $"Line {i}")];
+
+            string[][] result = [.. DriveExtensions.PackPages(input)];
+
+            Assert.That(result[0][0], Is.EqualTo("Line 0"));
+            Assert.That(result[0][48], Is.EqualTo("Line 48"));
+            Assert.That(result[1][0], Is.EqualTo("Line 49"));
+            Assert.That(result[1][1], Is.EqualTo("Line 50"));
+            Assert.That(result[1][2], Is.Null);
+        }
+
+        // =====================================================================
+        // WrapTemplateLine(string)
+        // =====================================================================
+
+        [Test]
+        public void WrapTemplateLineShouldReturnEmptyListForEmptyString()
+        {
+            IList<string> result = DriveExtensions.WrapTemplateLine("");
+            Assert.That(result, Is.Empty);
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldReturnEmptyListForWhitespaceOnlyString()
+        {
+            IList<string> result = DriveExtensions.WrapTemplateLine("   ");
+            Assert.That(result, Is.Empty);
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldReturnSingleLineForSingleShortToken()
+        {
+            IList<string> result = DriveExtensions.WrapTemplateLine("Todd");
+            Assert.That(result, Is.EqualTo(new List<string> { "Todd" }));
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldJoinTokensThatFitOnOneLineWithASingleSpace()
+        {
+            IList<string> result = DriveExtensions.WrapTemplateLine("Todd Solo");
+            Assert.That(result, Is.EqualTo(new List<string> { "Todd Solo" }));
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldPreserveAFullLineThatFitsWithinMaxWidth()
+        {
+            string line = "1) Todd Solo (1975 – Present)";
+            IList<string> result = DriveExtensions.WrapTemplateLine(line);
+            Assert.That(result, Is.EqualTo(new List<string> { line }));
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldSplitTwoTokensOntoSeparateLinesWhenTheyDontFitTogether()
+        {
+            string tokenA = new('a', 40);
+            string tokenB = new('b', 40);
+
+            IList<string> result = DriveExtensions.WrapTemplateLine($"{tokenA} {tokenB}");
+
+            Assert.That(result, Is.EqualTo(new List<string> { tokenA, tokenB }));
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldJoinTokensWhenCombinedLengthExactlyEqualsMaxWidth()
+        {
+            // 37 + 1 (space) + 37 = 75, exactly at MAX_CHARACTERS_PER_LINE.
+            string tokenA = new('a', 37);
+            string tokenB = new('b', 37);
+
+            IList<string> result = DriveExtensions.WrapTemplateLine($"{tokenA} {tokenB}");
+
+            Assert.That(result, Is.EqualTo(new List<string> { $"{tokenA} {tokenB}" }));
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldSplitTokensWhenCombinedLengthExceedsMaxWidthByOne()
+        {
+            // 37 + 1 (space) + 38 = 76, one over MAX_CHARACTERS_PER_LINE.
+            string tokenA = new('a', 37);
+            string tokenB = new('b', 38);
+
+            IList<string> result = DriveExtensions.WrapTemplateLine($"{tokenA} {tokenB}");
+
+            Assert.That(result, Is.EqualTo(new List<string> { tokenA, tokenB }));
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldAllowATokenOneCharacterUnderMaxWidth()
+        {
+            string token = new('a', 74);
+            IList<string> result = DriveExtensions.WrapTemplateLine(token);
+            Assert.That(result, Is.EqualTo(new List<string> { token }));
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldThrowArgumentExceptionForATokenExactlyAtMaxWidth()
+        {
+            string token = new('a', 75);
+            Assert.That(() => DriveExtensions.WrapTemplateLine(token), Throws.TypeOf<ArgumentException>());
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldThrowArgumentExceptionForATokenExceedingMaxWidth()
+        {
+            string token = new('a', 100);
+            Assert.That(() => DriveExtensions.WrapTemplateLine(token), Throws.TypeOf<ArgumentException>());
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldThrowForAnOverLongTokenRegardlessOfItsPositionAmongOtherTokens()
+        {
+            string tooLong = new('a', 80);
+            Assert.That(() => DriveExtensions.WrapTemplateLine($"Todd {tooLong} Solo"), Throws.TypeOf<ArgumentException>());
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldWrapARealisticLongTemplateLineOntoMultiplePhysicalLines()
+        {
+            string line = "1) Brian Bryan Kessler (Sep 1886 – Dec 1915) & Todd Zachary Vasterling (1911 – Present): 1948";
+
+            IList<string> result = DriveExtensions.WrapTemplateLine(line);
+
+            Assert.That(result, Is.EqualTo(new List<string>
+            {
+                "1) Brian Bryan Kessler (Sep 1886 – Dec 1915) & Todd Zachary Vasterling",
+                "(1911 – Present): 1948"
+            }));
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldDropLeadingWhitespaceRatherThanProduceALeadingSpaceOnTheFirstLine()
+        {
+            // Split() emits an empty-string token for each leading whitespace character, but
+            // the "lineBuilder is empty" branch appends an empty token as a no-op, so leading
+            // runs of whitespace are silently dropped rather than preserved.
+            IList<string> result = DriveExtensions.WrapTemplateLine("  Todd Solo");
+            Assert.That(result, Is.EqualTo(new List<string> { "Todd Solo" }));
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldPreserveEmbeddedConsecutiveWhitespaceExactly()
+        {
+            // Split() (no arguments) treats each whitespace character as its own delimiter
+            // rather than collapsing runs, so N consecutive spaces yield N-1 empty-string
+            // tokens between real words. Each empty token still consumes a single-space
+            // append during reconstruction, so the run's width ends up preserved.
+            IList<string> result = DriveExtensions.WrapTemplateLine("Todd  Solo");
+            Assert.That(result, Is.EqualTo(new List<string> { "Todd  Solo" }));
+        }
+
+        [Test]
+        public void WrapTemplateLineShouldPreserveTrailingWhitespaceOnTheFinalLine()
+        {
+            IList<string> result = DriveExtensions.WrapTemplateLine("Todd Solo  ");
+            Assert.That(result, Is.EqualTo(new List<string> { "Todd Solo  " }));
+        }
     }
 }
