@@ -16,8 +16,10 @@ namespace VirtualFamilyMuseumLibrary.Drive
         public static IHostApplicationBuilder AddFamilyDrive(this IHostApplicationBuilder builder)
         {
             builder.Services.AddSingleton<IFamilyDriveRepository,FamilyDrive>((provider) => new FamilyDrive(provider.GetRequiredService<IConfiguration>()));
-            builder.Services.AddSingleton((provider) => new TemplateReader(provider.GetRequiredService<IFamilyDriveRepository>(), 
+            builder.Services.AddSingleton((provider) => new TemplateReader(provider.GetRequiredService<IFamilyDriveRepository>(),
                 provider.GetRequiredService<ILogger<TemplateReader>>()));
+            builder.Services.AddSingleton((provider) => new TemplateWriter(provider.GetRequiredService<ILogger<TemplateWriter>>(),
+                provider.GetRequiredService<IConfiguration>(), provider.GetRequiredService<IFamilyDriveRepository>()));
             return builder;
         }
         
@@ -112,27 +114,34 @@ namespace VirtualFamilyMuseumLibrary.Drive
             return new Queue<string>(pdfLines.Select(line => line.Trim()));
         }
 
-        public static IEnumerable<string[]> PackPages(IEnumerable<string> physicalLines)
+        public static IEnumerable<string[]> PackPages(IEnumerable<IList<string>> physicalLineGroups)
         {
             const int MAX_LINES_PER_PAGE = 49;
             IList<string[]> pages = [];
             string[] page = new string[MAX_LINES_PER_PAGE];
             int linePosition = 0;
 
-            foreach (string physicalLine in physicalLines)
+            foreach (IList<string> physicalLines in physicalLineGroups)
             {
-                if (linePosition >= page.Length)
+                if (physicalLines.Count >= MAX_LINES_PER_PAGE)
                 {
-                    pages.Add(page);
-                    page = new string[MAX_LINES_PER_PAGE];
-                    linePosition = 0;
+                    throw new ArgumentException("A template line can't take up an entire page. It's too long.");
                 }
-                page[linePosition++] = physicalLine;
+                else if (linePosition + physicalLines.Count > MAX_LINES_PER_PAGE)
+                {
+                    pages.Add([..page]);
+                    linePosition = 0;
+                    Array.Fill(page, null);
+                }
+                foreach (string line in physicalLines)
+                {
+                    page[linePosition++] = line;
+                }
             }
 
             if (linePosition > 0)
             {
-                pages.Add(page);
+                pages.Add([..page]);
             }
 
             return pages;

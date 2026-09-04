@@ -465,7 +465,7 @@ namespace VirtualFamilyMuseumLibraryTest.Drive
         }
 
         // =====================================================================
-        // PackPages(IEnumerable<string>)
+        // PackPages(IEnumerable<IList<string>>)
         // =====================================================================
 
         [Test]
@@ -478,74 +478,101 @@ namespace VirtualFamilyMuseumLibraryTest.Drive
         [Test]
         public void PackPagesShouldFlushASinglePartiallyFilledPageWhenInputNeverReachesCapacity()
         {
-            // Regression: an earlier implementation only flushed a page when the *next* line
+            // Regression: an earlier implementation only flushed a page when the *next* group
             // caused an overflow, so input that never overflowed produced zero pages.
-            string[] input = ["Line 0", "Line 1", "Line 2", "Line 3", "Line 4"];
+            string[] group = ["Line 0", "Line 1", "Line 2"];
 
-            string[][] result = [.. DriveExtensions.PackPages(input)];
+            string[][] result = [.. DriveExtensions.PackPages([group])];
 
             Assert.That(result, Has.Length.EqualTo(1));
             Assert.That(result[0], Has.Length.EqualTo(49));
-            Assert.That(result[0][..5], Is.EqualTo(input));
+            Assert.That(result[0][..3], Is.EqualTo(group));
+            Assert.That(result[0][3..], Is.All.Null);
         }
 
         [Test]
-        public void PackPagesShouldLeaveUnusedSlotsInAPartiallyFilledPageAsNull()
+        public void PackPagesShouldPlaceMultipleGroupsSequentiallyOnTheSamePageWhenTheyFit()
         {
-            string[][] result = [.. DriveExtensions.PackPages(["Only line"])];
+            string[] groupA = ["A0", "A1"];
+            string[] groupB = ["B0"];
 
-            Assert.That(result[0][0], Is.EqualTo("Only line"));
-            Assert.That(result[0][1..], Is.All.Null);
-        }
-
-        [Test]
-        public void PackPagesShouldReturnExactlyOnePageWhenInputExactlyFillsPageCapacity()
-        {
-            string[] input = [.. Enumerable.Range(0, 49).Select(i => $"Line {i}")];
-
-            string[][] result = [.. DriveExtensions.PackPages(input)];
+            string[][] result = [.. DriveExtensions.PackPages([groupA, groupB])];
 
             Assert.That(result, Has.Length.EqualTo(1));
-            Assert.That(result[0], Is.EqualTo(input));
+            Assert.That(result[0][0], Is.EqualTo("A0"));
+            Assert.That(result[0][1], Is.EqualTo("A1"));
+            Assert.That(result[0][2], Is.EqualTo("B0"));
+            Assert.That(result[0][3..], Is.All.Null);
         }
 
         [Test]
-        public void PackPagesShouldStartANewPageWhenCapacityIsExceededByOneLine()
+        public void PackPagesShouldNotStartANewPageWhenGroupsExactlyFillPageCapacity()
         {
-            string[] input = [.. Enumerable.Range(0, 50).Select(i => $"Line {i}")];
+            string[] firstGroup = [.. Enumerable.Range(0, 45).Select(i => $"Filler {i}")];
+            string[] secondGroup = ["Tail 0", "Tail 1", "Tail 2", "Tail 3"];
 
-            string[][] result = [.. DriveExtensions.PackPages(input)];
+            string[][] result = [.. DriveExtensions.PackPages([firstGroup, secondGroup])];
+
+            Assert.That(result, Has.Length.EqualTo(1));
+            Assert.That(result[0][..45], Is.EqualTo(firstGroup));
+            Assert.That(result[0][45..], Is.EqualTo(secondGroup));
+        }
+
+        [Test]
+        public void PackPagesShouldKeepAGroupTogetherOnTheNextPageRatherThanSplittingItAcrossThePageBoundary()
+        {
+            // The business rule this exists for: a de-normalized template line's physical
+            // lines must all land on the same page. 47 single-line filler groups leave only
+            // 2 slots free on the page; a 3-line group can't fit in those 2 slots, so it must
+            // move to a fresh page in full rather than splitting 2 lines onto page 1 and the
+            // remaining 1 onto page 2.
+            string[] fillerLabels = [.. Enumerable.Range(0, 47).Select(i => $"Filler {i}")];
+            IEnumerable<IList<string>> fillerGroups = fillerLabels.Select(label => (IList<string>)new[] { label });
+            string[] group = ["Group X Line 0", "Group X Line 1", "Group X Line 2"];
+
+            string[][] result = [.. DriveExtensions.PackPages([.. fillerGroups, group])];
 
             Assert.That(result, Has.Length.EqualTo(2));
-            Assert.That(result[0], Is.EqualTo(input[..49]));
-            Assert.That(result[1][0], Is.EqualTo("Line 49"));
-            Assert.That(result[1][1..], Is.All.Null);
+            Assert.That(result[0][..47], Is.EqualTo(fillerLabels));
+            Assert.That(result[0][47..], Is.All.Null);
+            Assert.That(result[1][..3], Is.EqualTo(group));
+            Assert.That(result[1][3..], Is.All.Null);
         }
 
         [Test]
-        public void PackPagesShouldReturnExactlyTwoPagesWhenInputExactlyFillsTwoPagesWorthOfCapacity()
+        public void PackPagesShouldReturnExactlyTwoPagesWhenGroupsExactlyFillTwoPagesWorthOfCapacity()
         {
-            string[] input = [.. Enumerable.Range(0, 98).Select(i => $"Line {i}")];
+            string[] labels = [.. Enumerable.Range(0, 98).Select(i => $"Line {i}")];
+            IEnumerable<IList<string>> groups = labels.Select(label => (IList<string>)new[] { label });
 
-            string[][] result = [.. DriveExtensions.PackPages(input)];
+            string[][] result = [.. DriveExtensions.PackPages(groups)];
 
             Assert.That(result, Has.Length.EqualTo(2));
-            Assert.That(result[0], Is.EqualTo(input[..49]));
-            Assert.That(result[1], Is.EqualTo(input[49..]));
+            Assert.That(result[0], Is.EqualTo(labels[..49]));
+            Assert.That(result[1], Is.EqualTo(labels[49..]));
         }
 
         [Test]
-        public void PackPagesShouldPreserveInputOrderAcrossPageBoundaries()
+        public void PackPagesShouldThrowArgumentExceptionForAGroupThatExactlyFillsAnEntirePage()
         {
-            string[] input = [.. Enumerable.Range(0, 51).Select(i => $"Line {i}")];
+            string[] group = [.. Enumerable.Range(0, 49).Select(i => $"Line {i}")];
+            Assert.That(() => DriveExtensions.PackPages([group]), Throws.TypeOf<ArgumentException>());
+        }
 
-            string[][] result = [.. DriveExtensions.PackPages(input)];
+        [Test]
+        public void PackPagesShouldThrowArgumentExceptionForAGroupExceedingPageCapacity()
+        {
+            string[] group = [.. Enumerable.Range(0, 60).Select(i => $"Line {i}")];
+            Assert.That(() => DriveExtensions.PackPages([group]), Throws.TypeOf<ArgumentException>());
+        }
 
-            Assert.That(result[0][0], Is.EqualTo("Line 0"));
-            Assert.That(result[0][48], Is.EqualTo("Line 48"));
-            Assert.That(result[1][0], Is.EqualTo("Line 49"));
-            Assert.That(result[1][1], Is.EqualTo("Line 50"));
-            Assert.That(result[1][2], Is.Null);
+        [Test]
+        public void PackPagesShouldThrowForAnOversizedGroupRegardlessOfItsPositionAmongOtherGroups()
+        {
+            string[] smallGroup = ["A0"];
+            string[] oversizedGroup = [.. Enumerable.Range(0, 50).Select(i => $"Line {i}")];
+
+            Assert.That(() => DriveExtensions.PackPages([smallGroup, oversizedGroup]), Throws.TypeOf<ArgumentException>());
         }
 
         // =====================================================================
