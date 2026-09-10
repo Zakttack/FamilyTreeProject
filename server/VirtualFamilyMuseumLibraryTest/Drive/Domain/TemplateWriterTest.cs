@@ -50,9 +50,9 @@ namespace VirtualFamilyMuseumLibraryTest.Drive.Domain
         // =====================================================================
 
         [Test]
-        public void WriteLinesAsyncShouldThrowArgumentExceptionForEmptyTemplate()
+        public void WriteLinesAsyncShouldThrowInvalidOperationExceptionForEmptyTemplate()
         {
-            Assert.ThrowsAsync<ArgumentException>(async () => await writer.WriteLinesAsync(NewScratchFamilyName(), []));
+            Assert.ThrowsAsync<InvalidOperationException>(async () => await writer.WriteLinesAsync(NewScratchFamilyName(), []));
         }
 
         // =====================================================================
