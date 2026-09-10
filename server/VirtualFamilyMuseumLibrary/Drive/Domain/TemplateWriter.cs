@@ -23,7 +23,7 @@ namespace VirtualFamilyMuseumLibrary.Drive.Domain
             if (!templateContent.Any())
             {
                 logger.LogWarning("Template for {InheritedFamilyName} is empty; nothing to write.", inheritedFamilyName);
-                throw new ArgumentException("Template can't be empty.");
+                throw new InvalidOperationException("Template can't be empty.");
             }
             IList<IList<string>> physicalLineGroups = [];
             foreach (TemplateLine line in templateContent)
@@ -48,7 +48,7 @@ namespace VirtualFamilyMuseumLibrary.Drive.Domain
                 10 => Month.Oct,
                 11 => Month.Nov,
                 12 => Month.Dec,
-                _ => throw new InvalidOperationException("Unexpected Month.")
+                _ => throw new InvalidOperationException($"Unexpected Month value: {date.Month}")
             };
             FamilyDate normalizedDate = new(date.Year.ToString(), normalizedMonth, date.Day);
             string blobName = $"{configuration["FamilyDrive:TemplateContainerName"]}/{normalizedDate.Year}/{normalizedDate.Month}/{normalizedDate.Day}/{inheritedFamilyName}.pdf";
