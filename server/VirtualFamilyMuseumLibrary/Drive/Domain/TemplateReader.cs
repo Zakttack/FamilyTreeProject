@@ -83,7 +83,7 @@ namespace VirtualFamilyMuseumLibrary.Drive.Domain
                 {
                     if (current is null)
                     {
-                        throw new InvalidOperationException("No reading happened yet.");
+                        throw new InvalidOperationException("The enumerator is not positioned on a valid template line.");
                     }
                     return current;
                 }
@@ -95,7 +95,7 @@ namespace VirtualFamilyMuseumLibrary.Drive.Domain
                 {
                     if (current is null)
                     {
-                        throw new InvalidOperationException("No reading happened yet.");
+                        throw new InvalidOperationException("The enumerator is not positioned on a valid template line.");
                     }
                     return current;
                 }
