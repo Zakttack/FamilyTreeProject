@@ -20,6 +20,8 @@ namespace VirtualFamilyMuseumLibrary.Drive
                 provider.GetRequiredService<ILogger<TemplateReader>>()));
             builder.Services.AddSingleton((provider) => new TemplateWriter(provider.GetRequiredService<ILogger<TemplateWriter>>(),
                 provider.GetRequiredService<IConfiguration>(), provider.GetRequiredService<IFamilyDriveRepository>()));
+            builder.Services.AddSingleton((provider) => new FamilyDriveService(provider.GetRequiredService<ILogger<FamilyDriveService>>(),
+                provider.GetRequiredService<IFamilyDriveRepository>()));
             return builder;
         }
         

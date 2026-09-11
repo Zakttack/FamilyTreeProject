@@ -22,7 +22,7 @@ namespace VirtualFamilyMuseumLibrary.Drive.Domain
             logger.LogInformation("Writing a template for {InheritedFamilyName} to the family drive.", inheritedFamilyName);
             if (!templateContent.Any())
             {
-                logger.LogWarning("Template for {InheritedFamilyName} is empty; nothing to write.", inheritedFamilyName);
+                logger.LogError("Template for {InheritedFamilyName} is empty; nothing to write.", inheritedFamilyName);
                 throw new InvalidOperationException("Template can't be empty.");
             }
             IList<IList<string>> physicalLineGroups = [];
@@ -88,7 +88,7 @@ namespace VirtualFamilyMuseumLibrary.Drive.Domain
             FamilyBlobResource? resource = await repository.SaveAsync(blobName, content, FamilyContentTypes.Application_PDF);
             if (resource is null)
             {
-                logger.LogWarning("Unable to upload {BlobName} to the templates container.", blobName);
+                logger.LogError("Unable to upload {BlobName} to the templates container.", blobName);
                 throw new IOException("Unable to upload to the templates container.");
             }
             logger.LogInformation("Wrote template for {InheritedFamilyName} to {BlobName} across {PageCount} page(s).", inheritedFamilyName, blobName, pageNumber);

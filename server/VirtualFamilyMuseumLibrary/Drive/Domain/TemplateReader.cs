@@ -23,7 +23,7 @@ namespace VirtualFamilyMuseumLibrary.Drive.Domain
                 // Insights query for "why did reads fail this week" actually needs; without it the
                 // only trace of a not-found blob is the exception text bubbling up through whatever
                 // caught it (or nothing, if the caller only logs unhandled exceptions).
-                logger.LogWarning("{BlobName} isn't found within the templates container of the family drive.", blobName);
+                logger.LogError("{BlobName} isn't found within the templates container of the family drive.", blobName);
                 throw new InvalidOperationException($"{blobName} isn't found within the templates container of the family drive.");
             }
             if (blobResource.ContentType != FamilyContentTypes.Application_PDF)
@@ -31,7 +31,7 @@ namespace VirtualFamilyMuseumLibrary.Drive.Domain
                 // Same reasoning as above, for the other thrown path. Including ContentType here
                 // (and not just in the exception message) means a query can group "wrong content
                 // type" failures by what they actually were, e.g. "how many were JPEGs".
-                logger.LogWarning("{BlobName} isn't a template ({ContentType}).", blobName, blobResource.ContentType);
+                logger.LogError("{BlobName} isn't a template ({ContentType}).", blobName, blobResource.ContentType);
                 throw new InvalidOperationException($"{blobName} isn't a template.");
             }
             logger.LogInformation("Opening {BlobName} for reading.", blobResource.BlobName);
